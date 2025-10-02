@@ -1,0 +1,200 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light theme tokens */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 12%;
+
+    --primary: 240 5% 10%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 20%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 20%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 240 6% 25%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Dark theme tokens */
+    --background: 240 10% 4%;
+    --foreground: 0 0% 100%;
+
+    --card: 240 8% 7%;
+    --card-foreground: 0 0% 96%;
+
+    --popover: 240 8% 7%;
+    --popover-foreground: 0 0% 96%;
+
+    --primary: 0 0% 100%;
+    --primary-foreground: 240 10% 5%;
+
+    --secondary: 240 6% 14%;
+    --secondary-foreground: 0 0% 95%;
+
+    --muted: 240 6% 14%;
+    --muted-foreground: 0 0% 62%;
+
+    --accent: 240 6% 14%;
+    --accent-foreground: 0 0% 95%;
+
+    --destructive: 0 62% 46%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 6% 20%;
+    --input: 240 6% 20%;
+    --ring: 0 0% 100%;
+
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Components layer: micro-interactions and utilities */
+@layer components {
+  .interactive {
+    @apply transition-all duration-200 ease-out motion-safe:transform-gpu;
+  }
+  .card-hover {
+    @apply interactive hover:bg-accent/20 motion-safe:hover:translate-y-[1px] motion-safe:hover:shadow-sm;
+  }
+  .list-animate-in {
+    @apply animate-in fade-in-50 slide-in-from-bottom-2 duration-300;
+  }
+  .pressable {
+    @apply active:scale-[0.98];
+  }
+}
+
+/* Reduced motion respect */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Modern Tabs Styles */
+.tabs-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tabs {
+  display: flex;
+  position: relative;
+  background-color: rgb(24 24 27); /* zinc-900 */
+  box-shadow: 0 0 1px 0 rgba(24 24 27, 0.15), 0 6px 12px 0 rgba(24 24 27, 0.15);
+  padding: 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid rgb(39 39 42); /* zinc-800 */
+}
+
+.tabs * {
+  z-index: 2;
+}
+
+input[type="radio"] {
+  display: none;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  width: 140px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: color 0.15s ease-in;
+  color: rgb(161 161 170); /* zinc-400 */
+}
+
+.notification {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  margin-left: 0.75rem;
+  border-radius: 50%;
+  background-color: rgb(39 39 42); /* zinc-800 */
+  transition: 0.15s ease-in;
+}
+
+input[type="radio"]:checked + label {
+  color: rgb(255 255 255); /* white */
+}
+
+input[type="radio"]:checked + label > .notification {
+  background-color: rgb(59 130 246); /* blue-500 */
+  color: rgb(255 255 255); /* white */
+}
+
+input[id="radio-unified"]:checked ~ .glider {
+  transform: translateX(0);
+}
+
+input[id="radio-advanced"]:checked ~ .glider {
+  transform: translateX(100%);
+}
+
+input[id="radio-topic"]:checked ~ .glider {
+  transform: translateX(0);
+}
+
+input[id="radio-poi"]:checked ~ .glider {
+  transform: translateX(100%);
+}
+
+.glider {
+  position: absolute;
+  display: flex;
+  height: 40px;
+  width: 140px;
+  background-color: rgb(39 39 42); /* zinc-800 */
+  z-index: 1;
+  border-radius: 9999px;
+  transition: 0.25s ease-out;
+}
+
+@media (max-width: 700px) {
+  .tabs {
+    transform: scale(0.8);
+  }
+}
