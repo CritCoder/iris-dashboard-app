@@ -23,15 +23,15 @@ export function GlobalSearch() {
   return (
     <>
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <input 
           type="text"
           placeholder="Search..."
           onClick={() => setIsSpotlightOpen(true)}
-          className="bg-zinc-900 border border-zinc-800 rounded-lg pl-10 pr-20 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-700 w-80 cursor-pointer"
+          className="bg-background border border-border rounded-lg pl-10 pr-20 py-2 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-ring w-80 cursor-pointer"
           readOnly
         />
-        <kbd className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-0.5 text-xs text-zinc-500 bg-zinc-800 rounded border border-zinc-700">⌘K</kbd>
+        <kbd className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-0.5 text-xs text-muted-foreground bg-muted rounded border border-border">⌘K</kbd>
       </div>
       
       <SpotlightSearch 

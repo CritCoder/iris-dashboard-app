@@ -239,14 +239,14 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm" onClick={onClose}>
       <div className="flex items-start justify-center pt-[10vh] px-4">
         <div 
           className="w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Search Input */}
-          <div className="flex items-center gap-3 p-4 border-b border-zinc-800">
+          <div className="flex items-center gap-3 p-6 border-b border-zinc-800">
             <Search className="w-5 h-5 text-zinc-500" />
             <input
               ref={inputRef}
@@ -264,17 +264,17 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
           {/* Results */}
           <div className="max-h-96 overflow-y-auto" ref={resultsRef}>
             {filteredResults.length === 0 && query.trim() ? (
-              <div className="p-8 text-center text-zinc-500">
-                <Search className="w-8 h-8 mx-auto mb-3 text-zinc-600" />
+              <div className="p-12 text-center text-zinc-500">
+                <Search className="w-8 h-8 mx-auto mb-4 text-zinc-600" />
                 <p>No results found for "{query}"</p>
               </div>
             ) : filteredResults.length === 0 ? (
-              <div className="p-8 text-center text-zinc-500">
-                <Clock className="w-8 h-8 mx-auto mb-3 text-zinc-600" />
+              <div className="p-12 text-center text-zinc-500">
+                <Clock className="w-8 h-8 mx-auto mb-4 text-zinc-600" />
                 <p>Start typing to search...</p>
               </div>
             ) : (
-              <div className="p-2">
+              <div className="p-4">
                 {filteredResults.map((result, index) => {
                   const Icon = result.icon
                   return (
@@ -309,7 +309,7 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between p-3 border-t border-zinc-800 text-xs text-zinc-500">
+          <div className="flex items-center justify-between p-6 border-t border-zinc-800 text-xs text-zinc-500">
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1">
                 <kbd className="px-1.5 py-0.5 bg-zinc-800 rounded text-xs">↑↓</kbd>

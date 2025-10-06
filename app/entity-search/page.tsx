@@ -40,14 +40,14 @@ function SearchCard({
   }
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-all">
+    <div className="bg-card border border-border rounded-lg p-6 hover:border-muted-foreground/50 transition-all">
       <div className="flex items-start gap-4 mb-4">
-        <div className="w-12 h-12 rounded-lg bg-zinc-800 flex items-center justify-center flex-shrink-0">
-          <Icon className="w-6 h-6 text-zinc-400" />
+        <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+          <Icon className="w-6 h-6 text-muted-foreground" />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-white font-semibold mb-1">{title}</h3>
-          <p className="text-sm text-zinc-500">{description}</p>
+          <h3 className="text-foreground font-semibold mb-1">{title}</h3>
+          <p className="text-sm text-muted-foreground">{description}</p>
         </div>
       </div>
 
@@ -59,7 +59,7 @@ function SearchCard({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            className="bg-zinc-800 border-zinc-700 text-white placeholder-zinc-500 flex-1"
+            className="flex-1"
           />
           <Button 
             onClick={handleSearch} 
@@ -83,25 +83,25 @@ function SearchCard({
         {result && (
           <div className={`p-4 rounded-lg border ${
             result.found 
-              ? 'bg-green-900/20 border-green-800' 
-              : 'bg-zinc-800/50 border-zinc-700'
+              ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' 
+              : 'bg-muted/50 border-border'
           }`}>
             {result.found ? (
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-green-400 text-sm font-medium mb-3">
-                  <div className="w-2 h-2 rounded-full bg-green-400" />
+                <div className="flex items-center gap-2 text-green-600 dark:text-green-400 text-sm font-medium mb-3">
+                  <div className="w-2 h-2 rounded-full bg-green-600 dark:bg-green-400" />
                   Results Found
                 </div>
                 {Object.entries(result.data).map(([key, value]) => (
                   <div key={key} className="flex items-center justify-between text-sm">
-                    <span className="text-zinc-400 capitalize">{key.replace(/_/g, ' ')}:</span>
-                    <span className="text-white font-medium">{value as string}</span>
+                    <span className="text-muted-foreground capitalize">{key.replace(/_/g, ' ')}:</span>
+                    <span className="text-foreground font-medium">{value as string}</span>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="flex items-center gap-2 text-zinc-500 text-sm">
-                <div className="w-2 h-2 rounded-full bg-zinc-600" />
+              <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                <div className="w-2 h-2 rounded-full bg-muted-foreground" />
                 No results found
               </div>
             )}
@@ -537,42 +537,44 @@ export default function EntitySearchPage() {
           {activeTab === 'unified' ? (
             <div className="space-y-6">
               {/* Unified Search Bar */}
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <Search className="w-6 h-6 text-zinc-400" />
-                  <div>
-                    <h2 className="text-lg font-semibold text-white">Unified Search</h2>
-                    <p className="text-sm text-zinc-500">Search across all databases simultaneously</p>
+              <div className="flex justify-center">
+                <div className="bg-card border border-border rounded-lg p-6 w-1/2">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Search className="w-6 h-6 text-muted-foreground" />
+                    <div>
+                      <h2 className="text-lg font-semibold text-foreground">Unified Search</h2>
+                      <p className="text-sm text-muted-foreground">Search across all databases simultaneously</p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex gap-3">
-                  <Input
-                    type="text"
-                    placeholder="Enter mobile number (e.g., 9876543210)"
-                    value={unifiedQuery}
-                    onChange={(e) => setUnifiedQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleUnifiedSearch()}
-                    className="bg-zinc-800 border-zinc-700 text-white placeholder-zinc-500 flex-1 text-lg py-6"
-                  />
-                  <Button 
-                    onClick={handleUnifiedSearch}
-                    disabled={unifiedLoading || !unifiedQuery.trim()}
-                    className="gap-2 px-8"
-                    size="lg"
-                  >
-                    {unifiedLoading ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Searching...
-                      </>
-                    ) : (
-                      <>
-                        <Search className="w-5 h-5" />
-                        Search All
-                      </>
-                    )}
-                  </Button>
+                  <div className="flex gap-3">
+                    <Input
+                      type="text"
+                      placeholder="Enter mobile number (e.g., 9876543210)"
+                      value={unifiedQuery}
+                      onChange={(e) => setUnifiedQuery(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleUnifiedSearch()}
+                      className="bg-zinc-800 border-zinc-700 text-white placeholder-zinc-500 flex-1 text-lg py-6"
+                    />
+                    <Button 
+                      onClick={handleUnifiedSearch}
+                      disabled={unifiedLoading || !unifiedQuery.trim()}
+                      className="gap-2 px-8"
+                      size="lg"
+                    >
+                      {unifiedLoading ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Searching...
+                        </>
+                      ) : (
+                        <>
+                          <Search className="w-5 h-5" />
+                          Search All
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
 
@@ -584,14 +586,14 @@ export default function EntitySearchPage() {
                     if (!result) return null
 
                     return (
-                      <div key={searchType.id} className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+                      <div key={searchType.id} className="bg-card border border-border rounded-lg p-6">
                         <div className="flex items-start gap-4 mb-4">
-                          <div className="w-12 h-12 rounded-lg bg-zinc-800 flex items-center justify-center flex-shrink-0">
-                            <searchType.icon className="w-6 h-6 text-zinc-400" />
+                          <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                            <searchType.icon className="w-6 h-6 text-muted-foreground" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-white font-semibold mb-1">{searchType.title}</h3>
-                            <p className="text-sm text-zinc-500">{searchType.description}</p>
+                            <h3 className="text-foreground font-semibold mb-1">{searchType.title}</h3>
+                            <p className="text-sm text-muted-foreground">{searchType.description}</p>
                           </div>
                         </div>
 
@@ -627,19 +629,130 @@ export default function EntitySearchPage() {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-8">
+              {/* Search Options Grid */}
+              {!selectedSearchType ? (
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
               {searchTypes.map((searchType) => (
-                <SearchCard
+                    <div
                   key={searchType.id}
-                  icon={searchType.icon}
-                  title={searchType.title}
-                  description={searchType.description}
-                  placeholder={searchType.placeholder}
-                  onSearch={(query) => handleIndividualSearch(searchType.id, query)}
-                  loading={searchStates[searchType.id].loading}
-                  result={searchStates[searchType.id].result}
-                />
-              ))}
+                      onClick={() => setSelectedSearchType(searchType.id)}
+                      className="bg-card border border-border rounded-lg p-6 hover:border-muted-foreground/50 transition-all cursor-pointer group"
+                    >
+                      <div className="flex flex-col items-center text-center space-y-4">
+                        <div className="w-16 h-16 rounded-lg bg-zinc-800 flex items-center justify-center group-hover:bg-zinc-700 transition-colors">
+                          <searchType.icon className="w-8 h-8 text-zinc-400 group-hover:text-zinc-300" />
+                        </div>
+                        <div>
+                          <h3 className="text-white font-semibold mb-2">{searchType.title}</h3>
+                          <p className="text-sm text-zinc-500">{searchType.description}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Back Button */}
+                  <div className="flex items-center gap-4">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedSearchType(null)
+                        setSearchQuery('')
+                        setSearchResult(null)
+                      }}
+                      className="gap-2"
+                    >
+                      ← Back to Search Options
+                    </Button>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center">
+                        {(() => {
+                          const searchType = searchTypes.find(s => s.id === selectedSearchType)
+                          return searchType ? <searchType.icon className="w-5 h-5 text-zinc-400" /> : null
+                        })()}
+                      </div>
+                      <div>
+                        <h2 className="text-lg font-semibold text-white">
+                          {searchTypes.find(s => s.id === selectedSearchType)?.title}
+                        </h2>
+                        <p className="text-sm text-zinc-500">
+                          {searchTypes.find(s => s.id === selectedSearchType)?.description}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Search Input */}
+                  <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="mobile-input" className="text-sm font-medium text-zinc-300 mb-2 block">
+                          Enter Mobile Number
+                        </Label>
+                        <div className="flex gap-3">
+                          <Input
+                            id="mobile-input"
+                            type="text"
+                            placeholder="Enter mobile number (e.g., 9876543210)"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleAdvancedSearch()}
+                            className="bg-zinc-800 border-zinc-700 text-white placeholder-zinc-500 flex-1"
+                          />
+                          <Button 
+                            onClick={handleAdvancedSearch}
+                            disabled={searchLoading || !searchQuery.trim()}
+                            className="gap-2"
+                          >
+                            {searchLoading ? (
+                              <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Searching...
+                              </>
+                            ) : (
+                              <>
+                                <Search className="w-4 h-4" />
+                                Search
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Search Result */}
+                      {searchResult && (
+                        <div className={`p-4 rounded-lg border ${
+                          searchResult.found 
+                            ? 'bg-green-900/20 border-green-800' 
+                            : 'bg-zinc-800/50 border-zinc-700'
+                        }`}>
+                          {searchResult.found ? (
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2 text-green-400 text-sm font-medium mb-3">
+                                <div className="w-2 h-2 rounded-full bg-green-400" />
+                                Results Found
+                              </div>
+                              {Object.entries(searchResult.data).map(([key, value]) => (
+                                <div key={key} className="flex items-center justify-between text-sm">
+                                  <span className="text-zinc-400 capitalize">{key.replace(/_/g, ' ')}:</span>
+                                  <span className="text-white font-medium">{value as string}</span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 text-zinc-500 text-sm">
+                              <div className="w-2 h-2 rounded-full bg-zinc-600" />
+                              No results found
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

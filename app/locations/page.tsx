@@ -39,7 +39,7 @@ const sampleLocations: Location[] = [
   { id: '20', name: 'Varthur', mentions: 105, lastSeen: '10/1/2025', sentiment: 'neutral' }
 ]
 
-function LocationCard({ location }: { location: Location }) {
+function LocationCard({ location, onClick }: { location: Location; onClick: () => void }) {
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
       case 'positive': return 'text-green-500'
@@ -49,7 +49,10 @@ function LocationCard({ location }: { location: Location }) {
   }
 
   return (
-    <div className="bg-card border border-border rounded-lg p-4 hover:border-muted-foreground/50 transition-colors">
+    <div 
+      onClick={onClick}
+      className="bg-card border border-border rounded-lg p-4 hover:border-muted-foreground/50 transition-colors cursor-pointer hover:bg-accent/5"
+    >
       <div className="flex items-start gap-3 mb-3">
         <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
           <Target className="w-5 h-5 text-muted-foreground" />
@@ -62,18 +65,18 @@ function LocationCard({ location }: { location: Location }) {
       </div>
       
       <div className="mb-3">
-        <button className="text-sm text-blue-600 hover:text-blue-500 transition-colors">
+        <div className="text-sm text-blue-600 hover:text-blue-500 transition-colors">
           Click to explore posts
-        </button>
+        </div>
       </div>
       
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
           {location.mentions} mentions
         </div>
-        <Button variant="outline" size="sm">
-          View
-        </Button>
+        <div className="text-sm text-muted-foreground">
+          Click to view →
+        </div>
       </div>
     </div>
   )
@@ -177,32 +180,26 @@ export default function LocationsPage() {
               <FilterSection title="POLICE DIVISIONS">
                 <FilterItem 
                   label="Whitefield Division"
-                  hasSubmenu
                   onClick={() => setActiveFilter('whitefield')}
                 />
                 <FilterItem 
                   label="South East Division"
-                  hasSubmenu
                   onClick={() => setActiveFilter('south-east')}
                 />
                 <FilterItem 
                   label="Central Division"
-                  hasSubmenu
                   onClick={() => setActiveFilter('central')}
                 />
                 <FilterItem 
                   label="Northeast Division"
-                  hasSubmenu
                   onClick={() => setActiveFilter('northeast')}
                 />
                 <FilterItem 
                   label="East Division"
-                  hasSubmenu
                   onClick={() => setActiveFilter('east')}
                 />
                 <FilterItem 
                   label="North Division"
-                  hasSubmenu
                   onClick={() => setActiveFilter('north')}
                 />
               </FilterSection>
@@ -211,24 +208,14 @@ export default function LocationsPage() {
 
           {/* Main Content */}
           <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="p-6 border-b border-border">
-              <div className="flex items-center justify-between mb-4">
+            <div className="p-4 border-b border-border">
+              <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="gap-2">
                     All Locations
                     <X className="w-3 h-3 cursor-pointer" />
                   </Badge>
                 </div>
-                <div className="flex items-center gap-4">
-                  <span className="text-sm text-muted-foreground">• 20 locations</span>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Download className="w-4 h-4" />
-                    Export
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-4">
                 <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -239,8 +226,14 @@ export default function LocationsPage() {
                     className="pl-10"
                   />
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  {filteredLocations.length} locations found
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-muted-foreground">
+                    {filteredLocations.length} locations found
+                  </span>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Download className="w-4 h-4" />
+                    Export
+                  </Button>
                 </div>
               </div>
             </div>
@@ -248,7 +241,11 @@ export default function LocationsPage() {
             <div className="flex-1 overflow-y-auto p-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {filteredLocations.map((location) => (
-                  <LocationCard key={location.id} location={location} />
+                  <LocationCard 
+                    key={location.id} 
+                    location={location} 
+                    onClick={() => setSelectedLocation(location)}
+                  />
                 ))}
               </div>
             </div>

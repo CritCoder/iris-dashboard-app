@@ -262,66 +262,59 @@ function SocialFeedContent() {
             description={`${filteredPosts.length} posts loaded`}
             actions={
               <div className="flex items-center gap-4">
-                {/* Active Filter Tag */}
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-secondary border border-border rounded-lg text-sm text-foreground">
-                  <span>{getFilterLabel(activeFilter)}</span>
-                  <button onClick={() => handleFilterChange('all-posts')} className="hover:text-muted-foreground">
-                    <X className="w-3 h-3" />
-                  </button>
+                {/* Search Bar */}
+                <div className="relative flex-1 max-w-xs min-w-[200px]">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Search..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 pr-4 py-2 text-sm h-9"
+                  />
                 </div>
 
-                {/* Filters Row */}
-                <div className="flex items-center gap-3 flex-wrap overflow-x-auto">
-                  <div className="relative flex-1 max-w-xs min-w-[200px]">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      type="text"
-                      placeholder="Search..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 pr-4 py-2 text-sm h-9"
-                    />
-                  </div>
-
-                  <select className="bg-background border border-border text-foreground text-sm rounded-lg px-3 py-2 h-9 cursor-pointer hover:bg-accent/20">
+                {/* Filters Row - Properly aligned */}
+                <div className="flex items-center gap-2">
+                  <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
                     <option>All Campaigns</option>
                   </select>
 
-                  <select className="bg-background border border-border text-foreground text-sm rounded-lg px-3 py-2 h-9 cursor-pointer hover:bg-accent/20">
+                  <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
                     <option>All Sentiments</option>
                     <option>Positive</option>
                     <option>Negative</option>
                     <option>Neutral</option>
                   </select>
 
-                  <select className="bg-background border border-border text-foreground text-sm rounded-lg px-3 py-2 h-9 cursor-pointer hover:bg-accent/20">
+                  <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
                     <option>All Platforms</option>
                     <option>Facebook</option>
                     <option>Twitter</option>
                     <option>Instagram</option>
                   </select>
 
-                  <select className="bg-background border border-border text-foreground text-sm rounded-lg px-3 py-2 h-9 cursor-pointer hover:bg-accent/20">
+                  <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
                     <option>All Media</option>
                   </select>
 
-                  <select className="bg-background border border-border text-foreground text-sm rounded-lg px-3 py-2 h-9 cursor-pointer hover:bg-accent/20">
+                  <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
                     <option>Any Likes</option>
                   </select>
 
-                  <select className="bg-background border border-border text-foreground text-sm rounded-lg px-3 py-2 h-9 cursor-pointer hover:bg-accent/20">
+                  <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
                     <option>Any Comments</option>
                   </select>
 
-                  <select className="bg-background border border-border text-foreground text-sm rounded-lg px-3 py-2 h-9 cursor-pointer hover:bg-accent/20">
+                  <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
                     <option>Any Shares</option>
                   </select>
 
-                  <select className="bg-background border border-border text-foreground text-sm rounded-lg px-3 py-2 h-9 cursor-pointer hover:bg-accent/20">
+                  <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
                     <option>Any Views</option>
                   </select>
 
-                  <select className="bg-background border border-border text-foreground text-sm rounded-lg px-3 py-2 h-9 cursor-pointer hover:bg-accent/20">
+                  <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
                     <option>All Time</option>
                   </select>
 

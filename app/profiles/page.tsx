@@ -87,14 +87,14 @@ function ProfileCard({ profile }: { profile: Profile }) {
               {profile.name[0]}
             </div>
             <div>
-              <h3 className="text-white font-semibold text-sm">{profile.name}</h3>
-              <p className="text-zinc-500 text-xs">{profile.handle}</p>
+              <h3 className="text-white font-semibold text-base">{profile.name}</h3>
+              <p className="text-zinc-500 text-sm">{profile.handle}</p>
             </div>
           </div>
           <span className="text-2xl">{platformIcons[profile.platform]}</span>
         </div>
 
-        <div className="space-y-2 text-xs">
+        <div className="space-y-3 text-sm">
           <div className="flex items-center justify-between">
             <span className="text-zinc-500">👥 Followers</span>
             <span className="text-white font-semibold">{profile.followers}</span>
@@ -113,7 +113,7 @@ function ProfileCard({ profile }: { profile: Profile }) {
           </div>
         </div>
 
-        <div className="mt-4 pt-3 border-t border-zinc-800 flex items-center justify-between text-xs text-zinc-500">
+        <div className="mt-4 pt-3 border-t border-zinc-800 flex items-center justify-between text-sm text-zinc-500">
           <span>Account • Age</span>
           <span>👁️ {profile.views}</span>
         </div>

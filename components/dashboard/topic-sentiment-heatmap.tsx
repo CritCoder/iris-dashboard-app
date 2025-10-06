@@ -18,27 +18,79 @@ function InsightCard({ icon: Icon, type, message }: InsightCardProps) {
 }
 
 export function TopicSentimentHeatmap() {
+  const topics = [
+    { name: 'Police Reforms', sentiment: 75, posts: 1250, trend: 'up' },
+    { name: 'Traffic Management', sentiment: 45, posts: 890, trend: 'down' },
+    { name: 'Crime Prevention', sentiment: 82, posts: 2100, trend: 'up' },
+    { name: 'Community Outreach', sentiment: 68, posts: 1560, trend: 'stable' },
+    { name: 'Digital Initiatives', sentiment: 55, posts: 720, trend: 'up' },
+    { name: 'Public Safety', sentiment: 78, posts: 1890, trend: 'up' }
+  ]
+
+  const getSentimentColor = (sentiment: number) => {
+    if (sentiment >= 70) return 'bg-green-500'
+    if (sentiment >= 50) return 'bg-yellow-500'
+    return 'bg-red-500'
+  }
+
+  const getTrendIcon = (trend: string) => {
+    switch (trend) {
+      case 'up': return '↗'
+      case 'down': return '↘'
+      default: return '→'
+    }
+  }
+
   return (
-    <div className="bg-card border border-border rounded-lg p-6 mb-8 list-animate-in">
-      <div className="flex items-center justify-center mb-6">
-        <div className="text-center">
+    <div className="bg-card border border-border rounded-lg p-6 list-animate-in">
+      <div className="flex items-center justify-between mb-6">
+        <div>
           <h2 className="text-lg font-semibold text-foreground mb-1">Topic Sentiment Heatmap</h2>
-          <p className="text-sm text-muted-foreground">Track sentiment across 0 key issues</p>
+          <p className="text-sm text-muted-foreground">Track sentiment across {topics.length} key issues</p>
+        </div>
+        <div className="text-right">
+          <div className="text-2xl font-bold text-foreground">68%</div>
+          <div className="text-xs text-muted-foreground">Avg Sentiment</div>
         </div>
       </div>
       
-      <div className="mb-4">
-        <h3 className="text-sm font-semibold text-muted-foreground mb-3 text-center">Key Insights</h3>
-        <div className="space-y-3 max-w-lg mx-auto">
+      {/* Heatmap Grid */}
+      <div className="mb-6">
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          {topics.map((topic, index) => (
+            <div key={index} className="p-3 bg-muted/30 border border-border rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-foreground">{topic.name}</span>
+                <span className="text-xs text-muted-foreground">{getTrendIcon(topic.trend)}</span>
+              </div>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full ${getSentimentColor(topic.sentiment)} transition-all duration-300`}
+                    style={{ width: `${topic.sentiment}%` }}
+                  />
+                </div>
+                <span className="text-xs font-medium text-foreground">{topic.sentiment}%</span>
+              </div>
+              <div className="text-xs text-muted-foreground">{topic.posts} posts</div>
+            </div>
+          ))}
+        </div>
+      </div>
+      
+      {/* Key Insights */}
+      <div>
+        <h3 className="text-sm font-semibold text-muted-foreground mb-3">Key Insights</h3>
+        <div className="space-y-2">
           <InsightCard 
             icon={AlertTriangle}
             type="warning"
-            message="Sentiment declining over time: 33 to 13 (-20 point change)"
+            message="Traffic Management sentiment dropped 15% this week"
           />
           <InsightCard 
             icon={Lightbulb}
             type="info"
-            message="Highest sentiment on 2025-09-25: 37 score with 2586 posts"
+            message="Crime Prevention showing strongest positive sentiment"
           />
         </div>
       </div>

@@ -7,7 +7,6 @@ import { Search, ChevronDown, Heart, MessageCircle, Share2, Eye, Plus } from 'lu
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { FacebookIcon, InstagramIcon, TwitterIcon } from '@/components/ui/platform-icons'
 
 interface Post {
@@ -129,6 +128,8 @@ function PostListItem({ post, isSelected, onClick }: { post: Post; isSelected: b
 
 export default function SocialInboxPage() {
   const [selectedPost, setSelectedPost] = useState<Post>(samplePosts[0])
+  const [showAddNote, setShowAddNote] = useState(false)
+  const [noteText, setNoteText] = useState('')
 
   return (
     <PageLayout>
@@ -139,7 +140,7 @@ export default function SocialInboxPage() {
           actions={
             <div className="flex items-center gap-4">
               <div className="flex-1 flex items-center gap-3">
-                <div className="relative flex-1 max-w-xs">
+                <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     type="text"
@@ -148,32 +149,32 @@ export default function SocialInboxPage() {
                   />
                 </div>
 
-                <select className="bg-background border border-border text-foreground text-sm rounded-lg px-3 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors">
+                <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
                   <option>All Sentiments</option>
                   <option>Positive</option>
                   <option>Negative</option>
                   <option>Neutral</option>
                 </select>
 
-                <select className="bg-background border border-border text-foreground text-sm rounded-lg px-3 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors">
+                <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
                   <option>All Platforms</option>
                   <option>Facebook</option>
                   <option>Twitter</option>
                   <option>Instagram</option>
                 </select>
 
-                <select className="bg-background border border-border text-foreground text-sm rounded-lg px-3 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors">
+                <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
                   <option>All Campaigns</option>
                   <option>bellandur</option>
                 </select>
 
-                <select className="bg-background border border-border text-foreground text-sm rounded-lg px-3 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors">
+                <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
                   <option>Last 24 Hours</option>
                   <option>Last 7 Days</option>
                   <option>Last 30 Days</option>
                 </select>
 
-                <select className="bg-background border border-border text-foreground text-sm rounded-lg px-3 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors">
+                <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
                   <option>Sort by Date</option>
                   <option>Sort by Engagement</option>
                   <option>Sort by Priority</option>
@@ -188,24 +189,14 @@ export default function SocialInboxPage() {
         />
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col overflow-hidden w-full h-full">
-          <Tabs defaultValue="posts" className="flex-1 flex flex-col w-full h-full">
-            {/* Tab Header */}
-            <div className="flex items-center justify-center p-4 border-b border-border bg-background">
-              <TabsList className="grid w-full max-w-md grid-cols-2">
-                <TabsTrigger value="posts">Posts</TabsTrigger>
-                <TabsTrigger value="notes">Notes</TabsTrigger>
-              </TabsList>
+        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden w-full h-full">
+          {/* Left Column - Post List */}
+          <div className="w-full lg:w-[350px] border-r border-border bg-background flex-shrink-0 flex flex-col h-full">
+            <div className="p-4 border-b border-border flex-shrink-0">
+              <h2 className="text-foreground font-semibold mb-1">Inbox (1441)</h2>
+              <p className="text-xs text-muted-foreground">New posts that have not been classified yet</p>
             </div>
-            
-            <TabsContent value="posts" className="flex-1 flex flex-col lg:flex-row overflow-hidden w-full h-full min-h-0">
-              {/* Left Column - Post List */}
-              <div className="w-full lg:w-[400px] border-r border-border overflow-y-auto bg-background flex-shrink-0">
-                <div className="p-4 border-b border-border">
-                  <h2 className="text-foreground font-semibold mb-1">Inbox (1441)</h2>
-                  <p className="text-xs text-muted-foreground">New posts that have not been classified yet</p>
-                </div>
-                <div className="divide-y divide-border">
+            <div className="divide-y divide-border flex-1 overflow-y-auto">
               {samplePosts.map((post) => (
                 <PostListItem
                   key={post.id}
@@ -218,10 +209,10 @@ export default function SocialInboxPage() {
           </div>
 
           {/* Middle Column - Post Detail */}
-              <div className="flex-1 overflow-y-auto min-w-0 h-full">
-                <div className="p-6 max-w-none">
+          <div className="flex-1 overflow-y-auto min-w-0 h-full border-r border-border">
+            <div className="p-6 max-w-none">
               {/* Selected Post */}
-                  <div className="bg-card border border-border rounded-lg p-6 mb-6 list-animate-in">
+              <div className="bg-card border border-border rounded-lg p-6 mb-6 list-animate-in">
                 <div className="flex items-start gap-3 mb-4">
                   <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-foreground font-semibold">
                     {selectedPost.author[0]}
@@ -309,47 +300,87 @@ export default function SocialInboxPage() {
             </div>
           </div>
 
-              {/* Right Column - Post Details & Notes */}
-              <div className="w-full lg:w-[350px] border-l border-border overflow-y-auto bg-background flex-shrink-0 h-full flex flex-col">
+          {/* Right Column - Unified Notes & Post Details */}
+          <div className="w-full lg:w-[320px] bg-background flex-shrink-0 h-full flex flex-col">
             {/* Notes Section */}
-            <div className="p-4 border-b border-border">
+            <div className="p-4 border-b border-border flex-shrink-0">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-foreground font-semibold">Notes</h3>
-                <Button size="sm" className="gap-2 h-8 text-xs">
+                <h3 className="text-foreground font-semibold">Notes & Analysis</h3>
+                <Button 
+                  size="sm" 
+                  className="gap-2 h-8 text-xs"
+                  onClick={() => setShowAddNote(true)}
+                >
                   <Plus className="w-3 h-3" />
                   Add Note
                 </Button>
               </div>
-              <div className="text-center py-8">
-                <div className="w-12 h-12 mx-auto mb-3 rounded-lg bg-muted flex items-center justify-center">
-                  <MessageCircle className="w-6 h-6 text-muted-foreground" />
-                </div>
-                <p className="text-sm text-muted-foreground mb-2">No notes yet</p>
-                <p className="text-xs text-muted-foreground">Add your first note</p>
+              <div className="max-h-48 overflow-y-auto">
+                {showAddNote ? (
+                  <div className="space-y-3">
+                    <Textarea
+                      placeholder="Add your note here..."
+                      value={noteText}
+                      onChange={(e) => setNoteText(e.target.value)}
+                      className="min-h-[80px] resize-none"
+                    />
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        onClick={() => {
+                          // Here you would save the note
+                          console.log('Note saved:', noteText)
+                          setNoteText('')
+                          setShowAddNote(false)
+                        }}
+                      >
+                        Save Note
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => {
+                          setNoteText('')
+                          setShowAddNote(false)
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="w-12 h-12 mx-auto mb-3 rounded-lg bg-muted flex items-center justify-center">
+                      <MessageCircle className="w-6 h-6 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-2">No notes yet</p>
+                    <p className="text-xs text-muted-foreground">Add your first note</p>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Post Details */}
-            <div className="p-4 flex-1">
-              <h3 className="text-foreground font-semibold mb-4">Post Details</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between py-2 border-b border-border">
+            <div className="p-4 border-t border-border flex-1 overflow-y-auto">
+              <h3 className="text-foreground font-semibold mb-3">Post Details</h3>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between py-2">
                   <span className="text-sm text-muted-foreground">Platform:</span>
                   <span className="text-sm text-foreground font-medium">{selectedPost.platform}</span>
                 </div>
-                <div className="flex items-center justify-between py-2 border-b border-border">
+                <div className="flex items-center justify-between py-2">
                   <span className="text-sm text-muted-foreground">Posted:</span>
                   <span className="text-sm text-foreground font-medium">{selectedPost.timestamp}</span>
                 </div>
-                <div className="flex items-center justify-between py-2 border-b border-border">
+                <div className="flex items-center justify-between py-2">
                   <span className="text-sm text-muted-foreground">Author:</span>
                   <span className="text-sm text-foreground font-medium">{selectedPost.author}</span>
                 </div>
-                <div className="flex items-center justify-between py-2 border-b border-border">
+                <div className="flex items-center justify-between py-2">
                   <span className="text-sm text-muted-foreground">Priority:</span>
                   <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">{selectedPost.priority}</span>
                 </div>
-                <div className="py-2">
+                <div className="pt-2 border-t border-border">
                   <button className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors">
                     View Original Post
                   </button>
@@ -365,20 +396,6 @@ export default function SocialInboxPage() {
               </div>
             </div>
           </div>
-            </TabsContent>
-            
-            <TabsContent value="notes" className="flex-1 flex flex-col overflow-hidden w-full">
-              <div className="flex-1 overflow-y-auto bg-background flex items-center justify-center w-full">
-                <div className="text-center">
-                  <div className="w-12 h-12 mx-auto mb-3 rounded-lg bg-muted flex items-center justify-center">
-                    <MessageCircle className="w-6 h-6 text-muted-foreground" />
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-2">No notes yet</p>
-                  <p className="text-xs text-muted-foreground">Add your first note</p>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
         </div>
       </div>
     </PageLayout>

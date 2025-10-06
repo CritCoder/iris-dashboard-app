@@ -79,11 +79,11 @@ export function InfluencerTracker() {
         ))}
       </div>
 
-      <div className="mt-6 p-4 bg-zinc-950/50 border border-zinc-800 rounded-lg">
+      <div className="mt-6 p-4 bg-muted/50 border border-border rounded-lg">
         <div className="flex items-start gap-3">
-          <Lightbulb className="w-4 h-4 text-zinc-500 mt-0.5 flex-shrink-0" />
-          <div className="text-xs text-zinc-400 leading-relaxed">
-            <span className="font-medium text-zinc-300">Key Insight:</span> @BENGALURU CITY POLICE leading leaning_supportive narrative with viral threads (126K reach). @Revolution Tv showing strong critical stance with 100% negative sentiment.
+          <Lightbulb className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+          <div className="text-xs text-muted-foreground leading-relaxed">
+            <span className="font-medium text-foreground">Key Insight:</span> @BENGALURU CITY POLICE leading leaning_supportive narrative with viral threads (126K reach). @Revolution Tv showing strong critical stance with 100% negative sentiment.
           </div>
         </div>
       </div>

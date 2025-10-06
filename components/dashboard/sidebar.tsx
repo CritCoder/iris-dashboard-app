@@ -42,14 +42,14 @@ interface NavItemProps {
 function NavItem({ icon: Icon, label, href, hasSubmenu = false, submenuContent }: NavItemProps) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
-  const active = href ? pathname === href : false
+  const active = href ? (pathname === href || (href !== '/' && pathname.startsWith(href + '/'))) : false
 
   const buttonContent = (
     <div
       className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-all cursor-pointer ${
         active 
-          ? 'bg-secondary text-foreground' 
-          : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+          ? 'bg-primary text-primary-foreground shadow-sm border border-primary/20' 
+          : 'text-muted-foreground hover:text-foreground hover:bg-accent hover:border-accent/50 border border-transparent'
       }`}
     >
       <div className="flex items-center gap-3">
@@ -111,8 +111,8 @@ function SubNavItem({ icon: Icon, label, href }: SubNavItemProps) {
       <div
         className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all ${
           active 
-            ? 'bg-secondary text-foreground' 
-            : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+            ? 'bg-primary/10 text-primary border border-primary/20' 
+            : 'text-muted-foreground hover:text-foreground hover:bg-accent hover:border-accent/50 border border-transparent'
         }`}
       >
         <Icon className="w-4 h-4 flex-shrink-0" />
@@ -124,7 +124,7 @@ function SubNavItem({ icon: Icon, label, href }: SubNavItemProps) {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="px-4 py-2 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+    <div className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
       {children}
     </div>
   )
@@ -177,7 +177,7 @@ function SocialFeedSubmenu() {
 
 export function Sidebar() {
   return (
-    <aside className="w-64 border-r border-border bg-background flex flex-col fixed h-screen overflow-y-auto z-40 pointer-events-auto">
+    <aside className="w-56 border-r border-border bg-background flex flex-col fixed h-screen overflow-y-auto z-40 pointer-events-auto">
       <div className="px-6 border-b border-border flex-shrink-0" style={{ height: '84px' }}>
         <Link href="/">
           <div className="flex items-center gap-3 cursor-pointer h-full">

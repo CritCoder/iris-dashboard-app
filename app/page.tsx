@@ -39,14 +39,12 @@ export default function Page() {
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-[1800px] mx-auto px-6 py-8 list-animate-in">
           <StatsGrid />
-          <TopicSentimentHeatmap />
           
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <TopicSentimentHeatmap />
             <InfluencerTracker />
-            <div className="space-y-6">
-              <OpponentNarrativeWatch />
-              <SupportBaseEnergy />
-            </div>
+            <OpponentNarrativeWatch />
+            <SupportBaseEnergy />
           </div>
         </div>
       </main>

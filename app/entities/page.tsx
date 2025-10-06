@@ -3,9 +3,10 @@
 import { useState } from 'react'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
-import { Search, MapPin, Hash, User, Building, AlertTriangle, TrendingUp, MessageSquare, Share2 } from 'lucide-react'
+import { Search, MapPin, Hash, User, Building, AlertTriangle, TrendingUp, MessageSquare, Share2, ChevronRight, X, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
 
 interface Entity {
   id: string
@@ -179,57 +180,107 @@ const sampleEntities: Entity[] = [
   }
 ]
 
-function EntityCard({ entity }: { entity: Entity }) {
+function EntityCard({ entity, onClick }: { entity: Entity; onClick: () => void }) {
   const Icon = entity.icon
   
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'TOPIC':
-        return 'text-blue-400 bg-blue-900/20 border-blue-800/30'
+        return 'text-blue-600 bg-blue-50 border-blue-200'
       case 'LOCATION':
-        return 'text-green-400 bg-green-900/20 border-green-800/30'
+        return 'text-green-600 bg-green-50 border-green-200'
       case 'ENTITY':
-        return 'text-purple-400 bg-purple-900/20 border-purple-800/30'
+        return 'text-purple-600 bg-purple-50 border-purple-200'
       case 'PERSON':
-        return 'text-orange-400 bg-orange-900/20 border-orange-800/30'
+        return 'text-orange-600 bg-orange-50 border-orange-200'
       case 'ORGANIZATION':
-        return 'text-red-400 bg-red-900/20 border-red-800/30'
+        return 'text-red-600 bg-red-50 border-red-200'
       default:
-        return 'text-zinc-400 bg-zinc-900/20 border-zinc-800/30'
+        return 'text-muted-foreground bg-secondary border-border'
     }
   }
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 hover:border-zinc-700 transition-colors cursor-pointer">
+    <div 
+      onClick={onClick}
+      className="bg-card border border-border rounded-lg p-4 hover:border-muted-foreground/50 transition-colors cursor-pointer hover:bg-accent/5"
+    >
       <div className="flex items-start gap-3 mb-3">
-        <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center flex-shrink-0">
-          <Icon className="w-4 h-4 text-zinc-400" />
+        <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
+          <Icon className="w-5 h-5 text-muted-foreground" />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-white font-medium text-sm mb-1 truncate">{entity.name}</h3>
+          <h3 className="font-semibold text-foreground mb-1">{entity.name}</h3>
           <div className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${getTypeColor(entity.type)}`}>
             {entity.type}
           </div>
         </div>
       </div>
-
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-zinc-500">Mentions</span>
-          <span className="text-sm font-semibold text-white">{entity.mentions.toLocaleString()}</span>
+      
+      <div className="mb-3">
+        <div className="text-sm text-blue-600 hover:text-blue-500 transition-colors">
+          Click to explore posts
         </div>
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-zinc-500">Last Seen</span>
-          <span className="text-xs text-zinc-400">{entity.lastSeen}</span>
+      </div>
+      
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">
+          {entity.mentions.toLocaleString()} mentions
+        </div>
+        <div className="text-sm text-muted-foreground">
+          Click to view →
         </div>
       </div>
     </div>
   )
 }
 
+function FilterSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="mb-6">
+      <h3 className="text-sm font-semibold text-foreground mb-3">{title}</h3>
+      <div className="space-y-2">
+        {children}
+      </div>
+    </div>
+  )
+}
+
+function FilterItem({ 
+  label, 
+  isActive = false, 
+  hasSubmenu = false, 
+  onClick,
+  count
+}: { 
+  label: string
+  isActive?: boolean
+  hasSubmenu?: boolean
+  onClick?: () => void
+  count?: number
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
+        isActive 
+          ? 'bg-primary text-primary-foreground' 
+          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+      }`}
+    >
+      <span>{label}</span>
+      <div className="flex items-center gap-2">
+        {count !== undefined && <span className="text-xs text-muted-foreground">{count}</span>}
+        {hasSubmenu && <ChevronRight className="w-4 h-4" />}
+      </div>
+    </button>
+  )
+}
+
 export default function EntitiesPage() {
+  const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [activeFilter, setActiveFilter] = useState('all')
+  const [activeFilter, setActiveFilter] = useState('all-entities')
 
   const filteredEntities = sampleEntities.filter(entity =>
     entity.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -237,7 +288,7 @@ export default function EntitiesPage() {
   )
 
   const filterOptions = [
-    { id: 'all', label: 'All Entities', count: sampleEntities.length },
+    { id: 'all-entities', label: 'All Entities', count: sampleEntities.length },
     { id: 'topics', label: 'All Topics', count: sampleEntities.filter(e => e.type === 'TOPIC').length },
     { id: 'people', label: 'All People', count: sampleEntities.filter(e => e.type === 'PERSON').length },
     { id: 'organizations', label: 'All Organizations', count: sampleEntities.filter(e => e.type === 'ORGANIZATION').length },
@@ -254,139 +305,131 @@ export default function EntitiesPage() {
 
   return (
     <PageLayout>
-      <div className="h-screen flex flex-col bg-black overflow-hidden">
-      <PageHeader 
-          title="Entity Explorer"
-          description="20 entities found"
-          centerContent={
-            <div className="relative w-full max-w-2xl">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-              <Input
-                type="text"
-                placeholder="Search entities, topics, people, organizations..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-zinc-900 border-zinc-800 text-white placeholder-zinc-500 pl-10 pr-4 py-2 text-sm w-full"
-              />
-            </div>
-          }
-        actions={
-            <Button className="gap-2" size="sm">
-              <Share2 className="w-4 h-4" />
-              Share via WhatsApp
-          </Button>
-        }
-      />
-      
+      <div className="h-screen flex flex-col bg-background overflow-hidden">
+        <PageHeader 
+          title="Entities"
+          description="Entity intelligence and relationship insights"
+        />
+
         <div className="flex-1 flex overflow-hidden">
           {/* Left Sidebar - Filters */}
-          <div className="w-80 border-r border-zinc-800 bg-zinc-950 overflow-y-auto">
+          <div className="w-80 border-r border-border bg-muted/30 overflow-y-auto">
             <div className="p-6">
+              <h2 className="text-lg font-semibold text-foreground mb-6">Entities</h2>
               
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-sm font-semibold text-zinc-400 mb-3">PRIMARY</h3>
-                  <div className="space-y-1">
-                    {filterOptions.slice(0, 4).map((filter) => (
-                      <button
-                        key={filter.id}
-                        onClick={() => setActiveFilter(filter.id)}
-                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                          activeFilter === filter.id
-                            ? 'bg-zinc-800 text-white'
-                            : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span>{filter.label}</span>
-                          <span className="text-xs text-zinc-500">{filter.count}</span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+              <FilterSection title="PRIMARY">
+                <FilterItem 
+                  label="All Entities" 
+                  isActive={activeFilter === 'all-entities'}
+                  onClick={() => setActiveFilter('all-entities')}
+                  count={sampleEntities.length}
+                />
+                <FilterItem 
+                  label="High Impact Entities"
+                  onClick={() => setActiveFilter('high-impact')}
+                  count={sampleEntities.filter(e => e.mentions > 1000).length}
+                />
+                <FilterItem 
+                  label="Trending Topics"
+                  onClick={() => setActiveFilter('trending')}
+                  count={sampleEntities.filter(e => e.lastSeen === 'Just now').length}
+                />
+                <FilterItem 
+                  label="Frequently Mentioned"
+                  onClick={() => setActiveFilter('frequent')}
+                  count={sampleEntities.filter(e => e.mentions > 500).length}
+                />
+              </FilterSection>
 
-                <div>
-                  <h3 className="text-sm font-semibold text-zinc-400 mb-3">ENGAGEMENT & IMPACT</h3>
-                  <div className="space-y-1">
-                    {filterOptions.slice(4, 7).map((filter) => (
-                      <button
-                        key={filter.id}
-                        onClick={() => setActiveFilter(filter.id)}
-                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                          activeFilter === filter.id
-                            ? 'bg-zinc-800 text-white'
-                            : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span>{filter.label}</span>
-                          <span className="text-xs text-zinc-500">{filter.count}</span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+              <FilterSection title="ENTITY TYPES">
+                <FilterItem 
+                  label="All Topics"
+                  onClick={() => setActiveFilter('topics')}
+                  count={sampleEntities.filter(e => e.type === 'TOPIC').length}
+                />
+                <FilterItem 
+                  label="All People"
+                  onClick={() => setActiveFilter('people')}
+                  count={sampleEntities.filter(e => e.type === 'PERSON').length}
+                />
+                <FilterItem 
+                  label="All Organizations"
+                  onClick={() => setActiveFilter('organizations')}
+                  count={sampleEntities.filter(e => e.type === 'ORGANIZATION').length}
+                />
+                <FilterItem 
+                  label="Locations"
+                  onClick={() => setActiveFilter('locations')}
+                  count={sampleEntities.filter(e => e.type === 'LOCATION').length}
+                />
+              </FilterSection>
 
-                <div>
-                  <h3 className="text-sm font-semibold text-zinc-400 mb-3">SENTIMENT BASED</h3>
-                  <div className="space-y-1">
-                    {filterOptions.slice(7, 10).map((filter) => (
-                      <button
-                        key={filter.id}
-                        onClick={() => setActiveFilter(filter.id)}
-                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                          activeFilter === filter.id
-                            ? 'bg-zinc-800 text-white'
-                            : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span>{filter.label}</span>
-                          <span className="text-xs text-zinc-500">{filter.count}</span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-semibold text-zinc-400 mb-3">ENTITY TYPES</h3>
-                  <div className="space-y-1">
-                    {filterOptions.slice(10).map((filter) => (
-                      <button
-                        key={filter.id}
-                        onClick={() => setActiveFilter(filter.id)}
-                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                          activeFilter === filter.id
-                            ? 'bg-zinc-800 text-white'
-                            : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span>{filter.label}</span>
-                          <span className="text-xs text-zinc-500">{filter.count}</span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              <FilterSection title="SENTIMENT BASED">
+                <FilterItem 
+                  label="Negative Entities"
+                  onClick={() => setActiveFilter('negative')}
+                  count={0}
+                />
+                <FilterItem 
+                  label="Positive Entities"
+                  onClick={() => setActiveFilter('positive')}
+                  count={0}
+                />
+                <FilterItem 
+                  label="Controversial"
+                  onClick={() => setActiveFilter('controversial')}
+                  count={0}
+                />
+              </FilterSection>
             </div>
           </div>
 
           {/* Main Content */}
           <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex-1 overflow-y-auto bg-black p-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            <div className="p-4 border-b border-border">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="gap-2">
+                    All Entities
+                    <X className="w-3 h-3 cursor-pointer" />
+                  </Badge>
+                </div>
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Search entities, topics, people, organizations..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-muted-foreground">
+                    {filteredEntities.length} entities found
+                  </span>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Download className="w-4 h-4" />
+                    Export
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {filteredEntities.map((entity) => (
-                  <EntityCard key={entity.id} entity={entity} />
+                  <EntityCard 
+                    key={entity.id} 
+                    entity={entity} 
+                    onClick={() => setSelectedEntity(entity)}
+                  />
                 ))}
-          </div>
-          </div>
+              </div>
+            </div>
           </div>
         </div>
-        </div>
+      </div>
     </PageLayout>
   )
 }

@@ -5,6 +5,7 @@ import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { FacebookIcon, InstagramIcon, TwitterIcon, NewsIcon } from '@/components/ui/platform-icons'
 
 export default function StartAnalysisPage() {
@@ -12,10 +13,10 @@ export default function StartAnalysisPage() {
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['facebook', 'instagram', 'twitter', 'india-news'])
 
   const platforms = [
-    { id: 'facebook', name: 'Facebook', icon: FacebookIcon, color: 'text-blue-500' },
-    { id: 'instagram', name: 'Instagram', icon: InstagramIcon, color: 'text-pink-500' },
-    { id: 'twitter', name: 'Twitter', icon: TwitterIcon, color: 'text-blue-400' },
-    { id: 'india-news', name: 'India News', icon: NewsIcon, color: 'text-orange-500' }
+    { id: 'facebook', name: 'Facebook', icon: FacebookIcon, color: 'text-blue-500', bgColor: 'bg-blue-600', borderColor: 'border-blue-500' },
+    { id: 'instagram', name: 'Instagram', icon: InstagramIcon, color: 'text-pink-500', bgColor: 'bg-pink-600', borderColor: 'border-pink-500' },
+    { id: 'twitter', name: 'Twitter', icon: TwitterIcon, color: 'text-blue-400', bgColor: 'bg-sky-500', borderColor: 'border-sky-400' },
+    { id: 'india-news', name: 'India News', icon: NewsIcon, color: 'text-orange-500', bgColor: 'bg-orange-600', borderColor: 'border-orange-500' }
   ]
 
   const togglePlatform = (platformId: string) => {
@@ -28,7 +29,7 @@ export default function StartAnalysisPage() {
 
   return (
     <PageLayout>
-      <div className="h-screen flex flex-col bg-black overflow-hidden">
+      <div className="h-screen flex flex-col bg-background overflow-hidden">
         <PageHeader 
           title="Start Analysis"
           description="Advanced social media intelligence gathering and analysis"
@@ -37,40 +38,31 @@ export default function StartAnalysisPage() {
         {/* Main Content */}
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-4xl mx-auto px-6 py-8">
-            {/* Modern Tabs */}
+            {/* Analysis Type Tabs */}
             <div className="flex justify-center mb-8">
-              <div className="tabs-container">
-                <div className="tabs">
-                  <input 
-                    type="radio" 
-                    id="radio-topic" 
-                    name="analysis-tabs" 
-                    checked={activeTab === 'topic'}
-                    onChange={() => setActiveTab('topic')}
-                  />
-                  <label className="tab" htmlFor="radio-topic">
+              <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'topic' | 'poi')} className="w-auto">
+                <TabsList className="flex gap-1 bg-muted p-1 rounded-lg">
+                  <TabsTrigger 
+                    value="topic" 
+                    className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=inactive]:hover:bg-accent/50 px-4 py-2 rounded-md transition-all"
+                  >
                     Topic Analysis
-                  </label>
-                  <input 
-                    type="radio" 
-                    id="radio-poi" 
-                    name="analysis-tabs"
-                    checked={activeTab === 'poi'}
-                    onChange={() => setActiveTab('poi')}
-                  />
-                  <label className="tab" htmlFor="radio-poi">
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="poi" 
+                    className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=inactive]:hover:bg-accent/50 px-4 py-2 rounded-md transition-all"
+                  >
                     POI Analysis
-                  </label>
-                  <span className="glider"></span>
-                </div>
-              </div>
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
 
             {/* Search Input */}
             <div className="mb-8">
               <Textarea
                 placeholder="Enter topics, keywords, or hashtags to analyze..."
-                className="bg-zinc-900 border-zinc-800 text-white placeholder-zinc-500 min-h-[120px] text-base resize-none"
+                className="min-h-[120px] text-base resize-none"
               />
             </div>
 
@@ -83,7 +75,7 @@ export default function StartAnalysisPage() {
 
             {/* Select Platforms */}
             <div className="mb-8">
-              <h3 className="text-white font-semibold mb-4">Select Platforms</h3>
+              <h3 className="text-foreground font-semibold mb-4">Select Platforms</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {platforms.map((platform) => {
                   const IconComponent = platform.icon
@@ -93,17 +85,21 @@ export default function StartAnalysisPage() {
                       onClick={() => togglePlatform(platform.id)}
                       className={`flex items-center gap-3 px-4 py-3 rounded-lg border transition-all ${
                         selectedPlatforms.includes(platform.id)
-                          ? 'bg-zinc-800 border-zinc-700 text-white'
-                          : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-300'
+                          ? `${platform.bgColor} ${platform.borderColor} text-white border-2`
+                          : 'bg-card border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                       }`}
                     >
-                      <div className={`w-8 h-8 flex items-center justify-center ${platform.color}`}>
+                      <div className={`w-8 h-8 flex items-center justify-center ${
+                        selectedPlatforms.includes(platform.id) ? 'text-white' : platform.color
+                      }`}>
                         <IconComponent className="w-6 h-6" />
                       </div>
                       <span className="font-medium">{platform.name}</span>
-                      {selectedPlatforms.includes(platform.id) && (
-                        <span className="ml-auto text-green-400">✓</span>
-                      )}
+                      <span className="ml-auto w-4 h-4 flex items-center justify-center">
+                        {selectedPlatforms.includes(platform.id) && (
+                          <span className="text-white">✓</span>
+                        )}
+                      </span>
                     </button>
                   )
                 })}
@@ -112,8 +108,8 @@ export default function StartAnalysisPage() {
 
             {/* Time Range */}
             <div>
-              <h3 className="text-white font-semibold mb-4">Time Range</h3>
-              <select className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-lg px-4 py-3 cursor-pointer hover:bg-zinc-800 transition-colors">
+              <h3 className="text-foreground font-semibold mb-4">Time Range</h3>
+              <select className="w-full bg-background border border-border text-foreground rounded-lg px-4 py-3 cursor-pointer hover:bg-accent transition-colors">
                 <option>Any time</option>
                 <option>Last 24 hours</option>
                 <option>Last 7 days</option>
