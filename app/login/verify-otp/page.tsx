@@ -3,14 +3,33 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Mail, Phone, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+
+interface ContactInfo {
+  method: 'email' | 'mobile'
+  value: string
+  displayValue: string
+}
 
 export default function VerifyOTPPage() {
   const router = useRouter()
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
   const [timer, setTimer] = useState(60)
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+
+  useEffect(() => {
+    // Get contact info from sessionStorage
+    const storedContactInfo = sessionStorage.getItem('otpContactInfo')
+    if (storedContactInfo) {
+      setContactInfo(JSON.parse(storedContactInfo))
+    } else {
+      // If no contact info, redirect back to login
+      router.push('/login')
+    }
+  }, [router])
 
   useEffect(() => {
     if (timer > 0) {
@@ -40,16 +59,44 @@ export default function VerifyOTPPage() {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle OTP verification
+    
+    if (otp.some((d) => !d)) return
+    
+    setIsVerifying(true)
+    
+    // Simulate API call to verify OTP
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    
+    // Clear session storage
+    sessionStorage.removeItem('otpContactInfo')
+    
+    setIsVerifying(false)
     router.push('/')
   }
 
-  const handleResend = () => {
+  const handleResend = async () => {
+    if (!contactInfo) return
+    
     setTimer(60)
     setOtp(['', '', '', '', '', ''])
     inputRefs.current[0]?.focus()
+    
+    // Simulate API call to resend OTP
+    await new Promise(resolve => setTimeout(resolve, 1000))
+  }
+
+  // Show loading if contact info is not available yet
+  if (!contactInfo) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center p-6">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-white mx-auto mb-4" />
+          <p className="text-zinc-500">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -70,10 +117,21 @@ export default function VerifyOTPPage() {
             <span className="text-2xl font-bold text-white">IRIS</span>
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">Verify your account</h1>
-          <p className="text-zinc-500">
-            We've sent a 6-digit code to<br />
-            <span className="text-white font-medium">suumit@mydukaan.io</span>
-          </p>
+          {contactInfo && (
+            <div className="space-y-2">
+              <p className="text-zinc-500">
+                We've sent a 6-digit code to your {contactInfo.method}
+              </p>
+              <div className="flex items-center justify-center gap-2 text-white font-medium">
+                {contactInfo.method === 'email' ? (
+                  <Mail className="w-4 h-4 text-zinc-400" />
+                ) : (
+                  <Phone className="w-4 h-4 text-zinc-400" />
+                )}
+                <span>{contactInfo.displayValue}</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* OTP Form */}
@@ -113,9 +171,22 @@ export default function VerifyOTPPage() {
               )}
             </div>
 
-            <Button type="submit" className="w-full gap-2" disabled={otp.some((d) => !d)}>
-              Verify & Continue
-              <ArrowRight className="w-4 h-4" />
+            <Button 
+              type="submit" 
+              className="w-full gap-2" 
+              disabled={otp.some((d) => !d) || isVerifying}
+            >
+              {isVerifying ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Verifying...
+                </>
+              ) : (
+                <>
+                  Verify & Continue
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </Button>
           </form>
 

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Mail, Phone, ArrowRight, Eye, EyeOff } from 'lucide-react'
+import { Mail, Phone, ArrowRight, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,16 +11,37 @@ import { Label } from '@/components/ui/label'
 export default function LoginPage() {
   const router = useRouter()
   const [loginMethod, setLoginMethod] = useState<'email' | 'mobile'>('email')
-  const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     mobile: '',
-    password: ''
+    countryCode: '+91'
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle login logic here
+    
+    // Validate input
+    if (loginMethod === 'email' && !formData.email.trim()) return
+    if (loginMethod === 'mobile' && !formData.mobile.trim()) return
+
+    setIsLoading(true)
+
+    // Simulate API call to send OTP
+    await new Promise(resolve => setTimeout(resolve, 1500))
+
+    // Store the contact info in sessionStorage for OTP verification page
+    const contactInfo = {
+      method: loginMethod,
+      value: loginMethod === 'email' ? formData.email : `${formData.countryCode}${formData.mobile}`,
+      displayValue: loginMethod === 'email' 
+        ? formData.email 
+        : `${formData.countryCode} ${formData.mobile}`
+    }
+    
+    sessionStorage.setItem('otpContactInfo', JSON.stringify(contactInfo))
+    
+    setIsLoading(false)
     router.push('/login/verify-otp')
   }
 
@@ -33,7 +54,7 @@ export default function LoginPage() {
             <span className="text-2xl font-bold text-white">IRIS</span>
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">Welcome back</h1>
-          <p className="text-zinc-500">Sign in to your account to continue</p>
+          <p className="text-zinc-500">Enter your {loginMethod === 'email' ? 'email' : 'mobile number'} to receive OTP</p>
         </div>
 
         {/* Login Form */}
@@ -82,10 +103,16 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <Label htmlFor="mobile" className="text-white">Mobile Number</Label>
                 <div className="flex gap-2">
-                  <select className="bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2 w-24">
-                    <option>+91</option>
-                    <option>+1</option>
-                    <option>+44</option>
+                  <select 
+                    value={formData.countryCode}
+                    onChange={(e) => setFormData({ ...formData, countryCode: e.target.value })}
+                    className="bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2 w-24 focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="+91">+91</option>
+                    <option value="+1">+1</option>
+                    <option value="+44">+44</option>
+                    <option value="+61">+61</option>
+                    <option value="+86">+86</option>
                   </select>
                   <Input
                     id="mobile"
@@ -100,41 +127,26 @@ export default function LoginPage() {
               </div>
             )}
 
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-white">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="bg-zinc-800 border-zinc-700 text-white placeholder-zinc-500 pr-10"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
+            <div className="text-center text-sm text-zinc-500 mb-4">
+              We'll send you a verification code via {loginMethod === 'email' ? 'email' : 'SMS'}
             </div>
 
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 text-zinc-400 cursor-pointer">
-                <input type="checkbox" className="rounded bg-zinc-800 border-zinc-700" />
-                Remember me
-              </label>
-              <Link href="/forgot-password" className="text-blue-400 hover:text-blue-300">
-                Forgot password?
-              </Link>
-            </div>
-
-            <Button type="submit" className="w-full gap-2">
-              Continue
-              <ArrowRight className="w-4 h-4" />
+            <Button 
+              type="submit" 
+              className="w-full gap-2" 
+              disabled={isLoading || (loginMethod === 'email' ? !formData.email.trim() : !formData.mobile.trim())}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Sending OTP...
+                </>
+              ) : (
+                <>
+                  Send OTP
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </Button>
           </form>
 

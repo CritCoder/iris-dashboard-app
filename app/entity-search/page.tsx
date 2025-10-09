@@ -300,6 +300,155 @@ export default function EntitySearchPage() {
     setUnifiedLoading(false)
   }
 
+  const handleAdvancedSearch = async () => {
+    if (!searchQuery.trim() || !selectedSearchType) return
+
+    setSearchLoading(true)
+    setSearchResult(null)
+
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500))
+
+    // Enhanced demo data with multiple profiles
+    const demoProfiles = [
+      {
+        name: {
+          full_name: 'Rahul Kumar Sharma',
+          age: '32',
+          gender: 'Male',
+          location: 'Bangalore, Karnataka'
+        },
+        address: {
+          primary_address: 'HSR Layout, Sector 2, Bangalore - 560102',
+          secondary_address: 'BTM Layout, Stage 1, Bangalore - 560068',
+          registered_since: '2018'
+        },
+        account: {
+          bank_name: 'HDFC Bank',
+          account_type: 'Savings',
+          ifsc_code: 'HDFC0001234',
+          branch: 'HSR Layout Branch'
+        },
+        vehicle: {
+          vehicle_number: 'KA-01-AB-1234',
+          vehicle_type: 'Car',
+          make_model: 'Honda City 2020',
+          registration_date: '15/03/2020'
+        },
+        pan: {
+          pan_number: 'ABCDE1234F',
+          name_on_pan: 'RAHUL KUMAR SHARMA',
+          status: 'Active',
+          linked_aadhaar: 'Yes'
+        },
+        truecaller: {
+          name: 'Rahul Sharma',
+          carrier: 'Airtel',
+          location: 'Bangalore',
+          spam_score: 'Low',
+          verified: 'Yes'
+        }
+      },
+      {
+        name: {
+          full_name: 'Priya Singh',
+          age: '28',
+          gender: 'Female',
+          location: 'Mumbai, Maharashtra'
+        },
+        address: {
+          primary_address: 'Andheri West, Mumbai - 400058',
+          secondary_address: 'Bandra East, Mumbai - 400051',
+          registered_since: '2020'
+        },
+        account: {
+          bank_name: 'ICICI Bank',
+          account_type: 'Current',
+          ifsc_code: 'ICIC0005678',
+          branch: 'Andheri Branch'
+        },
+        vehicle: {
+          vehicle_number: 'MH-02-CD-5678',
+          vehicle_type: 'Scooter',
+          make_model: 'TVS Jupiter 2021',
+          registration_date: '22/07/2021'
+        },
+        pan: {
+          pan_number: 'FGHIJ5678K',
+          name_on_pan: 'PRIYA SINGH',
+          status: 'Active',
+          linked_aadhaar: 'Yes'
+        },
+        truecaller: {
+          name: 'Priya Singh',
+          carrier: 'Jio',
+          location: 'Mumbai',
+          spam_score: 'Low',
+          verified: 'Yes'
+        }
+      },
+      {
+        name: {
+          full_name: 'Amit Patel',
+          age: '35',
+          gender: 'Male',
+          location: 'Ahmedabad, Gujarat'
+        },
+        address: {
+          primary_address: 'Vastrapur, Ahmedabad - 380015',
+          secondary_address: 'Satellite, Ahmedabad - 380015',
+          registered_since: '2019'
+        },
+        account: {
+          bank_name: 'SBI',
+          account_type: 'Savings',
+          ifsc_code: 'SBIN0009012',
+          branch: 'Vastrapur Branch'
+        },
+        vehicle: {
+          vehicle_number: 'GJ-01-EF-9012',
+          vehicle_type: 'Bike',
+          make_model: 'Bajaj Pulsar 2019',
+          registration_date: '10/12/2019'
+        },
+        pan: {
+          pan_number: 'KLMNO9012P',
+          name_on_pan: 'AMIT PATEL',
+          status: 'Active',
+          linked_aadhaar: 'Yes'
+        },
+        truecaller: {
+          name: 'Amit Patel',
+          carrier: 'Vodafone',
+          location: 'Ahmedabad',
+          spam_score: 'Medium',
+          verified: 'No'
+        }
+      }
+    ]
+
+    // Select a random profile for demo
+    const selectedProfile = demoProfiles[Math.floor(Math.random() * demoProfiles.length)]
+    
+    const mockData: Record<string, any> = {
+      name: selectedProfile.name,
+      address: selectedProfile.address,
+      account: selectedProfile.account,
+      vehicle: selectedProfile.vehicle,
+      pan: selectedProfile.pan,
+      truecaller: selectedProfile.truecaller
+    }
+
+    const result: SearchResult = {
+      type: selectedSearchType,
+      found: Math.random() > 0.1, // Higher success rate for better demo experience
+      data: mockData[selectedSearchType]
+    }
+
+    setSearchResult(result)
+    setSearchLoading(false)
+  }
+
   const handleIndividualSearch = async (type: string, query: string) => {
     setSearchStates(prev => ({
       ...prev,
