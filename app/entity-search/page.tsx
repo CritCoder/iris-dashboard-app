@@ -653,7 +653,7 @@ export default function EntitySearchPage() {
       />
       
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-[1800px] mx-auto px-6 py-8">
+        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
           {/* Modern Tabs */}
           <div className="flex justify-center mb-8">
             <div className="tabs-container">
@@ -687,7 +687,7 @@ export default function EntitySearchPage() {
             <div className="space-y-6">
               {/* Unified Search Bar */}
               <div className="flex justify-center">
-                <div className="bg-card border border-border rounded-lg p-6 w-1/2">
+                <div className="bg-card border border-border rounded-lg p-4 sm:p-6 w-full sm:w-3/4 lg:w-1/2">
                   <div className="flex items-center gap-3 mb-4">
                     <Search className="w-6 h-6 text-muted-foreground" />
                     <div>
@@ -696,30 +696,32 @@ export default function EntitySearchPage() {
                     </div>
                   </div>
 
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <Input
                       type="text"
-                      placeholder="Enter mobile number (e.g., 9876543210)"
+                      placeholder="Enter mobile number"
                       value={unifiedQuery}
                       onChange={(e) => setUnifiedQuery(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleUnifiedSearch()}
-                      className="bg-zinc-800 border-zinc-700 text-white placeholder-zinc-500 flex-1 text-lg py-6"
+                      className="bg-zinc-800 border-zinc-700 text-white placeholder-zinc-500 flex-1 text-base sm:text-lg py-4 sm:py-6"
                     />
-                    <Button 
+                    <Button
                       onClick={handleUnifiedSearch}
                       disabled={unifiedLoading || !unifiedQuery.trim()}
-                      className="gap-2 px-8"
+                      className="gap-2 px-6 sm:px-8"
                       size="lg"
                     >
                       {unifiedLoading ? (
                         <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Searching...
+                          <Loader2 className="w-4 sm:w-5 h-4 sm:h-5 animate-spin" />
+                          <span className="hidden sm:inline">Searching...</span>
+                          <span className="sm:hidden">Search</span>
                         </>
                       ) : (
                         <>
-                          <Search className="w-5 h-5" />
-                          Search All
+                          <Search className="w-4 sm:w-5 h-4 sm:h-5" />
+                          <span className="hidden sm:inline">Search All</span>
+                          <span className="sm:hidden">Search</span>
                         </>
                       )}
                     </Button>
@@ -729,7 +731,7 @@ export default function EntitySearchPage() {
 
               {/* Unified Results */}
               {Object.keys(unifiedResults).length > 0 && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                   {searchTypes.map((searchType) => {
                     const result = unifiedResults[searchType.id]
                     if (!result) return null
@@ -781,7 +783,7 @@ export default function EntitySearchPage() {
             <div className="space-y-8">
               {/* Search Options Grid */}
               {!selectedSearchType ? (
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {searchTypes.map((searchType) => (
                     <div
                   key={searchType.id}

@@ -257,71 +257,58 @@ function SocialFeedContent() {
       <div className="h-screen flex flex-col overflow-hidden">
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          <PageHeader 
+          <PageHeader
             title={getFilterLabel(activeFilter)}
             description={`${filteredPosts.length} posts loaded`}
             actions={
-              <div className="flex items-center gap-4">
-                {/* Search Bar */}
-                <div className="relative flex-1 max-w-xs min-w-[200px]">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder="Search..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-4 py-2 text-sm h-9"
-                  />
-                </div>
+              <div className="w-full">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+                  {/* Search Bar */}
+                  <div className="relative w-full sm:flex-1 sm:max-w-xs">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      type="text"
+                      placeholder="Search..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 pr-4 py-2 text-sm h-9 w-full"
+                    />
+                  </div>
 
-                {/* Filters Row - Properly aligned */}
-                <div className="flex items-center gap-2">
-                  <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
-                    <option>All Campaigns</option>
-                  </select>
+                  {/* Filters Row - Responsive */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none flex-1 sm:flex-none min-w-[100px]">
+                      <option>All Campaigns</option>
+                    </select>
 
-                  <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
-                    <option>All Sentiments</option>
-                    <option>Positive</option>
-                    <option>Negative</option>
-                    <option>Neutral</option>
-                  </select>
+                    <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none flex-1 sm:flex-none min-w-[100px]">
+                      <option>All Sentiments</option>
+                      <option>Positive</option>
+                      <option>Negative</option>
+                      <option>Neutral</option>
+                    </select>
 
-                  <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
-                    <option>All Platforms</option>
-                    <option>Facebook</option>
-                    <option>Twitter</option>
-                    <option>Instagram</option>
-                  </select>
+                    <select className="hidden md:block bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
+                      <option>All Platforms</option>
+                      <option>Facebook</option>
+                      <option>Twitter</option>
+                      <option>Instagram</option>
+                    </select>
 
-                  <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
-                    <option>All Media</option>
-                  </select>
+                    <select className="hidden lg:block bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
+                      <option>All Media</option>
+                    </select>
 
-                  <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
-                    <option>Any Likes</option>
-                  </select>
+                    <select className="hidden lg:block bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
+                      <option>All Time</option>
+                    </select>
 
-                  <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
-                    <option>Any Comments</option>
-                  </select>
-
-                  <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
-                    <option>Any Shares</option>
-                  </select>
-
-                  <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
-                    <option>Any Views</option>
-                  </select>
-
-                  <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
-                    <option>All Time</option>
-                  </select>
-
-                  <Button variant="outline" size="sm" className="gap-2 h-9">
-                    <Download className="w-4 h-4" />
-                    Export PDF
-                  </Button>
+                    <Button variant="outline" size="sm" className="gap-2 h-9 hidden sm:flex">
+                      <Download className="w-4 h-4" />
+                      <span className="hidden lg:inline">Export PDF</span>
+                      <span className="lg:hidden">Export</span>
+                    </Button>
+                  </div>
                 </div>
               </div>
             }
@@ -329,11 +316,11 @@ function SocialFeedContent() {
 
           {/* Posts Grid */}
           <div className="flex-1 overflow-y-auto">
-            <div className="p-6 list-animate-in">
+            <div className="p-4 sm:p-6 list-animate-in">
               <div className="mb-4 text-sm text-zinc-500">
                 {filteredPosts.length} posts loaded (more available)
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
                 {filteredPosts.map((post) => (
                   <PostCard key={post.id} post={post} />
                 ))}

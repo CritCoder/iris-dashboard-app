@@ -107,8 +107,8 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
   }
 
   return (
-    <div className="flex items-center justify-between p-4 border-b border-border hover:bg-accent/20 transition-colors">
-      <div className="flex-1">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border-b border-border hover:bg-accent/20 transition-colors gap-3">
+      <div className="flex-1 min-w-0">
         <Link href={`/analysis-history/${campaign.id}`}>
           <h3 className="text-foreground font-medium mb-1 hover:text-blue-400 transition-colors cursor-pointer">
             {campaign.name}
@@ -117,43 +117,43 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
         <p className="text-sm text-muted-foreground">{campaign.date}</p>
       </div>
 
-      <div className="flex items-center gap-6 overflow-x-auto">
-        <div className="flex items-center gap-3 flex-shrink-0">
-          <div className="bg-card border border-border rounded-lg px-4 py-2 text-center min-w-[80px]">
-            <div className="text-foreground font-bold text-lg">{campaign.posts}</div>
-            <div className="text-xs text-muted-foreground">📝 POSTS</div>
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-6">
+        <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-2 sm:pb-0">
+          <div className="bg-card border border-border rounded-lg px-3 sm:px-4 py-2 text-center min-w-[70px] sm:min-w-[80px] flex-shrink-0">
+            <div className="text-foreground font-bold text-base sm:text-lg">{campaign.posts}</div>
+            <div className="text-xs text-muted-foreground">POSTS</div>
           </div>
-          <div className="bg-card border border-border rounded-lg px-4 py-2 text-center min-w-[80px]">
-            <div className="text-foreground font-bold text-lg">{campaign.engage}</div>
-            <div className="text-xs text-muted-foreground">👥 ENGAGE</div>
+          <div className="bg-card border border-border rounded-lg px-3 sm:px-4 py-2 text-center min-w-[70px] sm:min-w-[80px] flex-shrink-0">
+            <div className="text-foreground font-bold text-base sm:text-lg">{campaign.engage}</div>
+            <div className="text-xs text-muted-foreground">ENGAGE</div>
           </div>
-          <div className="bg-green-900/20 border border-green-800/30 rounded-lg px-4 py-2 text-center min-w-[80px]">
-            <div className="text-white font-bold text-lg">{campaign.likes}</div>
-            <div className="text-xs text-green-400">💚 LIKES</div>
+          <div className="bg-green-900/20 border border-green-800/30 rounded-lg px-3 sm:px-4 py-2 text-center min-w-[70px] sm:min-w-[80px] flex-shrink-0">
+            <div className="text-white font-bold text-base sm:text-lg">{campaign.likes}</div>
+            <div className="text-xs text-green-400">LIKES</div>
           </div>
-          <div className="bg-purple-900/20 border border-purple-800/30 rounded-lg px-4 py-2 text-center min-w-[80px]">
-            <div className="text-white font-bold text-lg">{campaign.shares}</div>
-            <div className="text-xs text-purple-400">🔄 SHARES</div>
+          <div className="bg-purple-900/20 border border-purple-800/30 rounded-lg px-3 sm:px-4 py-2 text-center min-w-[70px] sm:min-w-[80px] flex-shrink-0">
+            <div className="text-white font-bold text-base sm:text-lg">{campaign.shares}</div>
+            <div className="text-xs text-purple-400">SHARES</div>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="text-right min-w-[100px]">
+        <div className="flex items-center justify-between sm:justify-start gap-4">
+          <div className="text-left sm:text-right">
             <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg ${getSentimentColor(campaign.sentiment)} bg-opacity-20 border border-current`}>
-              <div className="text-2xl font-bold text-foreground">{campaign.sentiment}</div>
+              <div className="text-xl sm:text-2xl font-bold text-foreground">{campaign.sentiment}</div>
             </div>
             <div className="text-xs text-muted-foreground mt-1">SENTIMENT</div>
           </div>
 
           <div className="flex items-center gap-2">
             <button className="p-2 hover:bg-accent/30 rounded-lg transition-colors text-muted-foreground hover:text-blue-400">
-              <Eye className="w-5 h-5" />
+              <Eye className="w-4 sm:w-5 h-4 sm:h-5" />
             </button>
             <button className="p-2 hover:bg-accent/30 rounded-lg transition-colors text-muted-foreground hover:text-yellow-400">
-              <Pause className="w-5 h-5" />
+              <Pause className="w-4 sm:w-5 h-4 sm:h-5" />
             </button>
             <button className="p-2 hover:bg-accent/30 rounded-lg transition-colors text-muted-foreground hover:text-red-400">
-              <Trash2 className="w-5 h-5" />
+              <Trash2 className="w-4 sm:w-5 h-4 sm:h-5" />
             </button>
           </div>
         </div>
@@ -170,24 +170,24 @@ export default function AnalysisHistoryPage() {
   return (
     <PageLayout>
       <div className="h-screen flex flex-col overflow-hidden">
-        <PageHeader 
+        <PageHeader
           title="Analysis History"
           description="Track and manage your campaign analyses"
           actions={
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+              <div className="relative w-full sm:w-auto">
+                <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 sm:w-5 h-4 sm:h-5 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder="Search campaigns by name or description..."
-                  className="pl-12 pr-4 py-3 text-sm w-80"
+                  placeholder="Search campaigns..."
+                  className="pl-10 sm:pl-12 pr-4 py-2 sm:py-3 text-sm w-full sm:w-64 md:w-80"
                 />
               </div>
 
               <div className="flex gap-2">
                 <button
                   onClick={() => setActiveTab('all')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeTab === 'all'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-secondary text-muted-foreground hover:bg-accent/30'
@@ -197,7 +197,7 @@ export default function AnalysisHistoryPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab('active')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeTab === 'active'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-secondary text-muted-foreground hover:bg-accent/30'
@@ -207,7 +207,7 @@ export default function AnalysisHistoryPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab('inactive')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeTab === 'inactive'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-secondary text-muted-foreground hover:bg-accent/30'
@@ -228,7 +228,7 @@ export default function AnalysisHistoryPage() {
           </div>
         </div>
 
-        <div className="border-t border-border p-4 flex items-center justify-between">
+        <div className="border-t border-border p-3 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-sm text-muted-foreground">
             Showing 1 to 10 of 24 campaigns
           </p>
@@ -245,7 +245,7 @@ export default function AnalysisHistoryPage() {
               <button
                 key={page}
                 onClick={() => setCurrentPage(page)}
-                className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${
+                className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg text-sm font-medium transition-colors ${
                   currentPage === page
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-secondary text-muted-foreground hover:bg-accent/30'
@@ -257,9 +257,9 @@ export default function AnalysisHistoryPage() {
             <button
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-secondary hover:bg-accent/30 rounded-lg transition-colors text-foreground text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-3 sm:px-4 py-2 bg-secondary hover:bg-accent/30 rounded-lg transition-colors text-foreground text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              Next
+              <span className="hidden sm:inline">Next</span>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>

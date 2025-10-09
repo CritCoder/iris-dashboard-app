@@ -37,7 +37,7 @@ export default function StartAnalysisPage() {
 
         {/* Main Content */}
         <div className="flex-1 overflow-y-auto">
-          <div className="max-w-4xl mx-auto px-6 py-8">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
             {/* Analysis Type Tabs */}
             <div className="flex justify-center mb-8">
               <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'topic' | 'poi')} className="w-auto">

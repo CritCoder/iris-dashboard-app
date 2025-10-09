@@ -16,11 +16,11 @@ export default function Page() {
   const [range, setRange] = useState('24h')
   return (
     <PageLayout>
-      <PageHeader 
+      <PageHeader
         title="Intelligence Dashboard"
         description="Real-time insights on narratives, opponents, and public sentiment"
         actions={
-          <>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
             <GlobalSearch />
             <SegmentedControl
               options={[
@@ -30,17 +30,17 @@ export default function Page() {
               ]}
               value={range}
               onChange={setRange}
-              className="w-[280px]"
+              className="w-full sm:w-[280px]"
             />
-          </>
+          </div>
         }
       />
 
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-[1800px] mx-auto px-6 py-8 list-animate-in">
+        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 py-4 sm:py-8 list-animate-in">
           <StatsGrid />
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-8">
             <TopicSentimentHeatmap />
             <InfluencerTracker />
             <OpponentNarrativeWatch />

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, createContext, useContext } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -26,10 +26,26 @@ import {
   Users,
   Smile,
   Meh,
-  Frown
+  Frown,
+  X
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+
+// Create a context for mobile menu state
+const MobileMenuContext = createContext<{
+  isOpen: boolean
+  setIsOpen: (open: boolean) => void
+} | null>(null)
+
+export function useMobileMenu() {
+  const context = useContext(MobileMenuContext)
+  if (!context) {
+    throw new Error('useMobileMenu must be used within MobileMenuProvider')
+  }
+  return context
+}
 
 interface NavItemProps {
   icon: React.ElementType
@@ -175,9 +191,9 @@ function SocialFeedSubmenu() {
   )
 }
 
-export function Sidebar() {
+function SidebarContent() {
   return (
-    <aside className="w-56 border-r border-border bg-background flex flex-col fixed h-screen overflow-y-auto z-40 pointer-events-auto">
+    <>
       <div className="px-6 border-b border-border flex-shrink-0" style={{ height: '84px' }}>
         <Link href="/">
           <div className="flex items-center gap-3 cursor-pointer h-full">
@@ -197,14 +213,14 @@ export function Sidebar() {
         <NavItem icon={Mail} label="Social Inbox" href="/social-inbox" />
         <NavItem icon={Play} label="Start Analysis" href="/start-analysis" />
         <NavItem icon={BarChart3} label="Analysis History" href="/analysis-history" />
-        
-        <NavItem 
-          icon={Globe} 
-          label="Social Feed" 
+
+        <NavItem
+          icon={Globe}
+          label="Social Feed"
           hasSubmenu
           submenuContent={<SocialFeedSubmenu />}
         />
-        
+
         <NavItem icon={User} label="Profiles" href="/profiles" />
         <NavItem icon={Hash} label="Entities" href="/entities" />
         <NavItem icon={MapPin} label="Locations" href="/locations" />
@@ -216,7 +232,7 @@ export function Sidebar() {
         <div className="mb-4 flex justify-start">
           <ThemeToggle />
         </div>
-        
+
         <div className="flex items-center gap-3 px-2">
           <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold flex-shrink-0 text-foreground">
             N
@@ -227,6 +243,28 @@ export function Sidebar() {
           </div>
         </div>
       </div>
-    </aside>
+    </>
+  )
+}
+
+export function Sidebar() {
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  return (
+    <MobileMenuContext.Provider value={{ isOpen: mobileOpen, setIsOpen: setMobileOpen }}>
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex w-56 border-r border-border bg-background flex-col fixed h-screen overflow-y-auto z-40 pointer-events-auto">
+        <SidebarContent />
+      </aside>
+
+      {/* Mobile Sidebar in Sheet */}
+      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+        <SheetContent side="left" className="w-64 p-0 lg:hidden">
+          <div className="flex flex-col h-full">
+            <SidebarContent />
+          </div>
+        </SheetContent>
+      </Sheet>
+    </MobileMenuContext.Provider>
   )
 }

@@ -195,37 +195,38 @@ export default function ProfilesPage() {
       <div className="h-screen flex flex-col overflow-hidden">
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          <PageHeader 
+          <PageHeader
             title="Profiles Explorer"
             description={`${filteredProfiles.length} profiles (more available)`}
             actions={
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-secondary border border-border rounded-lg text-sm text-foreground">
                   All Profiles
                 </div>
-                <div className="relative flex-1 max-w-md">
+                <div className="relative w-full sm:flex-1 sm:max-w-md">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     type="text"
                     placeholder="Search authors..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-4 py-2 text-sm"
+                    className="pl-10 pr-4 py-2 text-sm w-full"
                   />
                 </div>
                 <Button className="gap-2" size="sm">
                   <Share2 className="w-4 h-4" />
-                  Share via WhatsApp
+                  <span className="hidden sm:inline">Share via WhatsApp</span>
+                  <span className="sm:hidden">Share</span>
                 </Button>
               </div>
             }
           />
 
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6">
             <div className="mb-4 text-sm text-muted-foreground">
               {filteredProfiles.length} profiles loaded (more available)
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 list-animate-in">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 list-animate-in">
               {filteredProfiles.map((profile) => (
                 <ProfileCard key={profile.id} profile={profile} />
               ))}

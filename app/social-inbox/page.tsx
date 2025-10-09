@@ -134,55 +134,57 @@ export default function SocialInboxPage() {
   return (
     <PageLayout>
       <div className="h-screen flex flex-col overflow-hidden w-full min-h-screen">
-        <PageHeader 
+        <PageHeader
           title="Social Inbox"
           description="New posts from all campaigns"
           actions={
-            <div className="flex items-center gap-4">
-              <div className="flex-1 flex items-center gap-3">
-                <div className="relative flex-1 max-w-md">
+            <div className="w-full">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+                <div className="relative w-full sm:flex-1 sm:max-w-md">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     type="text"
                     placeholder="Search posts..."
-                    className="pl-10 pr-4 py-2 text-sm h-9"
+                    className="pl-10 pr-4 py-2 text-sm h-9 w-full"
                   />
                 </div>
 
-                <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
-                  <option>All Sentiments</option>
-                  <option>Positive</option>
-                  <option>Negative</option>
-                  <option>Neutral</option>
-                </select>
+                <div className="flex flex-wrap items-center gap-2">
+                  <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none flex-1 sm:flex-none min-w-[120px]">
+                    <option>All Sentiments</option>
+                    <option>Positive</option>
+                    <option>Negative</option>
+                    <option>Neutral</option>
+                  </select>
 
-                <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
-                  <option>All Platforms</option>
-                  <option>Facebook</option>
-                  <option>Twitter</option>
-                  <option>Instagram</option>
-                </select>
+                  <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none flex-1 sm:flex-none min-w-[120px]">
+                    <option>All Platforms</option>
+                    <option>Facebook</option>
+                    <option>Twitter</option>
+                    <option>Instagram</option>
+                  </select>
 
-                <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
-                  <option>All Campaigns</option>
-                  <option>bellandur</option>
-                </select>
+                  <select className="hidden md:block bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
+                    <option>All Campaigns</option>
+                    <option>bellandur</option>
+                  </select>
 
-                <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
-                  <option>Last 24 Hours</option>
-                  <option>Last 7 Days</option>
-                  <option>Last 30 Days</option>
-                </select>
+                  <select className="hidden md:block bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
+                    <option>Last 24 Hours</option>
+                    <option>Last 7 Days</option>
+                    <option>Last 30 Days</option>
+                  </select>
 
-                <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
-                  <option>Sort by Date</option>
-                  <option>Sort by Engagement</option>
-                  <option>Sort by Priority</option>
-                </select>
+                  <select className="hidden lg:block bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
+                    <option>Sort by Date</option>
+                    <option>Sort by Engagement</option>
+                    <option>Sort by Priority</option>
+                  </select>
 
-                <Button variant="outline" size="sm" className="h-9">
-                  Reset
-                </Button>
+                  <Button variant="outline" size="sm" className="h-9 hidden sm:block">
+                    Reset
+                  </Button>
+                </div>
               </div>
             </div>
           }
@@ -191,9 +193,9 @@ export default function SocialInboxPage() {
         {/* Main Content */}
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden w-full h-full">
           {/* Left Column - Post List */}
-          <div className="w-full lg:w-[350px] border-r border-border bg-background flex-shrink-0 flex flex-col h-full">
-            <div className="p-4 border-b border-border flex-shrink-0">
-              <h2 className="text-foreground font-semibold mb-1">Inbox (1441)</h2>
+          <div className="w-full lg:w-[350px] border-r border-border bg-background flex-shrink-0 flex flex-col h-full max-h-[40vh] lg:max-h-none">
+            <div className="p-3 sm:p-4 border-b border-border flex-shrink-0">
+              <h2 className="text-foreground font-semibold mb-1 text-sm sm:text-base">Inbox (1441)</h2>
               <p className="text-xs text-muted-foreground">New posts that have not been classified yet</p>
             </div>
             <div className="divide-y divide-border flex-1 overflow-y-auto">
@@ -210,7 +212,7 @@ export default function SocialInboxPage() {
 
           {/* Middle Column - Post Detail */}
           <div className="flex-1 overflow-y-auto min-w-0 h-full border-r border-border">
-            <div className="p-6 max-w-none">
+            <div className="p-4 sm:p-6 max-w-none">
               {/* Selected Post */}
               <div className="bg-card border border-border rounded-lg p-6 mb-6 list-animate-in">
                 <div className="flex items-start gap-3 mb-4">
@@ -276,23 +278,23 @@ export default function SocialInboxPage() {
               </div>
 
                   {/* Engagement */}
-                  <div className="bg-card border border-border rounded-lg p-6">
+                  <div className="bg-card border border-border rounded-lg p-4 sm:p-6">
                     <h3 className="text-foreground font-semibold mb-4">Engagement</h3>
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-zinc-900 dark:text-white mb-1">{selectedPost.likes}</div>
+                    <div className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white mb-1">{selectedPost.likes}</div>
                     <div className="text-xs text-zinc-600 dark:text-zinc-500">Likes</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-zinc-900 dark:text-white mb-1">{selectedPost.shares}</div>
+                    <div className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white mb-1">{selectedPost.shares}</div>
                     <div className="text-xs text-zinc-600 dark:text-zinc-500">Shares</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-zinc-900 dark:text-white mb-1">{selectedPost.comments}</div>
+                    <div className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white mb-1">{selectedPost.comments}</div>
                     <div className="text-xs text-zinc-600 dark:text-zinc-500">Comments</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-zinc-900 dark:text-white mb-1">{selectedPost.views}</div>
+                    <div className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white mb-1">{selectedPost.views}</div>
                     <div className="text-xs text-zinc-600 dark:text-zinc-500">Views</div>
                   </div>
                 </div>
@@ -301,9 +303,9 @@ export default function SocialInboxPage() {
           </div>
 
           {/* Right Column - Unified Notes & Post Details */}
-          <div className="w-full lg:w-[320px] bg-background flex-shrink-0 h-full flex flex-col">
+          <div className="w-full lg:w-[320px] bg-background flex-shrink-0 h-full flex flex-col hidden lg:flex">
             {/* Notes Section */}
-            <div className="p-4 border-b border-border flex-shrink-0">
+            <div className="p-3 sm:p-4 border-b border-border flex-shrink-0">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-foreground font-semibold">Notes & Analysis</h3>
                 <Button 
