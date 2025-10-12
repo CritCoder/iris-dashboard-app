@@ -60,33 +60,21 @@ export default function LoginPage() {
               toast.error(result.error?.message || 'Login failed')
             }
           } else {
-            // For mobile login, use the correct OTP endpoint
+            // For mobile login, mock OTP sending for testing
             const phoneNumber = `${formData.countryCode}${formData.mobile}`
-            const response = await fetch('https://irisnet.wiredleap.com/api/auth/otpLogin', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                phoneNumber: phoneNumber
-              })
-            })
-
-            const result = await response.json()
-
-            if (result.success) {
-              // Store the contact info in sessionStorage for OTP verification page
-              const contactInfo = {
-                method: loginMethod,
-                value: phoneNumber,
-                displayValue: `${formData.countryCode} ${formData.mobile}`
-              }
-
-              sessionStorage.setItem('otpContactInfo', JSON.stringify(contactInfo))
-              router.push('/login/verify-otp')
-            } else {
-              toast.error(result.error?.message || 'Failed to send OTP')
+            
+            // Mock successful OTP sending
+            toast.success('OTP sent successfully! (Mock)')
+            
+            // Store the contact info in sessionStorage for OTP verification page
+            const contactInfo = {
+              method: loginMethod,
+              value: phoneNumber,
+              displayValue: `${formData.countryCode} ${formData.mobile}`
             }
+
+            sessionStorage.setItem('otpContactInfo', JSON.stringify(contactInfo))
+            router.push('/login/verify-otp')
           }
     } catch (error) {
       toast.error('Failed to send OTP. Please try again.')
