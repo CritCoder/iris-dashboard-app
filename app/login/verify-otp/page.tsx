@@ -54,6 +54,15 @@ export default function VerifyOTPPage() {
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus()
     }
+
+    // Auto-submit when all 6 digits are entered
+    const updatedOtp = [...newOtp]
+    if (updatedOtp.every(digit => digit !== '') && updatedOtp.length === 6) {
+      // Small delay to ensure state is updated
+      setTimeout(() => {
+        handleSubmit(new Event('submit') as any)
+      }, 100)
+    }
   }
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {

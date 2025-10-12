@@ -180,7 +180,15 @@ export default function LoginPage() {
                     type="tel"
                     placeholder="9876543210"
                     value={formData.mobile}
-                    onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      setFormData({ ...formData, mobile: value })
+                      
+                      // Auto-submit when 6 digits are entered
+                      if (value.length === 6 && /^\d+$/.test(value)) {
+                        handleSubmit(e)
+                      }
+                    }}
                     className="bg-zinc-800 border-zinc-700 text-white placeholder-zinc-500 flex-1"
                     required
                   />
