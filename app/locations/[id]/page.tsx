@@ -2,13 +2,15 @@
 
 import { useState, useMemo } from 'react'
 import { useParams } from 'next/navigation'
+import Link from 'next/link'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
-import { Search, MapPin, TrendingUp, ChevronRight, X, Download, Eye, Heart, MessageCircle, Share2, ExternalLink, Clock } from 'lucide-react'
+import { Search, MapPin, TrendingUp, ChevronRight, X, Download, Eye, Heart, MessageCircle, Share2, ExternalLink, Clock, Sparkles, AlertCircle, CheckCircle, MinusCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 interface Post {
   id: string
@@ -394,6 +396,104 @@ export default function LocationDetailPage() {
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+              {/* AI Summary Section */}
+              <Card className="mb-6 border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-primary" />
+                      <CardTitle className="text-lg">AI Summary</CardTitle>
+                    </div>
+                    <Badge variant="secondary" className="gap-1">
+                      <Clock className="w-3 h-3" />
+                      Last 24 hours
+                    </Badge>
+                  </div>
+                  <CardDescription>
+                    Quick overview of what's happening in {locationName}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Sentiment Overview */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <span className="text-xs font-medium text-green-700 dark:text-green-400">Positive</span>
+                      </div>
+                      <div className="text-2xl font-bold text-green-700 dark:text-green-400">
+                        {samplePosts.filter(p => p.sentiment === 'POSITIVE').length}
+                      </div>
+                      <div className="text-xs text-green-600 dark:text-green-500">
+                        {Math.round((samplePosts.filter(p => p.sentiment === 'POSITIVE').length / samplePosts.length) * 100)}% of posts
+                      </div>
+                    </div>
+                    
+                    <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <AlertCircle className="w-4 h-4 text-red-600" />
+                        <span className="text-xs font-medium text-red-700 dark:text-red-400">Negative</span>
+                      </div>
+                      <div className="text-2xl font-bold text-red-700 dark:text-red-400">
+                        {samplePosts.filter(p => p.sentiment === 'NEGATIVE').length}
+                      </div>
+                      <div className="text-xs text-red-600 dark:text-red-500">
+                        {Math.round((samplePosts.filter(p => p.sentiment === 'NEGATIVE').length / samplePosts.length) * 100)}% of posts
+                      </div>
+                    </div>
+                    
+                    <div className="bg-gray-50 dark:bg-gray-950/20 border border-gray-200 dark:border-gray-800 rounded-lg p-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <MinusCircle className="w-4 h-4 text-gray-600" />
+                        <span className="text-xs font-medium text-gray-700 dark:text-gray-400">Neutral</span>
+                      </div>
+                      <div className="text-2xl font-bold text-gray-700 dark:text-gray-400">
+                        {samplePosts.filter(p => p.sentiment === 'NEUTRAL' || p.sentiment === 'MIXED').length}
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-500">
+                        {Math.round((samplePosts.filter(p => p.sentiment === 'NEUTRAL' || p.sentiment === 'MIXED').length / samplePosts.length) * 100)}% of posts
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Key Insights */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-foreground">Key Insights</h4>
+                    <div className="space-y-2">
+                      <Alert className="bg-background/50">
+                        <TrendingUp className="h-4 w-4" />
+                        <AlertTitle className="text-sm">Overall Sentiment: Mixed</AlertTitle>
+                        <AlertDescription className="text-xs">
+                          The area is experiencing mixed sentiment with {samplePosts.filter(p => p.sentiment === 'POSITIVE').length} positive developments around traffic management and community programs, but concerns remain about infrastructure issues like potholes.
+                        </AlertDescription>
+                      </Alert>
+                      
+                      <Alert className="bg-background/50">
+                        <MapPin className="h-4 w-4" />
+                        <AlertTitle className="text-sm">Main Topics</AlertTitle>
+                        <AlertDescription className="text-xs">
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            <Badge variant="secondary" className="text-xs">Police Action</Badge>
+                            <Badge variant="secondary" className="text-xs">Traffic Management</Badge>
+                            <Badge variant="secondary" className="text-xs">Infrastructure</Badge>
+                            <Badge variant="secondary" className="text-xs">Community Safety</Badge>
+                          </div>
+                        </AlertDescription>
+                      </Alert>
+
+                      <Alert className="bg-background/50">
+                        <Sparkles className="h-4 w-4" />
+                        <AlertTitle className="text-sm">What's Happening</AlertTitle>
+                        <AlertDescription className="text-xs">
+                          Bengaluru police are actively implementing new safety measures and community outreach programs. While there's positive feedback on traffic management improvements, citizens continue to raise concerns about road infrastructure. Legal proceedings are ongoing regarding administrative restructuring of the police division.
+                        </AlertDescription>
+                      </Alert>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Posts List */}
               {filteredPosts.map((post) => (
                 <PostCard key={post.id} post={post} />
               ))}

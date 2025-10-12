@@ -435,6 +435,12 @@ function SidebarContent() {
           hasSubmenu
           submenuContent={<LocationsSubmenu />}
         />
+        
+        <NavItem
+          icon={Building}
+          label="Groups & Organizations"
+          href="/organizations"
+        />
 
         {/* Intelligence Section */}
         <div className="pt-4 pb-2">

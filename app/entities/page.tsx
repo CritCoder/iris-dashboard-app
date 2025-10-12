@@ -261,12 +261,56 @@ export default function EntitiesPage() {
     // Use API data if available, otherwise use sample data
     const entities = apiEntities && apiEntities.length > 0 ? apiEntities : sampleEntities
 
-    // Apply client-side filtering
-    return entities.filter(entity =>
-      entity.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entity.type.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  }, [apiEntities, searchQuery])
+    // Apply client-side filtering based on activeFilter
+    let filtered = entities
+
+    // Apply filter-based filtering
+    switch (activeFilter) {
+      case 'topics':
+        filtered = filtered.filter(e => e.type === 'TOPIC')
+        break
+      case 'people':
+        filtered = filtered.filter(e => e.type === 'PERSON')
+        break
+      case 'organizations':
+        filtered = filtered.filter(e => e.type === 'ORGANIZATION')
+        break
+      case 'locations':
+        filtered = filtered.filter(e => e.type === 'LOCATION')
+        break
+      case 'high-impact':
+        filtered = filtered.filter(e => e.mentions > 1000)
+        break
+      case 'trending':
+        filtered = filtered.filter(e => e.lastSeen.includes('hour') || e.lastSeen.includes('minute'))
+        break
+      case 'frequent':
+        filtered = filtered.filter(e => e.mentions > 500)
+        break
+      case 'negative':
+        // TODO: Add sentiment filtering when available
+        filtered = []
+        break
+      case 'positive':
+        // TODO: Add sentiment filtering when available
+        filtered = []
+        break
+      case 'controversial':
+        // TODO: Add sentiment filtering when available
+        filtered = []
+        break
+    }
+
+    // Apply search query filtering
+    if (searchQuery) {
+      filtered = filtered.filter(entity =>
+        entity.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        entity.type.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    }
+
+    return filtered
+  }, [apiEntities, searchQuery, activeFilter])
 
   // Use sample data for filter counts when API data is not available
   const entitiesForCounts = apiEntities && apiEntities.length > 0 ? apiEntities : sampleEntities

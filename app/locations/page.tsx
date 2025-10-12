@@ -99,29 +99,59 @@ function FilterItem({
   isActive = false, 
   hasSubmenu = false, 
   onClick,
-  count
+  count,
+  submenuItems
 }: { 
   label: string
   isActive?: boolean
   hasSubmenu?: boolean
   onClick?: () => void
   count?: number
+  submenuItems?: { label: string; value: string }[]
 }) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  const handleClick = () => {
+    if (hasSubmenu && submenuItems) {
+      setIsOpen(!isOpen)
+    } else if (onClick) {
+      onClick()
+    }
+  }
+
   return (
-    <button
-      onClick={onClick}
-      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
-        isActive 
-          ? 'bg-primary text-primary-foreground' 
-          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-      }`}
-    >
-      <span>{label}</span>
-      <div className="flex items-center gap-2">
-        {count !== undefined && <span className="text-xs text-muted-foreground">{count}</span>}
-        {hasSubmenu && <ChevronRight className="w-4 h-4" />}
-      </div>
-    </button>
+    <div>
+      <button
+        onClick={handleClick}
+        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
+          isActive 
+            ? 'bg-primary text-primary-foreground' 
+            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+        }`}
+      >
+        <span>{label}</span>
+        <div className="flex items-center gap-2">
+          {count !== undefined && <span className="text-xs text-muted-foreground">{count}</span>}
+          {hasSubmenu && (
+            <ChevronRight className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
+          )}
+        </div>
+      </button>
+      
+      {hasSubmenu && isOpen && submenuItems && (
+        <div className="ml-4 mt-1 space-y-1">
+          {submenuItems.map((item) => (
+            <button
+              key={item.value}
+              onClick={onClick}
+              className="w-full flex items-start px-3 py-1.5 rounded-lg text-xs transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
