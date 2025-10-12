@@ -7,7 +7,7 @@ import { Mail, Phone, ArrowRight, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useAuth } from '@/hooks/use-api'
+import { useAuth } from '@/contexts/auth-context'
 import { toast } from 'sonner'
 
 export default function LoginPage() {

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Mail, Phone, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useAuth } from '@/hooks/use-api'
+import { useAuth } from '@/contexts/auth-context'
 import { toast } from 'sonner'
 
 interface ContactInfo {
@@ -16,7 +16,7 @@ interface ContactInfo {
 
 export default function VerifyOTPPage() {
   const router = useRouter()
-  const { otpLogin } = useAuth()
+  const { otpLogin, login } = useAuth()
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
   const [timer, setTimer] = useState(60)
   const [isVerifying, setIsVerifying] = useState(false)
@@ -74,62 +74,32 @@ export default function VerifyOTPPage() {
         const otpCode = otp.join('')
         
         if (contactInfo.method === 'mobile') {
-          // Use the same API endpoint as port 3008
-          const response = await fetch('https://irisnet.wiredleap.com/api/auth/otpLogin', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              phoneNumber: contactInfo.value,
-              otp: otpCode
-            })
+          // Use AuthProvider's otpLogin method
+          const success = await otpLogin({
+            phoneNumber: contactInfo.value,
+            otp: otpCode
           })
           
-          const result = await response.json()
-          
-          if (result.success) {
-            // Store the auth token if provided
-            if (result.data?.token) {
-              localStorage.setItem('auth_token', result.data.token)
-            }
-            
+          if (success) {
             // Clear session storage
             sessionStorage.removeItem('otpContactInfo')
-            
-            toast.success('Login successful!')
-            router.push('/')
+            // AuthProvider will handle the redirect automatically
           } else {
-            toast.error(result.error?.message || 'Invalid OTP. Please try again.')
+            toast.error('Invalid OTP. Please try again.')
           }
         } else {
-          // For email OTP, use the same API endpoint as port 3008
-          const response = await fetch('https://irisnet.wiredleap.com/api/auth/login', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              email: contactInfo.value,
-              password: 'temp_password' // This might need to be adjusted
-            })
+          // For email OTP, use AuthProvider's login method
+          const success = await login({
+            email: contactInfo.value,
+            password: 'temp_password' // This might need to be adjusted based on actual API
           })
           
-          const result = await response.json()
-          
-          if (result.success) {
-            // Store the auth token if provided
-            if (result.data?.token) {
-              localStorage.setItem('auth_token', result.data.token)
-            }
-            
+          if (success) {
             // Clear session storage
             sessionStorage.removeItem('otpContactInfo')
-            
-            toast.success('Login successful!')
-            router.push('/')
+            // AuthProvider will handle the redirect automatically
           } else {
-            toast.error(result.error?.message || 'Login failed. Please try again.')
+            toast.error('Login failed. Please try again.')
           }
         }
       }
