@@ -7,10 +7,11 @@ import { Mail, Phone, ArrowRight, Eye, EyeOff, User, Loader2 } from 'lucide-reac
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { toast } from 'sonner'
+import { useToast } from '@/hooks/use-toast'
 
 export default function SignupPage() {
   const router = useRouter()
+  const { success, error } = useToast()
   const [signupMethod, setSignupMethod] = useState<'email' | 'mobile'>('email')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -28,27 +29,27 @@ export default function SignupPage() {
     
     // Validate input
     if (!formData.name.trim()) {
-      toast.error('Please enter your full name')
+      error('Please enter your full name')
       return
     }
     if (signupMethod === 'email' && !formData.email.trim()) {
-      toast.error('Please enter your email address')
+      error('Please enter your email address')
       return
     }
     if (signupMethod === 'mobile' && !formData.mobile.trim()) {
-      toast.error('Please enter your mobile number')
+      error('Please enter your mobile number')
       return
     }
     if (!formData.password.trim()) {
-      toast.error('Please enter a password')
+      error('Please enter a password')
       return
     }
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match')
+      error('Passwords do not match')
       return
     }
     if (formData.password.length < 8) {
-      toast.error('Password must be at least 8 characters long')
+      error('Password must be at least 8 characters long')
       return
     }
 
@@ -81,10 +82,10 @@ export default function SignupPage() {
           }
 
           sessionStorage.setItem('otpContactInfo', JSON.stringify(contactInfo))
-          toast.success('Account created successfully! Please verify your email.')
+          success('Account created successfully! Please verify your email.')
           router.push('/signup/verify-otp')
         } else {
-          toast.error(result.error?.message || 'Signup failed')
+          error(result.error?.message || 'Signup failed')
         }
       } else {
         // For mobile signup, use the OTP endpoint
@@ -110,14 +111,14 @@ export default function SignupPage() {
           }
 
           sessionStorage.setItem('otpContactInfo', JSON.stringify(contactInfo))
-          toast.success('OTP sent successfully! Please verify your mobile number.')
+          success('OTP sent successfully! Please verify your mobile number.')
           router.push('/signup/verify-otp')
         } else {
-          toast.error(result.error?.message || 'Failed to send OTP')
+          error(result.error?.message || 'Failed to send OTP')
         }
       }
     } catch (error) {
-      toast.error('Failed to create account. Please try again.')
+      error('Failed to create account. Please try again.')
       console.error('Signup error:', error)
     } finally {
       setIsLoading(false)

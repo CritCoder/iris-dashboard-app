@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Mail, Phone, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/auth-context'
-import { toast } from 'sonner'
+import { useToast } from '@/hooks/use-toast'
 
 interface ContactInfo {
   method: 'email' | 'mobile'
@@ -17,6 +17,7 @@ interface ContactInfo {
 export default function VerifyOTPPage() {
   const router = useRouter()
   const { otpLogin, login } = useAuth()
+  const { success, error } = useToast()
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
   const [timer, setTimer] = useState(60)
   const [isVerifying, setIsVerifying] = useState(false)
@@ -94,7 +95,7 @@ export default function VerifyOTPPage() {
             sessionStorage.removeItem('otpContactInfo')
             // AuthProvider will handle the redirect automatically
           } else {
-            toast.error('Invalid OTP. Please try again.')
+            error('Invalid OTP. Please try again.')
           }
         } else {
           // For email OTP, use AuthProvider's login method
@@ -108,12 +109,12 @@ export default function VerifyOTPPage() {
             sessionStorage.removeItem('otpContactInfo')
             // AuthProvider will handle the redirect automatically
           } else {
-            toast.error('Login failed. Please try again.')
+            error('Login failed. Please try again.')
           }
         }
       }
     } catch (error) {
-      toast.error('Network error. Please try again.')
+      error('Network error. Please try again.')
       console.error('OTP verification error:', error)
     } finally {
       setIsVerifying(false)
@@ -143,17 +144,17 @@ export default function VerifyOTPPage() {
         const result = await response.json()
 
         if (result.success) {
-          toast.success('OTP resent successfully!')
+          success('OTP resent successfully!')
         } else {
-          toast.error(result.error?.message || 'Failed to resend OTP')
+          error(result.error?.message || 'Failed to resend OTP')
         }
       } else {
         // For email, we might need to call the login endpoint again
         await new Promise(resolve => setTimeout(resolve, 1000))
-        toast.success('OTP resent successfully!')
+        success('OTP resent successfully!')
       }
     } catch (error) {
-      toast.error('Failed to resend OTP. Please try again.')
+      error('Failed to resend OTP. Please try again.')
     }
   }
 

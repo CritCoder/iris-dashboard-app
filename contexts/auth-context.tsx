@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { toast } from 'sonner'
+import { useToast } from '@/hooks/use-toast'
 
 interface User {
   id: string
@@ -40,6 +40,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   const pathname = usePathname()
+  const { toast, success, error } = useToast()
 
   const checkAuth = async () => {
     try {
@@ -112,17 +113,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (result.success && result.data?.token) {
         localStorage.setItem('auth_token', result.data.token)
         setUser(result.data.user)
-        toast.success('Login successful!')
+        success('Login successful!')
         // Redirect to dashboard after successful login
         router.push('/')
         return true
       } else {
-        toast.error(result.error?.message || 'Login failed')
+        error(result.error?.message || 'Login failed')
         return false
       }
     } catch (error) {
       console.error('Login error:', error)
-      toast.error('Login failed. Please try again.')
+      error('Login failed. Please try again.')
       return false
     }
   }
@@ -144,13 +145,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         
         localStorage.setItem('auth_token', testToken)
         setUser(testUser)
-        toast.success('Login successful! (Test Mode - API not available)')
+        success('Login successful! (Test Mode - API not available)')
         
         // Redirect to dashboard after successful login
         router.push('/')
         return true
       } else {
-        toast.error('Please enter a valid 6-digit OTP')
+        error('Please enter a valid 6-digit OTP')
         return false
       }
       
@@ -185,22 +186,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
               role: 'user'
             })
           }
-          toast.success('Login successful!')
+          success('Login successful!')
           // Redirect to dashboard after successful login
           window.location.href = '/'
           return true
         } else {
-          toast.error('No authentication token received')
+          error('No authentication token received')
           return false
         }
       } else {
-        toast.error(result.error?.message || result.message || 'OTP verification failed')
+        error(result.error?.message || result.message || 'OTP verification failed')
         return false
       }
       */
     } catch (error) {
       console.error('OTP login error:', error)
-      toast.error('OTP verification failed. Please try again.')
+      error('OTP verification failed. Please try again.')
       return false
     }
   }
@@ -220,11 +221,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       })
 
       setUser(null)
-      toast.success('Logged out successfully')
+      success('Logged out successfully')
       router.push('/login')
     } catch (error) {
       console.error('Logout error:', error)
-      toast.error('Error during logout')
+      error('Error during logout')
     }
   }
 

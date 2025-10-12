@@ -7,10 +7,11 @@ import { ArrowLeft, ArrowRight, Mail, Phone, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { toast } from 'sonner'
+import { useToast } from '@/hooks/use-toast'
 
 export default function ForgotPasswordPage() {
   const router = useRouter()
+  const { success, error } = useToast()
   const [resetMethod, setResetMethod] = useState<'email' | 'mobile'>('email')
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -24,11 +25,11 @@ export default function ForgotPasswordPage() {
     
     // Validate input
     if (resetMethod === 'email' && !formData.email.trim()) {
-      toast.error('Please enter your email address')
+      error('Please enter your email address')
       return
     }
     if (resetMethod === 'mobile' && !formData.mobile.trim()) {
-      toast.error('Please enter your mobile number')
+      error('Please enter your mobile number')
       return
     }
 
@@ -58,10 +59,10 @@ export default function ForgotPasswordPage() {
           }
 
           sessionStorage.setItem('otpContactInfo', JSON.stringify(contactInfo))
-          toast.success('Reset code sent to your email!')
+          success('Reset code sent to your email!')
           router.push('/forgot-password/verify-otp')
         } else {
-          toast.error(result.error?.message || 'Failed to send reset code')
+          error(result.error?.message || 'Failed to send reset code')
         }
       } else {
         // For mobile reset, use the OTP endpoint
@@ -87,14 +88,14 @@ export default function ForgotPasswordPage() {
           }
 
           sessionStorage.setItem('otpContactInfo', JSON.stringify(contactInfo))
-          toast.success('Reset code sent to your mobile!')
+          success('Reset code sent to your mobile!')
           router.push('/forgot-password/verify-otp')
         } else {
-          toast.error(result.error?.message || 'Failed to send reset code')
+          error(result.error?.message || 'Failed to send reset code')
         }
       }
     } catch (error) {
-      toast.error('Failed to send reset code. Please try again.')
+      error('Failed to send reset code. Please try again.')
       console.error('Reset password error:', error)
     } finally {
       setIsLoading(false)

@@ -8,11 +8,12 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { FacebookIcon, InstagramIcon, TwitterIcon, NewsIcon } from '@/components/ui/platform-icons'
-import { toast } from 'sonner'
+import { useToast } from '@/hooks/use-toast'
 import { Loader2, Search, Zap } from 'lucide-react'
 
 export default function StartAnalysisPage() {
   const router = useRouter()
+  const { success, error } = useToast()
   const [activeTab, setActiveTab] = useState<'topic' | 'poi'>('topic')
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['facebook', 'instagram', 'twitter', 'india-news'])
   const [searchQuery, setSearchQuery] = useState('')
@@ -36,12 +37,12 @@ export default function StartAnalysisPage() {
 
   const handleAnalyze = async () => {
     if (!searchQuery.trim()) {
-      toast.error('Please enter a search query')
+      error('Please enter a search query')
       return
     }
 
     if (selectedPlatforms.length === 0) {
-      toast.error('Please select at least one platform')
+      error('Please select at least one platform')
       return
     }
 
@@ -67,14 +68,14 @@ export default function StartAnalysisPage() {
       const result = await response.json()
 
       if (result.success) {
-        toast.success('Analysis started successfully!')
+        success('Analysis started successfully!')
         // Redirect to the campaign page or analysis results
         router.push(`/post-campaign/${result.data.id}`)
       } else {
-        toast.error(result.error?.message || 'Failed to start analysis')
+        error(result.error?.message || 'Failed to start analysis')
       }
     } catch (error) {
-      toast.error('Failed to start analysis. Please try again.')
+      error('Failed to start analysis. Please try again.')
       console.error('Analysis error:', error)
     } finally {
       setIsAnalyzing(false)

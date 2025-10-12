@@ -8,11 +8,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/contexts/auth-context'
-import { toast } from 'sonner'
+import { useToast } from '@/hooks/use-toast'
 
 export default function LoginPage() {
   const router = useRouter()
   const { login, otpLogin } = useAuth()
+  const { success, error } = useToast()
   const [loginMethod, setLoginMethod] = useState<'email' | 'mobile'>('mobile')
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -57,7 +58,7 @@ export default function LoginPage() {
               sessionStorage.setItem('otpContactInfo', JSON.stringify(contactInfo))
               router.push('/login/verify-otp')
             } else {
-              toast.error(result.error?.message || 'Login failed')
+              error(result.error?.message || 'Login failed')
             }
           } else {
             // For mobile login, send OTP
@@ -76,7 +77,7 @@ export default function LoginPage() {
             console.log('OTP Send Response:', result) // Debug log
 
             if (result.success) {
-              toast.success('OTP sent successfully!')
+              success('OTP sent successfully!')
               
               // Store the contact info in sessionStorage for OTP verification page
               const contactInfo = {
@@ -88,11 +89,11 @@ export default function LoginPage() {
               sessionStorage.setItem('otpContactInfo', JSON.stringify(contactInfo))
               router.push('/login/verify-otp')
             } else {
-              toast.error(result.error?.message || result.message || 'Failed to send OTP')
+              error(result.error?.message || result.message || 'Failed to send OTP')
             }
           }
     } catch (error) {
-      toast.error('Failed to send OTP. Please try again.')
+      error('Failed to send OTP. Please try again.')
       console.error('Login error:', error)
     } finally {
       setIsLoading(false)

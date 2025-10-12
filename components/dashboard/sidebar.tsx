@@ -3,7 +3,7 @@
 import { useState, createContext, useContext } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { toast } from 'sonner'
+import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/auth-context'
 import {
   Home,

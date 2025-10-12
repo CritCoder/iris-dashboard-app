@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/contexts/theme-context'
 import { AuthProvider } from '@/contexts/auth-context'
-import { Toaster } from '@/components/ui/sonner'
+import { ToastProvider } from '@/components/ui/toast-provider'
 import { RouteProgress } from '@/components/layout/route-progress'
 import { PageTransition } from '@/components/layout/page-transition'
 
@@ -27,11 +27,11 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased bg-background text-foreground`}>
         <ThemeProvider>
           <AuthProvider>
+            <ToastProvider />
             <RouteProgress />
             <PageTransition>
               {children}
             </PageTransition>
-            <Toaster position="top-right" richColors closeButton />
           </AuthProvider>
         </ThemeProvider>
       </body>
