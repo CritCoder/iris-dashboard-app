@@ -44,6 +44,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const checkAuth = async () => {
     try {
+      // Check if we're in the browser before accessing localStorage
+      if (typeof window === 'undefined') {
+        setLoading(false)
+        return
+      }
+
       const token = localStorage.getItem('auth_token')
       if (!token) {
         setUser(null)
