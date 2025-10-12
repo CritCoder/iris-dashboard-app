@@ -6,6 +6,7 @@ import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
 import { Search, Eye, Pause, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { AnimatedPage, AnimatedList, AnimatedItem } from '@/components/ui/animated'
 
 interface Campaign {
   id: string
@@ -125,9 +126,10 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
   const router = useRouter()
 
   const getSentimentColor = (sentiment: number) => {
-    if (sentiment >= 70) return 'bg-green-500'
-    if (sentiment >= 40) return 'bg-yellow-500'
-    return 'bg-orange-500'
+    // Using dark red and green like homepage
+    if (sentiment >= 70) return 'bg-green-600 text-white'
+    if (sentiment >= 40) return 'bg-yellow-600 text-white'
+    return 'bg-red-600 text-white'
   }
 
   const handleRowClick = () => {
@@ -148,38 +150,58 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
 
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-6">
         <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-2 sm:pb-0">
-          <div className="bg-card border border-border rounded-lg px-3 sm:px-4 py-2 text-center min-w-[70px] sm:min-w-[80px] flex-shrink-0">
-            <div className="text-foreground font-bold text-base sm:text-lg">{campaign.posts}</div>
-            <div className="text-xs text-muted-foreground">POSTS</div>
+          <div className="bg-blue-900/20 border border-blue-800/30 rounded-lg px-3 sm:px-4 py-2 text-center min-w-[70px] sm:min-w-[80px] flex-shrink-0">
+            <div className="text-blue-300 font-bold text-base sm:text-lg">{campaign.posts}</div>
+            <div className="text-xs text-blue-400">POSTS</div>
           </div>
-          <div className="bg-card border border-border rounded-lg px-3 sm:px-4 py-2 text-center min-w-[70px] sm:min-w-[80px] flex-shrink-0">
-            <div className="text-foreground font-bold text-base sm:text-lg">{campaign.engage}</div>
-            <div className="text-xs text-muted-foreground">ENGAGE</div>
+          <div className="bg-cyan-900/20 border border-cyan-800/30 rounded-lg px-3 sm:px-4 py-2 text-center min-w-[70px] sm:min-w-[80px] flex-shrink-0">
+            <div className="text-cyan-300 font-bold text-base sm:text-lg">{campaign.engage}</div>
+            <div className="text-xs text-cyan-400">ENGAGE</div>
           </div>
           <div className="bg-green-900/20 border border-green-800/30 rounded-lg px-3 sm:px-4 py-2 text-center min-w-[70px] sm:min-w-[80px] flex-shrink-0">
-            <div className="text-white font-bold text-base sm:text-lg">{campaign.likes}</div>
+            <div className="text-green-300 font-bold text-base sm:text-lg">{campaign.likes}</div>
             <div className="text-xs text-green-400">LIKES</div>
           </div>
           <div className="bg-purple-900/20 border border-purple-800/30 rounded-lg px-3 sm:px-4 py-2 text-center min-w-[70px] sm:min-w-[80px] flex-shrink-0">
-            <div className="text-white font-bold text-base sm:text-lg">{campaign.shares}</div>
+            <div className="text-purple-300 font-bold text-base sm:text-lg">{campaign.shares}</div>
             <div className="text-xs text-purple-400">SHARES</div>
           </div>
         </div>
 
         <div className="flex items-center justify-between sm:justify-start gap-4">
           <div className="text-left sm:text-right">
-            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg ${getSentimentColor(campaign.sentiment)} bg-opacity-20 border border-current`}>
-              <div className="text-xl sm:text-2xl font-bold text-foreground">{campaign.sentiment}</div>
+            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg ${getSentimentColor(campaign.sentiment)}`}>
+              <div className="text-xl sm:text-2xl font-bold">{campaign.sentiment}</div>
             </div>
             <div className="text-xs text-muted-foreground mt-1">SENTIMENT</div>
           </div>
 
           <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-            <button className="p-2 hover:bg-accent/30 rounded-lg transition-colors text-muted-foreground hover:text-blue-400">
+            <button className="px-3 py-2 hover:bg-accent/30 rounded-lg transition-colors text-muted-foreground hover:text-blue-400 flex items-center gap-2">
               <Eye className="w-4 sm:w-5 h-4 sm:h-5" />
+              <span className="text-sm font-medium">View</span>
             </button>
-            <button className="p-2 hover:bg-accent/30 rounded-lg transition-colors text-muted-foreground hover:text-yellow-400">
-              <Pause className="w-4 sm:w-5 h-4 sm:h-5" />
+            <button
+              className={`px-3 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+                campaign.status === 'active'
+                  ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
+                  : 'bg-gray-500/20 text-gray-400 hover:bg-gray-500/30'
+              }`}
+              title={campaign.status === 'active' ? 'Active - Click to pause' : 'Paused - Click to activate'}
+            >
+              {campaign.status === 'active' ? (
+                <>
+                  <Pause className="w-4 sm:w-5 h-4 sm:h-5" />
+                  <span className="text-sm font-medium">Pause</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 sm:w-5 h-4 sm:h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                  <span className="text-sm font-medium">Start</span>
+                </>
+              )}
             </button>
             <button className="p-2 hover:bg-accent/30 rounded-lg transition-colors text-muted-foreground hover:text-red-400">
               <Trash2 className="w-4 sm:w-5 h-4 sm:h-5" />
@@ -265,17 +287,19 @@ export default function AnalysisHistoryPage() {
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          <div className="divide-y divide-border list-animate-in">
+          <AnimatedList stagger={0.03} className="divide-y divide-border list-animate-in">
             {filteredCampaigns.length > 0 ? (
               filteredCampaigns.map((campaign) => (
-                <CampaignRow key={campaign.id} campaign={campaign} />
+                <AnimatedItem key={campaign.id}>
+                  <CampaignRow campaign={campaign} />
+                </AnimatedItem>
               ))
             ) : (
               <div className="p-8 text-center text-muted-foreground">
                 <p>No campaigns found matching your criteria.</p>
               </div>
             )}
-          </div>
+          </AnimatedList>
         </div>
 
         <div className="border-t border-border bg-background px-3 sm:px-4 h-16 flex flex-col sm:flex-row items-center justify-between gap-3">

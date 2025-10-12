@@ -11,6 +11,8 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { useSocialPosts } from '@/hooks/use-api'
+import { api } from '@/lib/api'
 
 interface Post {
   id: string
@@ -187,18 +189,43 @@ function FilterItem({
 export default function LocationDetailPage() {
   const params = useParams()
   const locationId = params.id as string
-  
+
   const [activeTab, setActiveTab] = useState('latest')
   const [activeFilter, setActiveFilter] = useState('all-locations')
   const [searchQuery, setSearchQuery] = useState('')
 
   // Get location name from ID (in real app, this would come from API)
-  const locationName = locationId === 'bengaluru' ? 'Bengaluru' : 
-                      locationId === 'bangalore' ? 'Bangalore' : 
-                      locationId.charAt(0).toUpperCase() + locationId.slice(1)
+  const locationName = locationId === 'bengaluru' ? 'Bengaluru' :
+                      locationId === 'bangalore' ? 'Bangalore' :
+                      locationId.replace(/-/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+
+  // Fetch posts from API using location search
+  const { data: apiPosts, loading, error } = useSocialPosts({
+    search: locationName,
+    page: 1,
+    limit: 50
+  })
+
+  // Use API data if available, otherwise fallback to sample data
+  const postsData = useMemo(() => {
+    if (apiPosts && apiPosts.length > 0) {
+      return apiPosts.map((post: any) => ({
+        id: post.id,
+        source: post.authorName || post.author || 'Unknown Source',
+        timestamp: post.timestamp || new Date(post.createdAt).toLocaleString(),
+        content: post.content || '',
+        sentiment: post.sentiment || 'NEUTRAL',
+        relevance: post.relevance || 50,
+        likes: post.likesCount || 0,
+        comments: post.commentsCount || 0,
+        shares: post.sharesCount || 0
+      }))
+    }
+    return samplePosts
+  }, [apiPosts])
 
   const filteredPosts = useMemo(() => {
-    let filtered = [...samplePosts]
+    let filtered = [...postsData]
 
     // Apply tab filtering
     switch (activeTab) {
@@ -422,36 +449,36 @@ export default function LocationDetailPage() {
                         <span className="text-xs font-medium text-green-700 dark:text-green-400">Positive</span>
                       </div>
                       <div className="text-2xl font-bold text-green-700 dark:text-green-400">
-                        {samplePosts.filter(p => p.sentiment === 'POSITIVE').length}
+                        {postsData.filter(p => p.sentiment === 'POSITIVE').length}
                       </div>
                       <div className="text-xs text-green-600 dark:text-green-500">
-                        {Math.round((samplePosts.filter(p => p.sentiment === 'POSITIVE').length / samplePosts.length) * 100)}% of posts
+                        {postsData.length > 0 ? Math.round((postsData.filter(p => p.sentiment === 'POSITIVE').length / postsData.length) * 100) : 0}% of posts
                       </div>
                     </div>
-                    
+
                     <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
                       <div className="flex items-center gap-2 mb-1">
                         <AlertCircle className="w-4 h-4 text-red-600" />
                         <span className="text-xs font-medium text-red-700 dark:text-red-400">Negative</span>
                       </div>
                       <div className="text-2xl font-bold text-red-700 dark:text-red-400">
-                        {samplePosts.filter(p => p.sentiment === 'NEGATIVE').length}
+                        {postsData.filter(p => p.sentiment === 'NEGATIVE').length}
                       </div>
                       <div className="text-xs text-red-600 dark:text-red-500">
-                        {Math.round((samplePosts.filter(p => p.sentiment === 'NEGATIVE').length / samplePosts.length) * 100)}% of posts
+                        {postsData.length > 0 ? Math.round((postsData.filter(p => p.sentiment === 'NEGATIVE').length / postsData.length) * 100) : 0}% of posts
                       </div>
                     </div>
-                    
+
                     <div className="bg-gray-50 dark:bg-gray-950/20 border border-gray-200 dark:border-gray-800 rounded-lg p-3">
                       <div className="flex items-center gap-2 mb-1">
                         <MinusCircle className="w-4 h-4 text-gray-600" />
                         <span className="text-xs font-medium text-gray-700 dark:text-gray-400">Neutral</span>
                       </div>
                       <div className="text-2xl font-bold text-gray-700 dark:text-gray-400">
-                        {samplePosts.filter(p => p.sentiment === 'NEUTRAL' || p.sentiment === 'MIXED').length}
+                        {postsData.filter(p => p.sentiment === 'NEUTRAL' || p.sentiment === 'MIXED').length}
                       </div>
                       <div className="text-xs text-gray-600 dark:text-gray-500">
-                        {Math.round((samplePosts.filter(p => p.sentiment === 'NEUTRAL' || p.sentiment === 'MIXED').length / samplePosts.length) * 100)}% of posts
+                        {postsData.length > 0 ? Math.round((postsData.filter(p => p.sentiment === 'NEUTRAL' || p.sentiment === 'MIXED').length / postsData.length) * 100) : 0}% of posts
                       </div>
                     </div>
                   </div>
@@ -464,7 +491,7 @@ export default function LocationDetailPage() {
                         <TrendingUp className="h-4 w-4" />
                         <AlertTitle className="text-sm">Overall Sentiment: Mixed</AlertTitle>
                         <AlertDescription className="text-xs">
-                          The area is experiencing mixed sentiment with {samplePosts.filter(p => p.sentiment === 'POSITIVE').length} positive developments around traffic management and community programs, but concerns remain about infrastructure issues like potholes.
+                          The area is experiencing mixed sentiment with {postsData.filter(p => p.sentiment === 'POSITIVE').length} positive developments around traffic management and community programs, but concerns remain about infrastructure issues like potholes.
                         </AlertDescription>
                       </Alert>
                       

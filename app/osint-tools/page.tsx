@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Search, Globe, Shield, Eye, Database, Zap, AlertTriangle, CheckCircle } from 'lucide-react'
+import { AnimatedPage, AnimatedGrid, AnimatedCard } from '@/components/ui/animated'
 
 export default function OSINTToolsPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -104,11 +105,27 @@ export default function OSINTToolsPage() {
     <PageLayout>
       <div className="h-screen flex flex-col overflow-hidden">
         {/* Header with consistent padding */}
-        <div className="p-4 sm:p-6 lg:p-8 border-b border-border">
+        <div className="p-4 sm:p-6 lg:p-8 border-b border-border bg-gradient-to-r from-blue-500/5 to-purple-500/5">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">OSINT Tools</h1>
-              <p className="text-muted-foreground">Open Source Intelligence tools for comprehensive data gathering and analysis</p>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Shield className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-foreground">OSINT Intelligence Tools</h1>
+                  <p className="text-sm text-muted-foreground">Advanced investigation and intelligence gathering suite</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 mt-3">
+                <Badge variant="secondary" className="text-xs">
+                  <Shield className="w-3 h-3 mr-1" />
+                  Law Enforcement Only
+                </Badge>
+                <Badge variant="outline" className="text-xs">
+                  6 Active Tools
+                </Badge>
+              </div>
             </div>
             <div className="flex items-center gap-4">
               <div className="relative">
@@ -127,18 +144,23 @@ export default function OSINTToolsPage() {
               </Button>
             </div>
           </div>
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 mt-4">
+            <p className="text-sm text-foreground">
+              <span className="font-semibold">Note:</span> These tools provide advanced intelligence gathering capabilities for authorized law enforcement personnel. All activities are logged and monitored for compliance.
+            </p>
+          </div>
         </div>
 
         {/* Main content with consistent padding */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+        <AnimatedPage className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
 
         {/* Tools Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <AnimatedGrid stagger={0.05} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTools.map((tool) => {
             const IconComponent = tool.icon
             return (
-              <Card 
-                key={tool.id} 
+              <AnimatedCard
+                key={tool.id}
                 className="cursor-pointer"
                 onClick={() => setSelectedTool(tool.id)}
               >
@@ -188,10 +210,10 @@ export default function OSINTToolsPage() {
                     </Button>
                   </div>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
             )
           })}
-        </div>
+        </AnimatedGrid>
 
         {/* Selected Tool Details */}
         {selectedTool && (
@@ -316,7 +338,7 @@ export default function OSINTToolsPage() {
             </CardContent>
           </Card>
         </div>
-        </div>
+        </AnimatedPage>
       </div>
     </PageLayout>
   )

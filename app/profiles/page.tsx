@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useProfiles } from '@/hooks/use-api'
+import { AnimatedPage, AnimatedGrid, AnimatedCard } from '@/components/ui/animated'
 
 interface Profile {
   id: string
@@ -403,11 +404,13 @@ export default function ProfilesPage() {
         </div>
 
         {/* Profiles Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <AnimatedGrid stagger={0.03} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {(filteredProfiles || []).map((profile) => (
-            <ProfileCard key={profile.id} profile={profile} />
+            <AnimatedCard key={profile.id}>
+              <ProfileCard profile={profile} />
+            </AnimatedCard>
           ))}
-        </div>
+        </AnimatedGrid>
 
         {filteredProfiles.length === 0 && !loading && (
           <div className="text-center py-12">

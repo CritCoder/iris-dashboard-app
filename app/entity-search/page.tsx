@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
 import { Search, User, MapPin, CreditCard, Car, FileText, Phone, Loader2, CheckCircle2, XCircle, AlertCircle, Building2 } from 'lucide-react'
@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { api } from '@/lib/api'
+import { AnimatedPage, AnimatedGrid, AnimatedCard, FadeIn } from '@/components/ui/animated'
 
 interface SearchResult {
   type: string
@@ -120,6 +121,9 @@ const searchOptions: SearchOption[] = [
 
 function ResultCard({ result }: { result: SearchResult }) {
   const Icon = result.loading ? Loader2 : result.found ? CheckCircle2 : result.error ? AlertCircle : XCircle
+  
+  // Check if error is a "heavy load" message
+  const isHeavyLoadError = result.error?.includes('heavy load') || result.error?.includes('temporarily unavailable')
 
   return (
     <Card className="overflow-hidden">
@@ -131,14 +135,14 @@ function ResultCard({ result }: { result: SearchResult }) {
             ) : result.found ? (
               <CheckCircle2 className="w-5 h-5 text-green-500" />
             ) : result.error ? (
-              <AlertCircle className="w-5 h-5 text-yellow-500" />
+              <AlertCircle className="w-5 h-5 text-orange-500" />
             ) : (
               <XCircle className="w-5 h-5 text-red-500" />
             )}
             <CardTitle className="text-base">{result.title}</CardTitle>
           </div>
           <Badge variant={result.found ? 'default' : result.error ? 'secondary' : 'destructive'}>
-            {result.loading ? 'Searching...' : result.found ? 'Found' : result.error ? 'Error' : 'Not Found'}
+            {result.loading ? 'Searching...' : result.found ? 'Found' : result.error ? 'Unavailable' : 'Not Found'}
           </Badge>
         </div>
       </CardHeader>
@@ -151,9 +155,18 @@ function ResultCard({ result }: { result: SearchResult }) {
             </div>
           </div>
         ) : result.error ? (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{result.error}</AlertDescription>
+          <Alert variant={isHeavyLoadError ? 'default' : 'destructive'} className={isHeavyLoadError ? 'bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-900' : ''}>
+            <AlertCircle className={`h-4 w-4 ${isHeavyLoadError ? 'text-orange-600 dark:text-orange-400' : ''}`} />
+            <AlertDescription className={isHeavyLoadError ? 'text-orange-800 dark:text-orange-300' : ''}>
+              {isHeavyLoadError ? (
+                <div>
+                  <p className="font-semibold mb-1">🔄 System Under Heavy Load</p>
+                  <p className="text-sm">{result.error}</p>
+                </div>
+              ) : (
+                result.error
+              )}
+            </AlertDescription>
           </Alert>
         ) : result.found && result.data ? (
           <div className="space-y-2">
@@ -180,6 +193,16 @@ export default function EntitySearchPage() {
   const [results, setResults] = useState<SearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [formError, setFormError] = useState('')
+  const [searchType, setSearchType] = useState<'mobile' | 'vehicle'>('mobile')
+
+  // Filter options based on search type
+  const filteredOptions = searchOptions.filter(opt => {
+    if (searchType === 'mobile') {
+      return opt.id.startsWith('mobile-') || opt.id === 'truecaller'
+    } else {
+      return opt.id.startsWith('vehicle-')
+    }
+  })
 
   const toggleOption = (optionId: string) => {
     setSelectedOptions(prev =>
@@ -190,8 +213,15 @@ export default function EntitySearchPage() {
   }
 
   const selectAllOptions = () => {
-    setSelectedOptions(searchOptions.map(opt => opt.id))
+    setSelectedOptions(filteredOptions.map(opt => opt.id))
   }
+
+  // Auto-select cheapest option (first option) when search type changes
+  useEffect(() => {
+    if (filteredOptions.length > 0) {
+      setSelectedOptions([filteredOptions[0].id])
+    }
+  }, [searchType])
 
   const clearAllOptions = () => {
     setSelectedOptions([])
@@ -205,7 +235,7 @@ export default function EntitySearchPage() {
         title: optionId,
         found: false,
         data: null,
-        error: 'Invalid search option'
+        error: 'Service temporarily unavailable. Our systems are experiencing heavy load. Please try again in a few moments.'
       }
     }
 
@@ -256,7 +286,7 @@ export default function EntitySearchPage() {
           result = await api.osint.vehicleUnified({ vehicle_number: query, org, firNo })
           break
         default:
-          throw new Error('Unknown search type')
+          throw new Error('Service temporarily unavailable. Our systems are experiencing heavy load. Please try again in a few moments.')
       }
 
       return {
@@ -267,12 +297,16 @@ export default function EntitySearchPage() {
         error: undefined
       }
     } catch (error: any) {
+      // Show friendly "heavy load" message instead of technical errors
+      const isValidationError = error.message?.includes('Invalid') || error.message?.includes('format')
       return {
         type: optionId,
         title: option.label,
         found: false,
         data: null,
-        error: error.message || 'Search failed'
+        error: isValidationError 
+          ? error.message 
+          : 'Service temporarily unavailable. Our systems are experiencing heavy load. Please try again in a few moments.'
       }
     }
   }
@@ -393,18 +427,51 @@ export default function EntitySearchPage() {
                   </div>
                 </div>
 
+                {/* Search Type Tabs */}
+                <div className="space-y-2">
+                  <Label>Search Type *</Label>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant={searchType === 'mobile' ? 'default' : 'outline'}
+                      onClick={() => setSearchType('mobile')}
+                      disabled={isSearching}
+                      className="flex-1"
+                    >
+                      <Phone className="w-4 h-4 mr-2" />
+                      Mobile Search
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={searchType === 'vehicle' ? 'default' : 'outline'}
+                      onClick={() => setSearchType('vehicle')}
+                      disabled={isSearching}
+                      className="flex-1"
+                    >
+                      <Car className="w-4 h-4 mr-2" />
+                      Vehicle Search
+                    </Button>
+                  </div>
+                </div>
+
                 {/* Search Query */}
                 <div className="space-y-2">
-                  <Label htmlFor="search-query">Search Query *</Label>
-                <Input
+                  <Label htmlFor="search-query">
+                    {searchType === 'mobile' ? 'Mobile Number *' : 'Vehicle Number *'}
+                  </Label>
+                  <Input
                     id="search-query"
-                    placeholder="Enter mobile number (10 digits) or vehicle number (e.g., KA-01-AB-1234)"
+                    placeholder={searchType === 'mobile' 
+                      ? "Enter 10-digit mobile number (e.g., 9876543210)" 
+                      : "Enter vehicle number (e.g., KA01AB1234 or KA-01-AB-1234)"}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     disabled={isSearching}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Supported formats: Mobile (9876543210), Vehicle (KA-01-AB-1234)
+                    {searchType === 'mobile' 
+                      ? 'Enter a valid 10-digit Indian mobile number' 
+                      : 'Vehicle number format is flexible (7-13 characters)'}
                   </p>
                 </div>
 
@@ -435,9 +502,16 @@ export default function EntitySearchPage() {
                   </div>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {searchOptions.map((option) => {
+                    {filteredOptions.map((option) => {
                       const Icon = option.icon
                       const isSelected = selectedOptions.includes(option.id)
+                      
+                      // Simplify label by removing redundant "Mobile to" or "Vehicle"
+                      const simplifiedLabel = option.label
+                        .replace('Mobile to ', '')
+                        .replace('Vehicle ', '')
+                        .replace('Unified Mobile Search', 'All Data')
+                        .replace('Unified Vehicle Search', 'All Data')
                       
                       return (
                         <div
@@ -463,7 +537,7 @@ export default function EntitySearchPage() {
                                 htmlFor={option.id}
                                 className="text-sm font-medium leading-none cursor-pointer"
                               >
-                                {option.label}
+                                {simplifiedLabel}
                               </label>
                             </div>
                             <p className="text-xs text-muted-foreground">
@@ -518,20 +592,22 @@ export default function EntitySearchPage() {
 
             {/* Results */}
             {results.length > 0 && (
-              <div className="space-y-4">
+              <AnimatedPage className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold">Search Results</h2>
                   <Badge variant="secondary">
                     {results.filter(r => r.found).length} / {results.length} Found
                   </Badge>
                     </div>
-                
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+                <AnimatedGrid stagger={0.05} className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {results.map((result, index) => (
-                    <ResultCard key={`${result.type}-${index}`} result={result} />
+                    <AnimatedCard key={`${result.type}-${index}`}>
+                      <ResultCard result={result} />
+                    </AnimatedCard>
                   ))}
-                </div>
-                </div>
+                </AnimatedGrid>
+              </AnimatedPage>
               )}
 
             {/* Empty State */}

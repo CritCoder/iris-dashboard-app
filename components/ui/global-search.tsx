@@ -26,7 +26,7 @@ export function GlobalSearch() {
         <button 
           type="button"
           onClick={() => setIsSpotlightOpen(true)}
-          className="bg-background border border-input rounded-lg pl-10 pr-20 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:border-ring focus:outline-none focus:border-ring w-80 cursor-pointer text-left transition-all duration-200"
+          className="bg-background border border-input rounded-xl pl-10 pr-20 py-3 text-sm text-muted-foreground hover:text-foreground hover:border-ring focus:outline-none focus:border-ring w-80 cursor-pointer text-left transition-all duration-200 h-[46px]"
         >
           Search...
         </button>

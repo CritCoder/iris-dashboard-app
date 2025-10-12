@@ -10,17 +10,6 @@ export default function PostAnalysisPage() {
   return (
     <PageLayout>
       <div className="h-screen flex flex-col bg-background overflow-hidden">
-        {/* Breadcrumb */}
-        <div className="border-b border-border px-6 py-3">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link href="/" className="hover:text-foreground">Dashboard</Link>
-            <span>›</span>
-            <Link href="/analysis-history" className="hover:text-foreground">History</Link>
-            <span>›</span>
-            <span className="text-foreground">Post Analysis</span>
-          </div>
-        </div>
-
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
           {/* Left Side - Post Content */}
           <div className="flex-1 p-6 overflow-y-auto">

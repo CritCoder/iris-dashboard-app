@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { FacebookIcon, InstagramIcon, TwitterIcon } from '@/components/ui/platform-icons'
 import { useSocialPosts, useInboxStats } from '@/hooks/use-api'
+import { AnimatedPage, AnimatedList, AnimatedCard, FadeIn } from '@/components/ui/animated'
 
 interface Post {
   id: string
@@ -38,6 +39,17 @@ function PostListItem({ post, isSelected, onClick }: { post: Post; isSelected: b
     HIGH: 'bg-red-600 text-white'
   }
 
+  // Determine why this post is showing
+  const getAlertReason = () => {
+    const reasons = []
+    if (post.priority === 'HIGH') reasons.push({ icon: '🚨', text: 'High Priority Alert', color: 'text-red-500' })
+    if (post.likes > 1000 || post.comments > 100) reasons.push({ icon: '📈', text: 'High Engagement', color: 'text-blue-500' })
+    if (post.relevanceScore > 80) reasons.push({ icon: '🎯', text: 'High Relevance', color: 'text-purple-500' })
+    return reasons[0] || { icon: '📬', text: 'Needs Review', color: 'text-gray-500' }
+  }
+
+  const alertReason = getAlertReason()
+
   return (
     <div
       onClick={onClick}
@@ -57,9 +69,13 @@ function PostListItem({ post, isSelected, onClick }: { post: Post; isSelected: b
         <div className="flex-1 min-w-0">
           <div className="text-foreground font-medium text-sm mb-1">{post.author}</div>
           <p className="text-muted-foreground text-sm line-clamp-2 mb-2">{post.content}</p>
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
             <span className={`px-2 py-0.5 rounded text-xs font-medium ${priorityColors[post.priority]}`}>
               {post.priority}
+            </span>
+            <span className={`px-2 py-0.5 rounded text-xs font-medium bg-accent/50 ${alertReason.color} flex items-center gap-1`}>
+              <span>{alertReason.icon}</span>
+              <span>{alertReason.text}</span>
             </span>
           </div>
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
@@ -225,7 +241,7 @@ export default function SocialInboxPage() {
                         : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
                     }`}
                   >
-                    Posts
+                    Inbox Posts
                   </button>
                   <button 
                     onClick={() => setActiveTab('notes')}
@@ -235,7 +251,7 @@ export default function SocialInboxPage() {
                         : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
                     }`}
                   >
-                    Notes
+                    Saved Notes
                   </button>
                 </div>
 
@@ -358,7 +374,10 @@ export default function SocialInboxPage() {
                     <option value="6h">Last 6 Hours</option>
                     <option value="12h">Last 12 Hours</option>
                     <option value="24h">Last 24 Hours</option>
+                    <option value="3d">Last 3 Days</option>
                     <option value="1w">Last Week</option>
+                    <option value="1m">Last Month</option>
+                    <option value="custom">Custom Range</option>
                   </select>
 
                   {/* Sort Filter */}
@@ -431,9 +450,9 @@ export default function SocialInboxPage() {
           {/* Center Column - Post Detail (Main Focus) */}
           <div className="flex-1 overflow-y-auto min-w-0 h-full max-w-4xl mx-auto">
             {selectedPost ? (
-              <div className="p-4 sm:p-8 max-w-4xl mx-auto">
+              <AnimatedPage className="p-4 sm:p-8 max-w-4xl mx-auto">
                 {/* Selected Post - Centered and Prominent */}
-                <div className="bg-card border border-border rounded-xl p-8 mb-8 list-animate-in shadow-sm">
+                <FadeIn className="bg-card border border-border rounded-xl p-8 mb-8 list-animate-in shadow-sm">
                   <div className="flex items-start gap-4 mb-6">
                     <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-foreground font-semibold text-lg">
                       {selectedPost.author[0]}
@@ -477,7 +496,7 @@ export default function SocialInboxPage() {
                       <span className="font-medium">{selectedPost.views.toLocaleString()} views</span>
                     </button>
                   </div>
-                </div>
+                </FadeIn>
 
                 {/* Post Analytics - Centered */}
                 <div className="bg-card border border-border rounded-xl p-8 mb-8 shadow-sm">
@@ -608,7 +627,7 @@ export default function SocialInboxPage() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </AnimatedPage>
             ) : (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center text-muted-foreground">

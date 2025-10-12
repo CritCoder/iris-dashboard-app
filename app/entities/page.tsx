@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
 import { Search, MapPin, Hash, User, Building, AlertTriangle, TrendingUp, MessageSquare, Share2, ChevronRight, X, Download } from 'lucide-react'
@@ -8,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { useEntities, useEntityAnalytics } from '@/hooks/use-api'
+import { AnimatedPage, AnimatedGrid, AnimatedCard } from '@/components/ui/animated'
 
 interface Entity {
   id: string
@@ -216,9 +218,38 @@ function FilterItem({
 }
 
 export default function EntitiesPage() {
+  const router = useRouter()
   const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [activeFilter, setActiveFilter] = useState('all-entities')
+
+  const handleEntityClick = (entity: Entity) => {
+    // Convert entity name to URL-friendly format
+    const entitySlug = entity.name.toLowerCase().replace(/\s+/g, '-')
+
+    // Navigate based on entity type
+    switch (entity.type) {
+      case 'LOCATION':
+        router.push(`/locations/${entitySlug}`)
+        break
+      case 'PERSON':
+        // Navigate to profiles or person detail page
+        router.push(`/profiles?search=${encodeURIComponent(entity.name)}`)
+        break
+      case 'ORGANIZATION':
+        // Navigate to organizations page with search
+        router.push(`/organizations?search=${encodeURIComponent(entity.name)}`)
+        break
+      case 'TOPIC':
+        // Navigate to social feed with topic filter
+        router.push(`/social-feed?search=${encodeURIComponent(entity.name)}`)
+        break
+      default:
+        // Default: search in social feed
+        router.push(`/social-feed?search=${encodeURIComponent(entity.name)}`)
+        break
+    }
+  }
 
   // Build API params based on search and filter
   const apiParams = useMemo(() => {
@@ -445,15 +476,16 @@ export default function EntitiesPage() {
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+              <AnimatedGrid stagger={0.03} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
                 {(filteredEntities || []).map((entity) => (
-                  <EntityCard
-                    key={entity.id}
-                    entity={entity}
-                    onClick={() => setSelectedEntity(entity)}
-                  />
+                  <AnimatedCard key={entity.id}>
+                    <EntityCard
+                      entity={entity}
+                      onClick={() => handleEntityClick(entity)}
+                    />
+                  </AnimatedCard>
                 ))}
-              </div>
+              </AnimatedGrid>
             </div>
           </div>
         </div>

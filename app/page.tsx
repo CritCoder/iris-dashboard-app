@@ -14,14 +14,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { useState, useMemo } from 'react'
 import { SegmentedControl } from '@/components/ui/segmented-control'
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Activity, 
-  AlertTriangle, 
-  Users, 
-  MessageSquare, 
-  Heart, 
+import {
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  AlertTriangle,
+  Users,
+  MessageSquare,
+  Heart,
   Share2,
   Eye,
   Clock,
@@ -32,10 +32,12 @@ import {
   Shield,
   Zap
 } from 'lucide-react'
+import { AnimatedPage, AnimatedGrid, AnimatedCard } from '@/components/ui/animated'
 
 export default function Page() {
   const [range, setRange] = useState('24h')
   const [activeTab, setActiveTab] = useState('overview')
+  const [isTransitioning, setIsTransitioning] = useState(false)
 
   // Sample data for the new dashboard sections
   const recentActivity = [
@@ -108,31 +110,55 @@ export default function Page() {
             <Button
               variant={activeTab === 'overview' ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setActiveTab('overview')}
+              onClick={() => {
+                if (activeTab !== 'overview') {
+                  setIsTransitioning(true)
+                  setTimeout(() => {
+                    setActiveTab('overview')
+                    setIsTransitioning(false)
+                  }, 50)
+                }
+              }}
             >
               Overview
             </Button>
             <Button
               variant={activeTab === 'analytics' ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setActiveTab('analytics')}
+              onClick={() => {
+                if (activeTab !== 'analytics') {
+                  setIsTransitioning(true)
+                  setTimeout(() => {
+                    setActiveTab('analytics')
+                    setIsTransitioning(false)
+                  }, 50)
+                }
+              }}
             >
               Analytics
             </Button>
             <Button
               variant={activeTab === 'monitoring' ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setActiveTab('monitoring')}
+              onClick={() => {
+                if (activeTab !== 'monitoring') {
+                  setIsTransitioning(true)
+                  setTimeout(() => {
+                    setActiveTab('monitoring')
+                    setIsTransitioning(false)
+                  }, 50)
+                }
+              }}
             >
               Monitoring
             </Button>
           </div>
 
-          {activeTab === 'overview' && (
-            <>
+          {!isTransitioning && activeTab === 'overview' && (
+            <AnimatedPage className="animate-in fade-in duration-200">
               {/* Key Metrics Row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-                <Card>
+              <AnimatedGrid stagger={0.05} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+                <AnimatedCard>
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
@@ -148,9 +174,9 @@ export default function Page() {
                       </div>
                     </div>
                   </CardContent>
-                </Card>
+                </AnimatedCard>
 
-                <Card>
+                <AnimatedCard>
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
@@ -166,9 +192,9 @@ export default function Page() {
                       </div>
                     </div>
                   </CardContent>
-                </Card>
+                </AnimatedCard>
 
-                <Card>
+                <AnimatedCard>
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
@@ -184,9 +210,9 @@ export default function Page() {
                       </div>
                     </div>
                   </CardContent>
-                </Card>
+                </AnimatedCard>
 
-                <Card>
+                <AnimatedCard>
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
@@ -202,8 +228,8 @@ export default function Page() {
                       </div>
                     </div>
                   </CardContent>
-                </Card>
-              </div>
+                </AnimatedCard>
+              </AnimatedGrid>
 
               {/* Main Dashboard Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
@@ -213,8 +239,138 @@ export default function Page() {
                   <InfluencerTracker />
                 </div>
 
-                {/* Right Column - Activity & Alerts */}
+                {/* Right Column - Trending Topics (moved to top) */}
                 <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5" />
+                        Trending Topics
+                      </CardTitle>
+                      <CardDescription>Most discussed topics today</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {trendingTopics.map((topic, index) => (
+                          <div 
+                            key={index} 
+                            className="flex items-center justify-between cursor-pointer hover:bg-accent/20 p-2 rounded-lg transition-colors"
+                            onClick={() => {
+                              // Navigate to topic details
+                              window.location.href = `/social-feed?filter=all-posts&search=${encodeURIComponent(topic.topic)}`
+                            }}
+                          >
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-foreground hover:text-blue-400 transition-colors">{topic.topic}</p>
+                              <p className="text-xs text-muted-foreground">{topic.mentions} mentions</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge className={`text-xs ${getSentimentColor(topic.sentiment)}`}>
+                                {topic.sentiment}
+                              </Badge>
+                              <span className={`text-xs font-medium ${
+                                topic.change.startsWith('+') ? 'text-green-600' : 'text-red-600'
+                              }`}>
+                                {topic.change}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              {/* Bottom Row */}
+              <AnimatedGrid stagger={0.1} className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                <AnimatedCard>
+                  <OpponentNarrativeWatch />
+                </AnimatedCard>
+                <AnimatedCard>
+                  <SupportBaseEnergy />
+                </AnimatedCard>
+              </AnimatedGrid>
+            </AnimatedPage>
+          )}
+
+          {!isTransitioning && activeTab === 'analytics' && (
+            <AnimatedPage className="space-y-6 animate-in fade-in duration-200">
+              <StatsGrid />
+              <AnimatedGrid stagger={0.1} className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                <AnimatedCard>
+                  <TopicSentimentHeatmap />
+                </AnimatedCard>
+                <AnimatedCard>
+                  <InfluencerTracker />
+                </AnimatedCard>
+              </AnimatedGrid>
+            </AnimatedPage>
+          )}
+
+          {!isTransitioning && activeTab === 'monitoring' && (
+            <AnimatedPage className="space-y-6 animate-in fade-in duration-200">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                <div className="lg:col-span-2">
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle>Active Monitoring</CardTitle>
+                          <CardDescription>Real-time monitoring of key entities and topics</CardDescription>
+                        </div>
+                        <Button variant="outline" size="sm" asChild>
+                          <a href="/analysis-history?filter=active">See all</a>
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-4 border border-border rounded-lg">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                              <Zap className="w-4 h-4 text-green-600" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">Bengaluru Police</p>
+                              <p className="text-xs text-muted-foreground">Active monitoring</p>
+                            </div>
+                          </div>
+                          <div className="text-xs text-green-600">✓ All systems operational</div>
+                        </div>
+                        
+                        <div className="p-4 border border-border rounded-lg">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                              <Hash className="w-4 h-4 text-blue-600" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">Traffic Management</p>
+                              <p className="text-xs text-muted-foreground">Topic tracking</p>
+                            </div>
+                          </div>
+                          <div className="text-xs text-blue-600">📈 Trending up</div>
+                        </div>
+                        
+                        <div className="p-4 border border-border rounded-lg">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+                              <Users className="w-4 h-4 text-purple-600" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">Key Influencers</p>
+                              <p className="text-xs text-muted-foreground">Profile monitoring</p>
+                            </div>
+                          </div>
+                          <div className="text-xs text-purple-600">👥 24 profiles tracked</div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Recent Activity - Moved to Monitoring Tab */}
+                <div>
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -250,122 +406,18 @@ export default function Page() {
                       </div>
                     </CardContent>
                   </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <TrendingUp className="w-5 h-5" />
-                        Trending Topics
-                      </CardTitle>
-                      <CardDescription>Most discussed topics today</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {trendingTopics.map((topic, index) => (
-                          <div key={index} className="flex items-center justify-between">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-foreground">{topic.topic}</p>
-                              <p className="text-xs text-muted-foreground">{topic.mentions} mentions</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge className={`text-xs ${getSentimentColor(topic.sentiment)}`}>
-                                {topic.sentiment}
-                              </Badge>
-                              <span className={`text-xs font-medium ${
-                                topic.change.startsWith('+') ? 'text-green-600' : 'text-red-600'
-                              }`}>
-                                {topic.change}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
                 </div>
               </div>
 
-              {/* Bottom Row */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                <OpponentNarrativeWatch />
-                <SupportBaseEnergy />
-              </div>
-            </>
-          )}
-
-          {activeTab === 'analytics' && (
-            <div className="space-y-6">
-              <StatsGrid />
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                <TopicSentimentHeatmap />
-                <InfluencerTracker />
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'monitoring' && (
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle>Active Monitoring</CardTitle>
-                      <CardDescription>Real-time monitoring of key entities and topics</CardDescription>
-                    </div>
-                    <Button variant="outline" size="sm" asChild>
-                      <a href="/analysis-history?filter=active">See all</a>
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="p-4 border border-border rounded-lg">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                          <Zap className="w-4 h-4 text-green-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">Bengaluru Police</p>
-                          <p className="text-xs text-muted-foreground">Active monitoring</p>
-                        </div>
-                      </div>
-                      <div className="text-xs text-green-600">✓ All systems operational</div>
-                    </div>
-                    
-                    <div className="p-4 border border-border rounded-lg">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                          <Hash className="w-4 h-4 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">Traffic Management</p>
-                          <p className="text-xs text-muted-foreground">Topic tracking</p>
-                        </div>
-                      </div>
-                      <div className="text-xs text-blue-600">📈 Trending up</div>
-                    </div>
-                    
-                    <div className="p-4 border border-border rounded-lg">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
-                          <Users className="w-4 h-4 text-purple-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">Key Influencers</p>
-                          <p className="text-xs text-muted-foreground">Profile monitoring</p>
-                        </div>
-                      </div>
-                      <div className="text-xs text-purple-600">👥 24 profiles tracked</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                <OpponentNarrativeWatch />
-                <SupportBaseEnergy />
-              </div>
-            </div>
+              <AnimatedGrid stagger={0.1} className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                <AnimatedCard>
+                  <OpponentNarrativeWatch />
+                </AnimatedCard>
+                <AnimatedCard>
+                  <SupportBaseEnergy />
+                </AnimatedCard>
+              </AnimatedGrid>
+            </AnimatedPage>
           )}
         </div>
       </main>

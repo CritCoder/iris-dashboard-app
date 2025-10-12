@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { AnimatedPage, AnimatedGrid, AnimatedCard } from '@/components/ui/animated'
 
 interface Organization {
   id: number
@@ -543,15 +544,16 @@ export default function OrganizationsPage() {
 
             <div className="flex-1 overflow-y-auto p-4 sm:p-6">
               {filteredOrganizations.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <AnimatedGrid stagger={0.03} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {filteredOrganizations.map((organization) => (
-                    <OrganizationCard
-                      key={organization.id}
-                      organization={organization}
-                      onClick={() => handleOrganizationClick(organization)}
-                    />
+                    <AnimatedCard key={organization.id}>
+                      <OrganizationCard
+                        organization={organization}
+                        onClick={() => handleOrganizationClick(organization)}
+                      />
+                    </AnimatedCard>
                   ))}
-                </div>
+                </AnimatedGrid>
               ) : (
                 <div className="text-center py-12">
                   <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />

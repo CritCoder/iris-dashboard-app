@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { FacebookIcon, InstagramIcon, TwitterIcon, NewsIcon } from '@/components/ui/platform-icons'
 import { useToast } from '@/hooks/use-toast'
 import { Loader2, Search, Zap } from 'lucide-react'
+import { AnimatedPage, FadeIn, SlideUp } from '@/components/ui/animated'
 
 export default function StartAnalysisPage() {
   const router = useRouter()
@@ -92,39 +93,63 @@ export default function StartAnalysisPage() {
 
         {/* Main Content */}
         <div className="flex-1 overflow-y-auto">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          <AnimatedPage className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
             {/* Analysis Type Tabs */}
-            <div className="flex justify-center mb-8">
-              <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'topic' | 'poi')} className="w-auto">
-                <TabsList className="flex gap-1 bg-muted p-1 rounded-lg">
-                  <TabsTrigger 
-                    value="topic" 
-                    className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=inactive]:hover:bg-accent/50 px-4 py-2 rounded-md transition-all"
+            <FadeIn className="flex justify-center mb-8">
+              <div className="w-full max-w-2xl">
+                <div className="grid grid-cols-2 gap-3 p-1 bg-muted rounded-lg">
+                  <button
+                    onClick={() => setActiveTab('topic')}
+                    className={`px-4 py-4 rounded-md transition-all ${
+                      activeTab === 'topic'
+                        ? 'bg-background text-foreground shadow-sm border border-border'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                    }`}
                   >
-                    Topic Analysis
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="poi" 
-                    className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=inactive]:hover:bg-accent/50 px-4 py-2 rounded-md transition-all"
+                    <div className="text-center">
+                      <div className="font-semibold text-base mb-1">Topic Analysis</div>
+                      <div className="text-xs opacity-90">Search for topics, keywords, hashtags</div>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('poi')}
+                    className={`px-4 py-4 rounded-md transition-all ${
+                      activeTab === 'poi'
+                        ? 'bg-background text-foreground shadow-sm border border-border'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                    }`}
                   >
-                    POI Analysis
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
+                    <div className="text-center">
+                      <div className="font-semibold text-base mb-1">Person of Interest (POI)</div>
+                      <div className="text-xs opacity-90">Search for specific individuals, profiles</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </FadeIn>
 
             {/* Search Input */}
-            <div className="mb-8">
+            <SlideUp className="mb-8">
+              <label className="block text-sm font-medium text-foreground mb-2">
+                {activeTab === 'topic' ? 'Enter Topics, Keywords, or Hashtags' : 'Enter Person Name, Username, or Profile URL'}
+              </label>
               <Textarea
-                placeholder="Enter topics, keywords, or hashtags to analyze..."
+                placeholder={activeTab === 'topic' 
+                  ? "e.g., Bengaluru Traffic, #BengaluruPolice, Women Safety..." 
+                  : "e.g., @username, person name, profile URL..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="min-h-[120px] text-base resize-none"
               />
-            </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                {activeTab === 'topic' 
+                  ? 'Separate multiple topics with commas. You can include hashtags, keywords, or phrases.'
+                  : 'Enter the name, username, or social media profile URL of the person you want to analyze.'}
+              </p>
+            </SlideUp>
 
             {/* Analyze Button */}
-            <div className="mb-8">
+            <SlideUp className="mb-8">
               <Button 
                 onClick={handleAnalyze}
                 disabled={isAnalyzing}
@@ -142,10 +167,10 @@ export default function StartAnalysisPage() {
                   </>
                 )}
               </Button>
-            </div>
+            </SlideUp>
 
             {/* Select Platforms */}
-            <div className="mb-8">
+            <SlideUp className="mb-8">
               <h3 className="text-foreground font-semibold mb-4">Select Platforms</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {(platforms || []).map((platform) => {
@@ -175,10 +200,10 @@ export default function StartAnalysisPage() {
                   )
                 })}
               </div>
-            </div>
+            </SlideUp>
 
             {/* Time Range */}
-            <div>
+            <SlideUp>
               <h3 className="text-foreground font-semibold mb-4">Time Range</h3>
               <select 
                 value={timeRange}
@@ -194,8 +219,8 @@ export default function StartAnalysisPage() {
                 <option value="1y">Last year</option>
                 <option value="custom">Custom range</option>
               </select>
-            </div>
-          </div>
+            </SlideUp>
+          </AnimatedPage>
         </div>
       </div>
     </PageLayout>

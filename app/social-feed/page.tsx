@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 import { useSocialPosts } from '@/hooks/use-api'
+import { AnimatedPage, AnimatedGrid, AnimatedCard } from '@/components/ui/animated'
 
 export const dynamic = 'force-dynamic'
 
@@ -438,19 +439,30 @@ function SocialFeedContent() {
                       <option>Neutral</option>
                     </select>
 
-                    <select className="hidden md:block bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
+                    <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none flex-1 sm:flex-none min-w-[100px]">
                       <option>All Platforms</option>
                       <option>Facebook</option>
                       <option>Twitter</option>
                       <option>Instagram</option>
+                      <option>YouTube</option>
+                      <option>News</option>
                     </select>
 
-                    <select className="hidden lg:block bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
+                    <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none flex-1 sm:flex-none min-w-[100px]">
                       <option>All Media</option>
+                      <option>With Images</option>
+                      <option>With Videos</option>
+                      <option>Text Only</option>
                     </select>
 
-                    <select className="hidden lg:block bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
+                    <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none flex-1 sm:flex-none min-w-[100px]">
                       <option>All Time</option>
+                      <option>Last Hour</option>
+                      <option>Last 6 Hours</option>
+                      <option>Last 24 Hours</option>
+                      <option>Last 7 Days</option>
+                      <option>Last 30 Days</option>
+                      <option>Custom Range</option>
                     </select>
 
                     <Button variant="outline" size="sm" className="gap-2 h-9 hidden sm:flex">
@@ -466,16 +478,18 @@ function SocialFeedContent() {
 
           {/* Posts Grid */}
           <div className="flex-1 overflow-y-auto">
-            <div className="p-4 sm:p-6 list-animate-in">
+            <AnimatedPage className="p-4 sm:p-6 list-animate-in">
               <div className="mb-4 text-sm text-zinc-500">
                 {filteredPosts.length} posts loaded (more available)
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+              <AnimatedGrid stagger={0.03} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
                 {(filteredPosts || []).map((post) => (
-                  <PostCard key={post.id} post={post} />
+                  <AnimatedCard key={post.id}>
+                    <PostCard post={post} />
+                  </AnimatedCard>
                 ))}
-              </div>
-            </div>
+              </AnimatedGrid>
+            </AnimatedPage>
           </div>
         </div>
       </div>

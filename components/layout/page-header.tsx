@@ -30,7 +30,7 @@ export function PageHeader({ title, description, actions, centerContent }: PageH
 
         <div className="flex-1 min-w-0">
           <h1 className="text-base sm:text-xl font-bold text-foreground mb-0.5 sm:mb-1 truncate">{title}</h1>
-          {description && <p className="text-xs sm:text-sm text-muted-foreground truncate">{description}</p>}
+          {description && <p className="text-[10px] sm:text-sm text-muted-foreground truncate leading-tight">{description}</p>}
         </div>
         {centerContent && (
           <div className="hidden md:flex flex-1 justify-center px-4 lg:px-8">
