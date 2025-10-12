@@ -111,9 +111,8 @@ export default function SocialInboxPage() {
   const [sortBy, setSortBy] = useState('date')
 
   // Fetch posts that need attention/review - using production API
+  // Removed needsAttention and reviewStatus filters to get all posts
   const { data: apiPosts, loading, error } = useSocialPosts({
-    needsAttention: true,
-    reviewStatus: 'pending',
     page: 1,
     limit: 100 // Increased limit to fetch more posts
   })

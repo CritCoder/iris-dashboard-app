@@ -226,8 +226,18 @@ export default function CampaignDetailPage() {
   return (
     <PageLayout>
       <div className="h-screen flex flex-col overflow-hidden">
-        <PageHeader 
-          title="Bengaluru Police"
+        <PageHeader
+          title={
+            <div className="flex items-center gap-3">
+              <span>Bengaluru Police</span>
+              {isMonitoring && (
+                <div className="relative flex items-center justify-center">
+                  <div className="absolute w-3 h-3 bg-green-500 rounded-full animate-ping opacity-75"></div>
+                  <div className="relative w-2 h-2 bg-green-500 rounded-full"></div>
+                </div>
+              )}
+            </div>
+          }
           actions={
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
               <Button
@@ -240,11 +250,30 @@ export default function CampaignDetailPage() {
                 <Download className="w-4 h-4" />
                 {isExporting ? 'Generating...' : 'Export PDF'}
               </Button>
-              <Button variant="outline" size="sm" className="gap-2 bg-green-900/20 border-green-800 text-green-400 hover:bg-green-900/30">
-                <Play className="w-4 h-4" />
-                Monitoring Active
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 bg-yellow-900/20 border-yellow-800 text-yellow-400 hover:bg-yellow-900/30"
+                onClick={() => setIsMonitoring(!isMonitoring)}
+              >
+                {isMonitoring ? (
+                  <>
+                    <Square className="w-4 h-4" />
+                    Pause Monitoring
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-4 h-4" />
+                    Resume Monitoring
+                  </>
+                )}
               </Button>
-              <Button variant="outline" size="sm" className="gap-2 bg-red-900/20 border-red-800 text-red-400 hover:bg-red-900/30">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 bg-red-900/20 border-red-800 text-red-400 hover:bg-red-900/30"
+                onClick={() => setIsMonitoring(false)}
+              >
                 <Square className="w-4 h-4" />
                 Stop
               </Button>
