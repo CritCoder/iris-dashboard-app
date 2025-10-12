@@ -125,6 +125,7 @@ function SocialFeedContent() {
   const searchParams = useSearchParams()
   const activeFilter = searchParams.get('filter') || 'all-posts'
   const [searchQuery, setSearchQuery] = useState('')
+  const [isExporting, setIsExporting] = useState(false)
 
   // Build API params based on filters
   const apiParams = useMemo(() => {

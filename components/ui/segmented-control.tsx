@@ -15,24 +15,31 @@ interface SegmentedControlProps {
 }
 
 export function SegmentedControl({ options, value, onChange, className }: SegmentedControlProps) {
+  const buttonRefs = React.useRef<(HTMLButtonElement | null)[]>([])
+  const [gliderStyle, setGliderStyle] = React.useState<React.CSSProperties>({})
   const index = Math.max(0, options.findIndex(o => o.value === value))
-  const width = 100 / Math.max(options.length, 1)
+
+  React.useEffect(() => {
+    const activeButton = buttonRefs.current[index]
+    if (activeButton) {
+      setGliderStyle({
+        width: `${activeButton.offsetWidth}px`,
+        transform: `translateX(${activeButton.offsetLeft}px)`,
+      })
+    }
+  }, [index, options])
 
   return (
     <div
       role="tablist"
       aria-orientation="horizontal"
-      className={`relative bg-secondary border border-border rounded-lg p-1 flex items-center ${className ?? ''}`}
+      className={`relative bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 rounded-xl p-1.5 flex items-center gap-1 ${className ?? ''}`}
     >
       {/* Glider */}
       <div
         aria-hidden
-        className="absolute top-1 bottom-1 rounded-md bg-background shadow-sm transition-transform duration-200 ease-out"
-        style={{
-          width: `calc(${width}% - 0.5rem)`,
-          transform: `translateX(calc(${index} * ${width}%))`,
-          left: '0.25rem',
-        }}
+        className="absolute top-1.5 bottom-1.5 rounded-lg bg-zinc-800 shadow-lg border border-zinc-700/50 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+        style={gliderStyle}
       />
 
       {/* Options */}
@@ -41,15 +48,16 @@ export function SegmentedControl({ options, value, onChange, className }: Segmen
         return (
           <button
             key={opt.value}
+            ref={(el) => { buttonRefs.current[i] = el }}
             type="button"
             role="tab"
             aria-selected={selected}
             aria-controls={`segment-${opt.value}`}
             id={`segment-trigger-${opt.value}`}
-            className={`relative z-10 flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors pressable ${
+            className={`relative z-10 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 ease-out whitespace-nowrap ${
               selected
-                ? 'text-foreground'
-                : 'text-muted-foreground hover:text-foreground'
+                ? 'text-white'
+                : 'text-zinc-400 hover:text-zinc-200'
             }`}
             onClick={() => onChange(opt.value)}
           >

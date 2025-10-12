@@ -117,14 +117,30 @@ export default function StartAnalysisPage() {
             <div className="mb-8">
               <Textarea
                 placeholder="Enter topics, keywords, or hashtags to analyze..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="min-h-[120px] text-base resize-none"
               />
             </div>
 
             {/* Analyze Button */}
             <div className="mb-8">
-              <Button className="w-full py-6 text-base font-medium">
-                Analyze
+              <Button 
+                onClick={handleAnalyze}
+                disabled={isAnalyzing}
+                className="w-full py-6 text-base font-medium"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Analyzing...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-5 h-5 mr-2" />
+                    Analyze
+                  </>
+                )}
               </Button>
             </div>
 
@@ -138,9 +154,9 @@ export default function StartAnalysisPage() {
                     <button
                       key={platform.id}
                       onClick={() => togglePlatform(platform.id)}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg border transition-all ${
+                      className={`flex items-center gap-3 px-4 py-3 rounded-lg border-2 transition-all ${
                         selectedPlatforms.includes(platform.id)
-                          ? `${platform.bgColor} ${platform.borderColor} text-white border-2`
+                          ? `${platform.bgColor} ${platform.borderColor} text-white`
                           : 'bg-card border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                       }`}
                     >
@@ -150,9 +166,9 @@ export default function StartAnalysisPage() {
                         <IconComponent className="w-6 h-6" />
                       </div>
                       <span className="font-medium">{platform.name}</span>
-                      <span className="ml-auto w-4 h-4 flex items-center justify-center">
+                      <span className="ml-auto w-5 h-5 flex items-center justify-center">
                         {selectedPlatforms.includes(platform.id) && (
-                          <span className="text-white">✓</span>
+                          <span className="text-white text-lg">✓</span>
                         )}
                       </span>
                     </button>
@@ -164,15 +180,19 @@ export default function StartAnalysisPage() {
             {/* Time Range */}
             <div>
               <h3 className="text-foreground font-semibold mb-4">Time Range</h3>
-              <select className="w-full bg-background border border-border text-foreground rounded-lg px-4 py-3 cursor-pointer hover:bg-accent transition-colors">
-                <option>Any time</option>
-                <option>Last 24 hours</option>
-                <option>Last 7 days</option>
-                <option>Last 30 days</option>
-                <option>Last 3 months</option>
-                <option>Last 6 months</option>
-                <option>Last year</option>
-                <option>Custom range</option>
+              <select 
+                value={timeRange}
+                onChange={(e) => setTimeRange(e.target.value)}
+                className="w-full bg-background border border-border text-foreground rounded-lg px-4 py-3 cursor-pointer hover:bg-accent transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30"
+              >
+                <option value="any">Any time</option>
+                <option value="24h">Last 24 hours</option>
+                <option value="7d">Last 7 days</option>
+                <option value="30d">Last 30 days</option>
+                <option value="3m">Last 3 months</option>
+                <option value="6m">Last 6 months</option>
+                <option value="1y">Last year</option>
+                <option value="custom">Custom range</option>
               </select>
             </div>
           </div>

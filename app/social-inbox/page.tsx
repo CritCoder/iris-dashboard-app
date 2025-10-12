@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
-import { Search, Heart, MessageCircle, Share2, Eye, Plus } from 'lucide-react'
+import { Search, Heart, MessageCircle, Share2, Eye, Plus, FolderPlus, Flag, CheckCircle, Archive, X, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -94,92 +94,18 @@ export default function SocialInboxPage() {
   const [selectedTimeRange, setSelectedTimeRange] = useState('24h')
   const [sortBy, setSortBy] = useState('date')
 
-  // Fetch posts that need attention/review
+  // Fetch posts that need attention/review - using production API
   const { data: apiPosts, loading, error } = useSocialPosts({
     needsAttention: true,
     reviewStatus: 'pending',
     page: 1,
-    limit: 50
+    limit: 100 // Increased limit to fetch more posts
   })
 
   const { data: inboxStats } = useInboxStats({ timeRange: '7d' })
 
-  // Sample data for when API fails
-  const samplePosts: Post[] = [
-    {
-      id: '1',
-      author: 'BengaluruPolice',
-      platform: 'twitter',
-      content: 'URGENT: Traffic congestion reported on Outer Ring Road. Please avoid the area and use alternative routes.',
-      priority: 'HIGH',
-      timestamp: '2h ago',
-      likes: 1250,
-      comments: 89,
-      shares: 234,
-      views: 25000,
-      campaign: 'Traffic Management',
-      relevanceScore: 95
-    },
-    {
-      id: '2',
-      author: 'KarnatakaPolice',
-      platform: 'facebook',
-      content: 'Safety alert: Multiple accidents reported on MG Road due to poor visibility. Drive with caution.',
-      priority: 'HIGH',
-      timestamp: '4h ago',
-      likes: 890,
-      comments: 156,
-      shares: 123,
-      views: 18000,
-      campaign: 'Public Safety',
-      relevanceScore: 88
-    },
-    {
-      id: '3',
-      author: 'WhitefieldTraffic',
-      platform: 'instagram',
-      content: 'Community complaint: Street lights not working in Whitefield area. Residents concerned about safety.',
-      priority: 'MEDIUM',
-      timestamp: '6h ago',
-      likes: 456,
-      comments: 78,
-      shares: 45,
-      views: 12000,
-      campaign: 'Infrastructure',
-      relevanceScore: 72
-    },
-    {
-      id: '4',
-      author: 'BellandurResident',
-      platform: 'twitter',
-      content: 'Noise pollution complaint: Construction work continuing late at night. Affecting residents sleep.',
-      priority: 'MEDIUM',
-      timestamp: '8h ago',
-      likes: 234,
-      comments: 45,
-      shares: 23,
-      views: 8500,
-      campaign: 'Community Issues',
-      relevanceScore: 65
-    },
-    {
-      id: '5',
-      author: 'KarnatakaCM',
-      platform: 'facebook',
-      content: 'New digital initiatives launched for better citizen services. Feedback welcome from residents.',
-      priority: 'LOW',
-      timestamp: '10h ago',
-      likes: 2100,
-      comments: 345,
-      shares: 567,
-      views: 45000,
-      campaign: 'Digital Initiatives',
-      relevanceScore: 82
-    }
-  ]
-
-  // Use API data if available, otherwise use sample data
-  const posts = apiPosts && apiPosts.length > 0 ? apiPosts : samplePosts
+  // Use API data from production database
+  const posts = apiPosts || []
 
   // Auto-select first post when posts are available and no post is selected
   useEffect(() => {
@@ -187,6 +113,98 @@ export default function SocialInboxPage() {
       setSelectedPost(posts[0])
     }
   }, [posts, selectedPost])
+
+  // Keyboard shortcuts for lightning-fast navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in an input/textarea
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return
+      }
+
+      const currentIndex = selectedPost ? posts.findIndex(p => p.id === selectedPost.id) : -1
+
+      switch (e.key) {
+        // Navigation
+        case 'ArrowDown':
+        case 'j': // Vim-style
+          e.preventDefault()
+          if (currentIndex < posts.length - 1) {
+            setSelectedPost(posts[currentIndex + 1])
+          }
+          break
+
+        case 'ArrowUp':
+        case 'k': // Vim-style
+          e.preventDefault()
+          if (currentIndex > 0) {
+            setSelectedPost(posts[currentIndex - 1])
+          }
+          break
+
+        // Actions
+        case 'c':
+          e.preventDefault()
+          // Add to Campaign
+          console.log('Add to Campaign')
+          break
+
+        case 'f':
+          e.preventDefault()
+          // Flag for Review
+          console.log('Flag for Review')
+          break
+
+        case 'r':
+          e.preventDefault()
+          // Mark as Read
+          console.log('Mark as Read')
+          break
+
+        case 'a':
+          e.preventDefault()
+          // Archive
+          console.log('Archive')
+          break
+
+        case 'n':
+          e.preventDefault()
+          // Toggle Add Note
+          setShowAddNote(prev => !prev)
+          break
+
+        // Tab switching
+        case '1':
+          e.preventDefault()
+          setActiveTab('posts')
+          break
+
+        case '2':
+          e.preventDefault()
+          setActiveTab('notes')
+          break
+
+        // Search focus
+        case '/':
+          e.preventDefault()
+          document.querySelector<HTMLInputElement>('input[type="text"]')?.focus()
+          break
+
+        // Escape - clear search or close note
+        case 'Escape':
+          if (showAddNote) {
+            setShowAddNote(false)
+            setNoteText('')
+          } else {
+            setSearchQuery('')
+          }
+          break
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [posts, selectedPost, showAddNote])
 
   return (
     <PageLayout>
@@ -500,21 +518,47 @@ export default function SocialInboxPage() {
 
                 {/* Actions - Centered */}
                 <div className="bg-card border border-border rounded-xl p-8 mb-8 shadow-sm">
-                  <h3 className="text-foreground font-semibold text-xl mb-6">Actions</h3>
-                  <div className="flex flex-wrap gap-3 justify-center">
-                    <Button variant="outline" size="lg" className="min-w-[140px]">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add to Campaign
-                    </Button>
-                    <Button variant="outline" size="lg" className="min-w-[140px]">
-                      Flag for Review
-                    </Button>
-                    <Button variant="outline" size="lg" className="min-w-[140px]">
-                      Mark as Read
-                    </Button>
-                    <Button variant="outline" size="lg" className="min-w-[140px]">
-                      Archive
-                    </Button>
+                  <h3 className="text-foreground font-semibold text-xl mb-6">Quick Actions</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button className="flex items-center gap-4 p-5 bg-blue-500/10 hover:bg-blue-500/20 border-2 border-blue-500/30 hover:border-blue-500/50 rounded-xl transition-all duration-200 group">
+                      <div className="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <FolderPlus className="w-6 h-6 text-blue-500" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <div className="text-foreground font-semibold text-base mb-1">Add to Campaign</div>
+                        <div className="text-sm text-muted-foreground">Include in an existing campaign</div>
+                      </div>
+                    </button>
+
+                    <button className="flex items-center gap-4 p-5 bg-amber-500/10 hover:bg-amber-500/20 border-2 border-amber-500/30 hover:border-amber-500/50 rounded-xl transition-all duration-200 group">
+                      <div className="w-12 h-12 rounded-lg bg-amber-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Flag className="w-6 h-6 text-amber-500" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <div className="text-foreground font-semibold text-base mb-1">Flag for Review</div>
+                        <div className="text-sm text-muted-foreground">Mark as requiring attention</div>
+                      </div>
+                    </button>
+
+                    <button className="flex items-center gap-4 p-5 bg-green-500/10 hover:bg-green-500/20 border-2 border-green-500/30 hover:border-green-500/50 rounded-xl transition-all duration-200 group">
+                      <div className="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <CheckCircle className="w-6 h-6 text-green-500" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <div className="text-foreground font-semibold text-base mb-1">Mark as Read</div>
+                        <div className="text-sm text-muted-foreground">Mark as reviewed and complete</div>
+                      </div>
+                    </button>
+
+                    <button className="flex items-center gap-4 p-5 bg-zinc-500/10 hover:bg-zinc-500/20 border-2 border-zinc-500/30 hover:border-zinc-500/50 rounded-xl transition-all duration-200 group">
+                      <div className="w-12 h-12 rounded-lg bg-zinc-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Archive className="w-6 h-6 text-zinc-400" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <div className="text-foreground font-semibold text-base mb-1">Archive</div>
+                        <div className="text-sm text-muted-foreground">Move to archive for later</div>
+                      </div>
+                    </button>
                   </div>
                 </div>
 

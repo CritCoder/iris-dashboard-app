@@ -213,11 +213,11 @@ export default function AnalysisHistoryPage() {
           description="Track and manage your campaign analyses"
         />
 
-        {/* Mobile-friendly search and filters */}
+        {/* Search and filters in one row */}
         <div className="border-b border-border bg-background p-3 sm:p-4">
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             {/* Search bar */}
-            <div className="relative">
+            <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="text"
@@ -229,7 +229,7 @@ export default function AnalysisHistoryPage() {
             </div>
 
             {/* Filter buttons */}
-            <div className="flex gap-2 overflow-x-auto pb-1">
+            <div className="flex gap-2 overflow-x-auto">
               <button
                 onClick={() => setActiveTab('all')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
@@ -278,7 +278,7 @@ export default function AnalysisHistoryPage() {
           </div>
         </div>
 
-        <div className="border-t border-border p-3 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="border-t border-border bg-background px-3 sm:px-4 h-16 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-sm text-muted-foreground">
             Showing {filteredCampaigns.length} of {campaigns.length} campaigns
           </p>

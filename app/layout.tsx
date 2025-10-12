@@ -10,6 +10,7 @@ import { PageTransition } from '@/components/layout/page-transition'
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
+  display: 'swap',
 })
 
 export const metadata: Metadata = {

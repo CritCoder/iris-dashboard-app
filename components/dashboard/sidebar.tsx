@@ -36,7 +36,6 @@ import {
   Building
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 
 // Create a context for mobile menu state
@@ -94,21 +93,16 @@ function NavItem({ icon: Icon, label, href, hasSubmenu = false, submenuContent }
 
   if (hasSubmenu && submenuContent) {
     return (
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
+      <div>
+        <div onClick={() => setOpen(!open)}>
           {buttonContent}
-        </PopoverTrigger>
-        <PopoverContent 
-          side="right" 
-          align="start" 
-          sideOffset={8}
-          className="w-72 p-0 bg-card border border-border shadow-2xl z-50 animate-in fade-in-50 zoom-in-95 duration-150"
-        >
-          <div className="list-animate-in">
+        </div>
+        {open && (
+          <div className="ml-4 mt-2 space-y-1 animate-in fade-in-50 slide-in-from-left-2 duration-200">
             {submenuContent}
           </div>
-        </PopoverContent>
-      </Popover>
+        )}
+      </div>
     )
   }
 
@@ -391,11 +385,25 @@ function SidebarContent() {
       </div>
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        {/* Main Section */}
         <NavItem icon={Home} label="Home" href="/" />
         <NavItem icon={Mail} label="Social Inbox" href="/social-inbox" />
+
+        {/* Analyze Section */}
+        <div className="pt-4 pb-2">
+          <div className="px-4 text-xs font-semibold text-cyan-400 uppercase tracking-wider mb-2">
+            Analyze
+          </div>
+        </div>
         <NavItem icon={Play} label="Start Analysis" href="/start-analysis" />
         <NavItem icon={BarChart3} label="Analysis History" href="/analysis-history" />
 
+        {/* Explore Section */}
+        <div className="pt-4 pb-2">
+          <div className="px-4 text-xs font-semibold text-cyan-400 uppercase tracking-wider mb-2">
+            Explore
+          </div>
+        </div>
         <NavItem
           icon={Globe}
           label="Social Feed"
@@ -427,7 +435,13 @@ function SidebarContent() {
           hasSubmenu
           submenuContent={<LocationsSubmenu />}
         />
-        
+
+        {/* Intelligence Section */}
+        <div className="pt-4 pb-2">
+          <div className="px-4 text-xs font-semibold text-cyan-400 uppercase tracking-wider mb-2">
+            Intelligence
+          </div>
+        </div>
         <NavItem
           icon={Search}
           label="Entity Search"
@@ -438,12 +452,12 @@ function SidebarContent() {
         <NavItem icon={Shield} label="OSINT Tools" href="/osint-tools" />
       </nav>
 
-      <div className="p-4 border-t border-border flex-shrink-0">
-        {/* Theme Toggle */}
-        <div className="mb-4 flex justify-start">
-          <ThemeToggle />
-        </div>
+      {/* Theme Toggle - Above Separator */}
+      <div className="px-4 pb-4 flex justify-start flex-shrink-0">
+        <ThemeToggle />
+      </div>
 
+      <div className="p-4 border-t border-border flex-shrink-0">
         <div className="flex items-center gap-3 px-2">
           <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold flex-shrink-0 text-foreground">
             N
@@ -481,13 +495,13 @@ export function Sidebar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-56 border-r border-border bg-background flex-col fixed h-screen overflow-y-auto z-40 pointer-events-auto">
+      <aside className="hidden lg:flex w-84 border-r border-border bg-background flex-col fixed h-screen overflow-y-auto z-40 pointer-events-auto">
         <SidebarContent />
       </aside>
 
       {/* Mobile Sidebar in Sheet */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="w-64 p-0 lg:hidden">
+        <SheetContent side="left" className="w-80 p-0 lg:hidden">
           <div className="flex flex-col h-full">
             <SidebarContent />
           </div>

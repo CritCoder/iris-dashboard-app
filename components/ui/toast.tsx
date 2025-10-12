@@ -146,20 +146,21 @@ const ToastContainer = () => {
 
   const getFinalTransform = (index: number, length: number) => {
     if (index === length - 1) {
-      return "none";
+      return "translate(-50%, 0) scale(1)";
     }
     const offset = length - 1 - index;
     let translateY = toasts[length - 1]?.measuredHeight || 63;
     for (let i = length - 1; i > index; i--) {
       if (isHovered) {
-        translateY += (toasts[i - 1]?.measuredHeight || 63) + 10;
+        translateY += (toasts[i - 1]?.measuredHeight || 63) + 12;
       } else {
-        translateY += 20;
+        translateY += 12;
       }
     }
     const z = -offset;
-    const scale = isHovered ? 1 : (1 - 0.05 * offset);
-    return `translate3d(0, calc(100% - ${translateY}px), ${z}px) scale(${scale})`;
+    const scale = isHovered ? 1 : (1 - 0.04 * offset);
+    const opacity = 1 - (0.2 * offset);
+    return `translate(-50%, -${translateY}px) scale(${scale})`;
   };
 
   const handleMouseEnter = () => {
@@ -180,11 +181,11 @@ const ToastContainer = () => {
 
   return (
     <div
-      className="fixed bottom-4 right-4 z-[9999] pointer-events-none w-[420px]"
+      className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999] pointer-events-none"
       style={{ height: containerHeight }}
     >
       <div
-        className="relative pointer-events-auto w-full"
+        className="relative pointer-events-auto"
         style={{ height: containerHeight }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -197,22 +198,22 @@ const ToastContainer = () => {
               key={toast.id}
               ref={measureRef(toast)}
               className={clsx(
-                "absolute right-0 bottom-0 shadow-menu rounded-xl leading-[21px] p-4 h-fit",
+                "absolute left-1/2 -translate-x-1/2 bottom-0 rounded-2xl leading-[21px] p-4 h-fit backdrop-blur-xl",
                 {
-                  message: "bg-geist-background text-gray-1000",
-                  success: "bg-blue-700 text-contrast-fg",
-                  warning: "bg-amber-800 text-gray-1000 dark:text-gray-100",
-                  error: "bg-red-800 text-contrast-fg"
+                  message: "bg-zinc-800/95 text-white border border-zinc-700/50",
+                  success: "bg-blue-600/95 text-white border border-blue-500/50",
+                  warning: "bg-amber-600/95 text-white border border-amber-500/50",
+                  error: "bg-red-600/95 text-white border border-red-500/50"
                 }[toast.type],
                 isVisible ? "opacity-100" : "opacity-0",
                 index < lastVisibleStart && "pointer-events-none"
               )}
               style={{
-                width: 420,
-                transition: "all .35s cubic-bezier(.25,.75,.6,.98)",
+                width: 380,
+                transition: "all .4s cubic-bezier(.25,.46,.45,.94)",
                 transform: shownIds.includes(toast.id)
                   ? getFinalTransform(index, toasts.length)
-                  : "translate3d(0, 100%, 150px) scale(1)"
+                  : "translate(-50%, calc(100% + 20px)) scale(0.95)"
               }}
             >
               <div className="flex flex-col items-center justify-between text-[.875rem]">
@@ -238,13 +239,9 @@ const ToastContainer = () => {
                         svgOnly
                         size="small"
                         onClick={() => toastStore.remove(toast.id)}
+                        className="hover:bg-white/10 transition-colors rounded-lg"
                       >
-                        <CloseIcon className={{
-                          message: "fill-gray-1000",
-                          success: "fill-contrast-fg",
-                          warning: "fill-gray-1000 dark:fill-gray-100",
-                          error: "fill-contrast-fg"
-                        }[toast.type]} />
+                        <CloseIcon className="fill-white" />
                       </Button>
                     </div>
                   )}
@@ -284,7 +281,7 @@ const ToastContainer = () => {
 const mountContainer = () => {
   if (root) return;
   const el = document.createElement("div");
-  el.className = "fixed bottom-4 right-4 z-[9999]";
+  el.className = "fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999]";
   document.body.appendChild(el);
   root = createRoot(el);
   root.render(<ToastContainer />);

@@ -3,10 +3,16 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, ArrowRight, Mail, Phone, Loader2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Mail, Phone, Loader2, Edit2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/auth-context'
 import { useToast } from '@/hooks/use-toast'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 interface ContactInfo {
   method: 'email' | 'mobile'
@@ -19,7 +25,7 @@ export default function VerifyOTPPage() {
   const { otpLogin, login } = useAuth()
   const { success, error } = useToast()
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
-  const [timer, setTimer] = useState(60)
+  const [timer, setTimer] = useState(120)
   const [isVerifying, setIsVerifying] = useState(false)
   const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
@@ -29,6 +35,10 @@ export default function VerifyOTPPage() {
     const storedContactInfo = sessionStorage.getItem('otpContactInfo')
     if (storedContactInfo) {
       setContactInfo(JSON.parse(storedContactInfo))
+      // Focus the first input after a short delay to ensure it's rendered
+      setTimeout(() => {
+        inputRefs.current[0]?.focus()
+      }, 100)
     } else {
       // If no contact info, redirect back to login
       router.push('/login')
@@ -45,7 +55,8 @@ export default function VerifyOTPPage() {
   }, [timer])
 
   const handleChange = (index: number, value: string) => {
-    if (value.length > 1) return
+    // Only allow single digit numeric input
+    if (!/^\d*$/.test(value) || value.length > 1) return
 
     const newOtp = [...otp]
     newOtp[index] = value
@@ -57,12 +68,14 @@ export default function VerifyOTPPage() {
     }
 
     // Auto-submit when all 6 digits are entered
-    const updatedOtp = [...newOtp]
-    if (updatedOtp.every(digit => digit !== '') && updatedOtp.length === 6) {
-      // Small delay to ensure state is updated
+    if (newOtp.every(digit => digit !== '')) {
+      // Small delay to ensure state is updated and visual feedback
       setTimeout(() => {
-        handleSubmit(new Event('submit') as any)
-      }, 100)
+        const form = document.querySelector('form')
+        if (form) {
+          form.requestSubmit()
+        }
+      }, 200)
     }
   }
 
@@ -124,7 +137,7 @@ export default function VerifyOTPPage() {
   const handleResend = async () => {
     if (!contactInfo) return
     
-    setTimer(60)
+    setTimer(120)
     setOtp(['', '', '', '', '', ''])
     inputRefs.current[0]?.focus()
     
@@ -171,16 +184,31 @@ export default function VerifyOTPPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-6">
-      <div className="w-full max-w-md">
-        {/* Back Button */}
-        <Link
-          href="/login"
-          className="inline-flex items-center gap-2 text-zinc-400 hover:text-zinc-300 mb-8 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to login
-        </Link>
+    <div className="min-h-screen bg-black flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Video Background */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover opacity-30"
+      >
+        <source src="/waves2.mp4" type="video/mp4" />
+      </video>
+      
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-none"></div>
+
+      {/* Back Button - Fixed at top left */}
+      <Link
+        href="/login"
+        className="fixed top-8 left-8 inline-flex items-center gap-2 text-zinc-400 hover:text-zinc-300 transition-colors z-20"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back to login
+      </Link>
+      
+      <div className="w-full max-w-md relative z-10">
 
         {/* Logo */}
         <div className="text-center mb-8">
@@ -200,13 +228,28 @@ export default function VerifyOTPPage() {
                   <Phone className="w-4 h-4 text-zinc-400" />
                 )}
                 <span>{contactInfo.displayValue}</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link
+                        href="/login"
+                        className="inline-flex items-center justify-center opacity-50 hover:opacity-100 transition-opacity"
+                      >
+                        <Edit2 className="w-4 h-4 text-white cursor-pointer" />
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Edit number</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
           )}
         </div>
 
         {/* OTP Form */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="flex gap-3 justify-center">
               {otp.map((digit, index) => (
@@ -221,7 +264,7 @@ export default function VerifyOTPPage() {
                   value={digit}
                   onChange={(e) => handleChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
-                  className="w-12 h-14 text-center text-2xl font-bold bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                  className="w-12 h-14 text-center text-2xl font-bold bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg text-white focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all"
                 />
               ))}
             </div>
@@ -262,8 +305,9 @@ export default function VerifyOTPPage() {
           </form>
 
           <div className="mt-6 text-center">
-            <button className="text-sm text-zinc-500 hover:text-zinc-300">
+            <button className="text-sm text-zinc-500 hover:text-zinc-300 inline-flex items-center gap-2 group transition-colors">
               Having trouble? Contact support
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
             </button>
           </div>
         </div>

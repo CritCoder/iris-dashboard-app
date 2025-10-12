@@ -239,10 +239,13 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm" onClick={onClose}>
+    <div 
+      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200" 
+      onClick={onClose}
+    >
       <div className="flex items-start justify-center pt-[10vh] px-4">
         <div 
-          className="w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl"
+          className="w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl animate-in zoom-in-95 slide-in-from-top-4 duration-300"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Search Input */}

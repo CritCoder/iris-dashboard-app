@@ -249,11 +249,12 @@ export default function LocationDetailPage() {
           <div className="hidden lg:block lg:w-80 border-r border-border bg-muted/30 overflow-y-auto">
             <div className="p-4 sm:p-6">
               {/* Breadcrumb */}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                <span>All Locations</span>
-                <span>×</span>
-                <span className="text-foreground">{locationName}</span>
-                <span>×</span>
+              <div className="flex items-center gap-2 text-sm mb-6">
+                <Link href="/locations" className="text-muted-foreground hover:text-foreground transition-colors">
+                  All Locations
+                </Link>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                <span className="text-foreground font-medium">{locationName}</span>
               </div>
 
               {/* Location Header */}
