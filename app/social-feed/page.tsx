@@ -406,91 +406,111 @@ function SocialFeedContent() {
   return (
     <PageLayout>
       <div className="h-screen flex flex-col overflow-hidden">
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <PageHeader
-            title={getFilterLabel(activeFilter)}
-            description={`${filteredPosts.length} posts loaded`}
-            actions={
-              <div className="w-full">
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-                  {/* Search Bar */}
-                  <div className="relative w-full sm:flex-1 sm:max-w-xs">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      type="text"
-                      placeholder="Search..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 pr-4 py-2 text-sm h-9 w-full"
-                    />
-                  </div>
+        {/* Header */}
+        <PageHeader
+          title={getFilterLabel(activeFilter)}
+          description={`${filteredPosts.length} posts loaded`}
+        />
 
-                  {/* Filters Row - Responsive */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none flex-1 sm:flex-none min-w-[100px]">
-                      <option>All Campaigns</option>
-                    </select>
+        {/* Filters Section - Below Header */}
+        <div className="border-b border-border bg-background p-3 sm:p-4">
+          <div className="flex flex-col gap-3">
+            {/* Search Bar */}
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search posts..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-4 py-2 text-sm h-9 w-full"
+              />
+            </div>
 
-                    <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none flex-1 sm:flex-none min-w-[100px]">
-                      <option>All Sentiments</option>
-                      <option>Positive</option>
-                      <option>Negative</option>
-                      <option>Neutral</option>
-                    </select>
+            {/* Filter Buttons Row 1 - Quick Filters */}
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant={activeFilter === 'latest-posts' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => handleFilterChange('latest-posts')}
+                className="h-8 text-xs"
+              >
+                Latest
+              </Button>
+              <Button
+                variant={activeFilter === 'high-impact' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => handleFilterChange('high-impact')}
+                className="h-8 text-xs"
+              >
+                Top Posts
+              </Button>
+              <Button
+                variant={activeFilter === 'positive' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => handleFilterChange('positive')}
+                className="h-8 text-xs"
+              >
+                Positive
+              </Button>
+              <Button
+                variant={activeFilter === 'negative' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => handleFilterChange('negative')}
+                className="h-8 text-xs"
+              >
+                Negative
+              </Button>
+            </div>
 
-                    <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none flex-1 sm:flex-none min-w-[100px]">
-                      <option>All Platforms</option>
-                      <option>Facebook</option>
-                      <option>Twitter</option>
-                      <option>Instagram</option>
-                      <option>YouTube</option>
-                      <option>News</option>
-                    </select>
+            {/* Filter Dropdowns Row 2 */}
+            <div className="flex flex-wrap items-center gap-2">
+              <select className="bg-background border border-border text-foreground text-xs rounded-lg px-3 py-1.5 h-8 cursor-pointer hover:bg-accent/20 transition-colors">
+                <option>All Campaigns</option>
+              </select>
 
-                    <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none flex-1 sm:flex-none min-w-[100px]">
-                      <option>All Media</option>
-                      <option>With Images</option>
-                      <option>With Videos</option>
-                      <option>Text Only</option>
-                    </select>
+              <select className="bg-background border border-border text-foreground text-xs rounded-lg px-3 py-1.5 h-8 cursor-pointer hover:bg-accent/20 transition-colors">
+                <option>All Platforms</option>
+                <option>Facebook</option>
+                <option>Twitter</option>
+                <option>Instagram</option>
+                <option>News</option>
+              </select>
 
-                    <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none flex-1 sm:flex-none min-w-[100px]">
-                      <option>All Time</option>
-                      <option>Last Hour</option>
-                      <option>Last 6 Hours</option>
-                      <option>Last 24 Hours</option>
-                      <option>Last 7 Days</option>
-                      <option>Last 30 Days</option>
-                      <option>Custom Range</option>
-                    </select>
+              <select className="bg-background border border-border text-foreground text-xs rounded-lg px-3 py-1.5 h-8 cursor-pointer hover:bg-accent/20 transition-colors">
+                <option>All Media</option>
+                <option>With Images</option>
+                <option>With Videos</option>
+                <option>Text Only</option>
+              </select>
 
-                    <Button variant="outline" size="sm" className="gap-2 h-9 hidden sm:flex">
-                      <Download className="w-4 h-4" />
-                      <span className="hidden lg:inline">Export PDF</span>
-                      <span className="lg:hidden">Export</span>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            }
-          />
+              <select className="bg-background border border-border text-foreground text-xs rounded-lg px-3 py-1.5 h-8 cursor-pointer hover:bg-accent/20 transition-colors">
+                <option>All Time</option>
+                <option>Last Hour</option>
+                <option>Last 24 Hours</option>
+                <option>Last 7 Days</option>
+                <option>Last 30 Days</option>
+              </select>
 
-          {/* Posts Grid */}
-          <div className="flex-1 overflow-y-auto">
-            <AnimatedPage className="p-4 sm:p-6 list-animate-in">
-              <div className="mb-4 text-sm text-zinc-500">
-                {filteredPosts.length} posts loaded (more available)
-              </div>
-              <AnimatedGrid stagger={0.03} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-                {(filteredPosts || []).map((post) => (
-                  <AnimatedCard key={post.id}>
-                    <PostCard post={post} />
-                  </AnimatedCard>
-                ))}
-              </AnimatedGrid>
-            </AnimatedPage>
+              <Button variant="outline" size="sm" className="gap-2 h-8 ml-auto">
+                <Download className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline text-xs">Export</span>
+              </Button>
+            </div>
           </div>
+        </div>
+
+        {/* Posts Grid */}
+        <div className="flex-1 overflow-y-auto">
+          <AnimatedPage className="p-4 sm:p-6">
+            <AnimatedGrid stagger={0.03} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+              {(filteredPosts || []).map((post) => (
+                <AnimatedCard key={post.id}>
+                  <PostCard post={post} />
+                </AnimatedCard>
+              ))}
+            </AnimatedGrid>
+          </AnimatedPage>
         </div>
       </div>
     </PageLayout>
