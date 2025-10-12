@@ -1,6 +1,7 @@
 'use client'
 
 import { PageLayout } from '@/components/layout/page-layout'
+import { ProtectedRoute } from '@/components/auth/protected-route'
 import { PageHeader } from '@/components/layout/page-header'
 import { StatsGrid } from '@/components/dashboard/stats-grid'
 import { TopicSentimentHeatmap } from '@/components/dashboard/topic-sentiment-heatmap'
@@ -78,7 +79,8 @@ export default function Page() {
   }
 
   return (
-    <PageLayout>
+    <ProtectedRoute>
+      <PageLayout>
       <PageHeader
         title="Intelligence Dashboard"
         description="Real-time insights on narratives, opponents, and public sentiment"
@@ -368,5 +370,6 @@ export default function Page() {
         </div>
       </main>
     </PageLayout>
+    </ProtectedRoute>
   )
 }

@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { PageLayout } from '@/components/layout/page-layout'
+import { ProtectedRoute } from '@/components/auth/protected-route'
 import { PageHeader } from '@/components/layout/page-header'
 import { Search, Users, MapPin, Calendar, MessageSquare, Heart, Share2, Eye, Download, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -343,7 +344,8 @@ export default function ProfilesPage() {
   }
 
   return (
-    <PageLayout>
+    <ProtectedRoute>
+      <PageLayout>
       <PageHeader
         title="Social Profiles"
         description={error ? "Manage and analyze social media profiles (showing sample data)" : "Manage and analyze social media profiles"}
@@ -418,5 +420,6 @@ export default function ProfilesPage() {
         )}
       </div>
     </PageLayout>
+    </ProtectedRoute>
   )
 }

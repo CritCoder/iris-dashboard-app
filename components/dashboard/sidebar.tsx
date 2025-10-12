@@ -4,6 +4,7 @@ import { useState, createContext, useContext } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { useAuth } from '@/contexts/auth-context'
 import {
   Home,
   Mail,
@@ -371,31 +372,7 @@ function EntitySearchSubmenu() {
 }
 
 function SidebarContent() {
-  const router = useRouter()
-
-  const handleLogout = async () => {
-    try {
-      // Clear any stored authentication data
-      localStorage.removeItem('authToken')
-      localStorage.removeItem('user')
-      sessionStorage.clear()
-      
-      // Clear any cookies if they exist
-      document.cookie.split(";").forEach((c) => {
-        document.cookie = c
-          .replace(/^ +/, "")
-          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-      });
-
-      toast.success('Logged out successfully')
-      
-      // Redirect to login page
-      router.push('/login')
-    } catch (error) {
-      console.error('Logout error:', error)
-      toast.error('Error during logout')
-    }
-  }
+  const { logout, user } = useAuth()
 
   return (
     <>
@@ -472,9 +449,11 @@ function SidebarContent() {
             N
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium text-foreground truncate">suumit@mydukaan.io</div>
+            <div className="text-sm font-medium text-foreground truncate">
+              {user?.email || 'suumit@mydukaan.io'}
+            </div>
             <button 
-              onClick={handleLogout}
+              onClick={logout}
               className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               Logout
