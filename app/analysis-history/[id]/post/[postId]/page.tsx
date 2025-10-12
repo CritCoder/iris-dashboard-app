@@ -61,12 +61,6 @@ export default function PostAnalysisPage() {
                 </div>
               </div>
 
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-6">
-                <p className="text-zinc-300 leading-relaxed">
-                  Let's not wait until October. Treat everyone nicely all year long! #bullyingpreventionmonth
-                </p>
-              </div>
-
               <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-white font-semibold">💬 Comments (0)</h3>

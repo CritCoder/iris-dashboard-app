@@ -1,0 +1,995 @@
+{
+  "info": {
+    "name": "External API Collection",
+    "description": "Collection of external API calls captured from Puppeteer\n\nThese are all the backend API calls made by the frontend application to https://irisnet.wiredleap.com/api",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "GET /api/api/auth/me",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://irisnet.wiredleap.com/api/api/auth/me",
+          "protocol": "https",
+          "host": [
+            "irisnet",
+            "wiredleap",
+            "com"
+          ],
+          "path": [
+            "api",
+            "api",
+            "auth",
+            "me"
+          ],
+          "query": []
+        }
+      },
+      "response": [
+        {
+          "name": "GET /api/api/auth/me Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://irisnet.wiredleap.com/api/api/auth/me",
+              "protocol": "https",
+              "host": [
+                "irisnet",
+                "wiredleap",
+                "com"
+              ],
+              "path": [
+                "api",
+                "api",
+                "auth",
+                "me"
+              ],
+              "query": []
+            }
+          },
+          "status": 404,
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "access-control-allow-origin",
+              "value": "*"
+            },
+            {
+              "key": "connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "content-length",
+              "value": "165"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "date",
+              "value": "Sat, 11 Oct 2025 22:27:55 GMT"
+            },
+            {
+              "key": "etag",
+              "value": "W/\"a5-q0TCWEkDQVVqR6oyYt8ZWj8sXIw\""
+            },
+            {
+              "key": "server",
+              "value": "nginx/1.24.0 (Ubuntu)"
+            },
+            {
+              "key": "x-powered-by",
+              "value": "Express"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"success\":false,\"error\":{\"message\":\"Route not found\",\"details\":\"The requested endpoint GET /api/api/auth/me does not exist\"},\"timestamp\":\"2025-10-11T22:27:55.233Z\"}"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/api/social/inbox/stats",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://irisnet.wiredleap.com/api/api/social/inbox/stats?timeRange=7d",
+          "protocol": "https",
+          "host": [
+            "irisnet",
+            "wiredleap",
+            "com"
+          ],
+          "path": [
+            "api",
+            "api",
+            "social",
+            "inbox",
+            "stats"
+          ],
+          "query": [
+            {
+              "key": "timeRange",
+              "value": "7d"
+            }
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "GET /api/api/social/inbox/stats Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://irisnet.wiredleap.com/api/api/social/inbox/stats?timeRange=7d",
+              "protocol": "https",
+              "host": [
+                "irisnet",
+                "wiredleap",
+                "com"
+              ],
+              "path": [
+                "api",
+                "api",
+                "social",
+                "inbox",
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "timeRange",
+                  "value": "7d"
+                }
+              ]
+            }
+          },
+          "status": 404,
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "access-control-allow-origin",
+              "value": "*"
+            },
+            {
+              "key": "connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "content-length",
+              "value": "189"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "date",
+              "value": "Sat, 11 Oct 2025 22:28:08 GMT"
+            },
+            {
+              "key": "etag",
+              "value": "W/\"bd-CA6Fu2i8SbtAsNHK6/z4KdbqGoQ\""
+            },
+            {
+              "key": "server",
+              "value": "nginx/1.24.0 (Ubuntu)"
+            },
+            {
+              "key": "x-powered-by",
+              "value": "Express"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"success\":false,\"error\":{\"message\":\"Route not found\",\"details\":\"The requested endpoint GET /api/api/social/inbox/stats?timeRange=7d does not exist\"},\"timestamp\":\"2025-10-11T22:28:08.225Z\"}"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/api/social/posts",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://irisnet.wiredleap.com/api/api/social/posts?author=test-user-id&limit=20&sortBy=createdAt&page=1",
+          "protocol": "https",
+          "host": [
+            "irisnet",
+            "wiredleap",
+            "com"
+          ],
+          "path": [
+            "api",
+            "api",
+            "social",
+            "posts"
+          ],
+          "query": [
+            {
+              "key": "author",
+              "value": "test-user-id"
+            },
+            {
+              "key": "limit",
+              "value": "20"
+            },
+            {
+              "key": "sortBy",
+              "value": "createdAt"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            }
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "GET /api/api/social/posts Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://irisnet.wiredleap.com/api/api/social/posts?author=test-user-id&limit=20&sortBy=createdAt&page=1",
+              "protocol": "https",
+              "host": [
+                "irisnet",
+                "wiredleap",
+                "com"
+              ],
+              "path": [
+                "api",
+                "api",
+                "social",
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "author",
+                  "value": "test-user-id"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "status": 404,
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "access-control-allow-origin",
+              "value": "*"
+            },
+            {
+              "key": "connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "content-length",
+              "value": "223"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "date",
+              "value": "Sat, 11 Oct 2025 22:28:50 GMT"
+            },
+            {
+              "key": "etag",
+              "value": "W/\"df-wG/LjibpkSCnFlLsGBfxNPMb90k\""
+            },
+            {
+              "key": "server",
+              "value": "nginx/1.24.0 (Ubuntu)"
+            },
+            {
+              "key": "x-powered-by",
+              "value": "Express"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"success\":false,\"error\":{\"message\":\"Route not found\",\"details\":\"The requested endpoint GET /api/api/social/posts?author=test-user-id&limit=20&sortBy=createdAt&page=1 does not exist\"},\"timestamp\":\"2025-10-11T22:28:50.744Z\"}"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/api/social/entities/search",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://irisnet.wiredleap.com/api/api/social/entities/search?limit=50",
+          "protocol": "https",
+          "host": [
+            "irisnet",
+            "wiredleap",
+            "com"
+          ],
+          "path": [
+            "api",
+            "api",
+            "social",
+            "entities",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "limit",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "GET /api/api/social/entities/search Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://irisnet.wiredleap.com/api/api/social/entities/search?limit=50",
+              "protocol": "https",
+              "host": [
+                "irisnet",
+                "wiredleap",
+                "com"
+              ],
+              "path": [
+                "api",
+                "api",
+                "social",
+                "entities",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
+          },
+          "status": 404,
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "access-control-allow-origin",
+              "value": "*"
+            },
+            {
+              "key": "connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "content-length",
+              "value": "189"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "date",
+              "value": "Sat, 11 Oct 2025 22:28:13 GMT"
+            },
+            {
+              "key": "etag",
+              "value": "W/\"bd-s5koB/FEE8bgIkIdGlWyH7IxmrE\""
+            },
+            {
+              "key": "server",
+              "value": "nginx/1.24.0 (Ubuntu)"
+            },
+            {
+              "key": "x-powered-by",
+              "value": "Express"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"success\":false,\"error\":{\"message\":\"Route not found\",\"details\":\"The requested endpoint GET /api/api/social/entities/search?limit=50 does not exist\"},\"timestamp\":\"2025-10-11T22:28:13.008Z\"}"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/api/osint/external/history",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://irisnet.wiredleap.com/api/api/osint/external/history?limit=10",
+          "protocol": "https",
+          "host": [
+            "irisnet",
+            "wiredleap",
+            "com"
+          ],
+          "path": [
+            "api",
+            "api",
+            "osint",
+            "external",
+            "history"
+          ],
+          "query": [
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "GET /api/api/osint/external/history Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://irisnet.wiredleap.com/api/api/osint/external/history?limit=10",
+              "protocol": "https",
+              "host": [
+                "irisnet",
+                "wiredleap",
+                "com"
+              ],
+              "path": [
+                "api",
+                "api",
+                "osint",
+                "external",
+                "history"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "status": 404,
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "access-control-allow-origin",
+              "value": "*"
+            },
+            {
+              "key": "connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "content-length",
+              "value": "189"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "date",
+              "value": "Sat, 11 Oct 2025 22:28:46 GMT"
+            },
+            {
+              "key": "etag",
+              "value": "W/\"bd-ghhhf647+JGSTjzFmzZwgx0CWus\""
+            },
+            {
+              "key": "server",
+              "value": "nginx/1.24.0 (Ubuntu)"
+            },
+            {
+              "key": "x-powered-by",
+              "value": "Express"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"success\":false,\"error\":{\"message\":\"Route not found\",\"details\":\"The requested endpoint GET /api/api/osint/external/history?limit=10 does not exist\"},\"timestamp\":\"2025-10-11T22:28:46.379Z\"}"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/api/osint/external/dashboard",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://irisnet.wiredleap.com/api/api/osint/external/dashboard",
+          "protocol": "https",
+          "host": [
+            "irisnet",
+            "wiredleap",
+            "com"
+          ],
+          "path": [
+            "api",
+            "api",
+            "osint",
+            "external",
+            "dashboard"
+          ],
+          "query": []
+        }
+      },
+      "response": [
+        {
+          "name": "GET /api/api/osint/external/dashboard Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://irisnet.wiredleap.com/api/api/osint/external/dashboard",
+              "protocol": "https",
+              "host": [
+                "irisnet",
+                "wiredleap",
+                "com"
+              ],
+              "path": [
+                "api",
+                "api",
+                "osint",
+                "external",
+                "dashboard"
+              ],
+              "query": []
+            }
+          },
+          "status": 404,
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "access-control-allow-origin",
+              "value": "*"
+            },
+            {
+              "key": "connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "content-length",
+              "value": "182"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "date",
+              "value": "Sat, 11 Oct 2025 22:28:17 GMT"
+            },
+            {
+              "key": "etag",
+              "value": "W/\"b6-5S/y265LowInl+3ac5UJiOMV/xg\""
+            },
+            {
+              "key": "server",
+              "value": "nginx/1.24.0 (Ubuntu)"
+            },
+            {
+              "key": "x-powered-by",
+              "value": "Express"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"success\":false,\"error\":{\"message\":\"Route not found\",\"details\":\"The requested endpoint GET /api/api/osint/external/dashboard does not exist\"},\"timestamp\":\"2025-10-11T22:28:17.308Z\"}"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/api/social/profiles",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://irisnet.wiredleap.com/api/api/social/profiles?limit=50&page=1",
+          "protocol": "https",
+          "host": [
+            "irisnet",
+            "wiredleap",
+            "com"
+          ],
+          "path": [
+            "api",
+            "api",
+            "social",
+            "profiles"
+          ],
+          "query": [
+            {
+              "key": "limit",
+              "value": "50"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            }
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "GET /api/api/social/profiles Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://irisnet.wiredleap.com/api/api/social/profiles?limit=50&page=1",
+              "protocol": "https",
+              "host": [
+                "irisnet",
+                "wiredleap",
+                "com"
+              ],
+              "path": [
+                "api",
+                "api",
+                "social",
+                "profiles"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "status": 404,
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "access-control-allow-origin",
+              "value": "*"
+            },
+            {
+              "key": "connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "content-length",
+              "value": "189"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "date",
+              "value": "Sat, 11 Oct 2025 22:28:48 GMT"
+            },
+            {
+              "key": "etag",
+              "value": "W/\"bd-GtJa0KwWkBUes7YAayx6DlFi5jQ\""
+            },
+            {
+              "key": "server",
+              "value": "nginx/1.24.0 (Ubuntu)"
+            },
+            {
+              "key": "x-powered-by",
+              "value": "Express"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"success\":false,\"error\":{\"message\":\"Route not found\",\"details\":\"The requested endpoint GET /api/api/social/profiles?limit=50&page=1 does not exist\"},\"timestamp\":\"2025-10-11T22:28:48.268Z\"}"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/api/social/profiles/test-user-id",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://irisnet.wiredleap.com/api/api/social/profiles/test-user-id",
+          "protocol": "https",
+          "host": [
+            "irisnet",
+            "wiredleap",
+            "com"
+          ],
+          "path": [
+            "api",
+            "api",
+            "social",
+            "profiles",
+            "test-user-id"
+          ],
+          "query": []
+        }
+      },
+      "response": [
+        {
+          "name": "GET /api/api/social/profiles/test-user-id Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://irisnet.wiredleap.com/api/api/social/profiles/test-user-id",
+              "protocol": "https",
+              "host": [
+                "irisnet",
+                "wiredleap",
+                "com"
+              ],
+              "path": [
+                "api",
+                "api",
+                "social",
+                "profiles",
+                "test-user-id"
+              ],
+              "query": []
+            }
+          },
+          "status": 404,
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "access-control-allow-origin",
+              "value": "*"
+            },
+            {
+              "key": "connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "content-length",
+              "value": "186"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "date",
+              "value": "Sat, 11 Oct 2025 22:28:50 GMT"
+            },
+            {
+              "key": "etag",
+              "value": "W/\"ba-qdwpXQZzbXcPZ87v2T7sUo3DtA8\""
+            },
+            {
+              "key": "server",
+              "value": "nginx/1.24.0 (Ubuntu)"
+            },
+            {
+              "key": "x-powered-by",
+              "value": "Express"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"success\":false,\"error\":{\"message\":\"Route not found\",\"details\":\"The requested endpoint GET /api/api/social/profiles/test-user-id does not exist\"},\"timestamp\":\"2025-10-11T22:28:50.740Z\"}"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/api/social/locations/top",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://irisnet.wiredleap.com/api/api/social/locations/top?limit=50",
+          "protocol": "https",
+          "host": [
+            "irisnet",
+            "wiredleap",
+            "com"
+          ],
+          "path": [
+            "api",
+            "api",
+            "social",
+            "locations",
+            "top"
+          ],
+          "query": [
+            {
+              "key": "limit",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "GET /api/api/social/locations/top Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://irisnet.wiredleap.com/api/api/social/locations/top?limit=50",
+              "protocol": "https",
+              "host": [
+                "irisnet",
+                "wiredleap",
+                "com"
+              ],
+              "path": [
+                "api",
+                "api",
+                "social",
+                "locations",
+                "top"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
+          },
+          "status": 404,
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "access-control-allow-origin",
+              "value": "*"
+            },
+            {
+              "key": "connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "content-length",
+              "value": "187"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "date",
+              "value": "Sat, 11 Oct 2025 22:28:53 GMT"
+            },
+            {
+              "key": "etag",
+              "value": "W/\"bb-ADf+IZn8tVXey93wAQ8WVvDkN4w\""
+            },
+            {
+              "key": "server",
+              "value": "nginx/1.24.0 (Ubuntu)"
+            },
+            {
+              "key": "x-powered-by",
+              "value": "Express"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"success\":false,\"error\":{\"message\":\"Route not found\",\"details\":\"The requested endpoint GET /api/api/social/locations/top?limit=50 does not exist\"},\"timestamp\":\"2025-10-11T22:28:53.116Z\"}"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/api/social/locations/analytics",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://irisnet.wiredleap.com/api/api/social/locations/analytics?timeRange=7d",
+          "protocol": "https",
+          "host": [
+            "irisnet",
+            "wiredleap",
+            "com"
+          ],
+          "path": [
+            "api",
+            "api",
+            "social",
+            "locations",
+            "analytics"
+          ],
+          "query": [
+            {
+              "key": "timeRange",
+              "value": "7d"
+            }
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "GET /api/api/social/locations/analytics Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://irisnet.wiredleap.com/api/api/social/locations/analytics?timeRange=7d",
+              "protocol": "https",
+              "host": [
+                "irisnet",
+                "wiredleap",
+                "com"
+              ],
+              "path": [
+                "api",
+                "api",
+                "social",
+                "locations",
+                "analytics"
+              ],
+              "query": [
+                {
+                  "key": "timeRange",
+                  "value": "7d"
+                }
+              ]
+            }
+          },
+          "status": 404,
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "access-control-allow-origin",
+              "value": "*"
+            },
+            {
+              "key": "connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "content-length",
+              "value": "197"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "date",
+              "value": "Sat, 11 Oct 2025 22:29:22 GMT"
+            },
+            {
+              "key": "etag",
+              "value": "W/\"c5-Vi0H0bMlg/o+9hk1v3IcCxzqSoQ\""
+            },
+            {
+              "key": "server",
+              "value": "nginx/1.24.0 (Ubuntu)"
+            },
+            {
+              "key": "x-powered-by",
+              "value": "Express"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"success\":false,\"error\":{\"message\":\"Route not found\",\"details\":\"The requested endpoint GET /api/api/social/locations/analytics?timeRange=7d does not exist\"},\"timestamp\":\"2025-10-11T22:29:22.364Z\"}"
+        }
+      ]
+    }
+  ]
+}

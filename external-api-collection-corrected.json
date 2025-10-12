@@ -1,0 +1,803 @@
+{
+  "info": {
+    "name": "External API Collection - CORRECTED",
+    "description": "Collection of external API calls with corrected paths\n\n✅ FIXED: Removed double /api path issue\n✅ All endpoints now use correct paths (e.g., /api/auth/me instead of /api/api/auth/me)\n✅ All endpoints return proper authentication errors (401) instead of 404 'Route not found'\n\nThese are all the backend API calls made by the frontend application to https://irisnet.wiredleap.com",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "GET /api/auth/me",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "description": "Add your authentication token here"
+          }
+        ],
+        "url": {
+          "raw": "https://irisnet.wiredleap.com/api/auth/me",
+          "protocol": "https",
+          "host": [
+            "irisnet",
+            "wiredleap",
+            "com"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "me"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "GET /api/auth/me Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "https://irisnet.wiredleap.com/api/auth/me",
+              "protocol": "https",
+              "host": [
+                "irisnet",
+                "wiredleap",
+                "com"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "status": 401,
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "access-control-allow-origin",
+              "value": "*"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "server",
+              "value": "nginx/1.24.0 (Ubuntu)"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"success\":false,\"message\":\"Access denied. No token provided.\",\"error\":\"UNAUTHORIZED\"}"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/social/inbox/stats",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "description": "Add your authentication token here"
+          }
+        ],
+        "url": {
+          "raw": "https://irisnet.wiredleap.com/api/social/inbox/stats",
+          "protocol": "https",
+          "host": [
+            "irisnet",
+            "wiredleap",
+            "com"
+          ],
+          "path": [
+            "api",
+            "social",
+            "inbox",
+            "stats"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "GET /api/social/inbox/stats Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "https://irisnet.wiredleap.com/api/social/inbox/stats",
+              "protocol": "https",
+              "host": [
+                "irisnet",
+                "wiredleap",
+                "com"
+              ],
+              "path": [
+                "api",
+                "social",
+                "inbox",
+                "stats"
+              ]
+            }
+          },
+          "status": 401,
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "access-control-allow-origin",
+              "value": "*"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "server",
+              "value": "nginx/1.24.0 (Ubuntu)"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"success\":false,\"message\":\"Access denied. No token provided.\",\"error\":\"UNAUTHORIZED\"}"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/social/posts",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "description": "Add your authentication token here"
+          }
+        ],
+        "url": {
+          "raw": "https://irisnet.wiredleap.com/api/social/posts",
+          "protocol": "https",
+          "host": [
+            "irisnet",
+            "wiredleap",
+            "com"
+          ],
+          "path": [
+            "api",
+            "social",
+            "posts"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "GET /api/social/posts Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "https://irisnet.wiredleap.com/api/social/posts",
+              "protocol": "https",
+              "host": [
+                "irisnet",
+                "wiredleap",
+                "com"
+              ],
+              "path": [
+                "api",
+                "social",
+                "posts"
+              ]
+            }
+          },
+          "status": 401,
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "access-control-allow-origin",
+              "value": "*"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "server",
+              "value": "nginx/1.24.0 (Ubuntu)"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"success\":false,\"message\":\"Access denied. No token provided.\",\"error\":\"UNAUTHORIZED\"}"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/social/entities/search",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "description": "Add your authentication token here"
+          }
+        ],
+        "url": {
+          "raw": "https://irisnet.wiredleap.com/api/social/entities/search",
+          "protocol": "https",
+          "host": [
+            "irisnet",
+            "wiredleap",
+            "com"
+          ],
+          "path": [
+            "api",
+            "social",
+            "entities",
+            "search"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "GET /api/social/entities/search Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "https://irisnet.wiredleap.com/api/social/entities/search",
+              "protocol": "https",
+              "host": [
+                "irisnet",
+                "wiredleap",
+                "com"
+              ],
+              "path": [
+                "api",
+                "social",
+                "entities",
+                "search"
+              ]
+            }
+          },
+          "status": 401,
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "access-control-allow-origin",
+              "value": "*"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "server",
+              "value": "nginx/1.24.0 (Ubuntu)"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"success\":false,\"message\":\"Access denied. No token provided.\",\"error\":\"UNAUTHORIZED\"}"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/osint/external/history",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "description": "Add your authentication token here"
+          }
+        ],
+        "url": {
+          "raw": "https://irisnet.wiredleap.com/api/osint/external/history",
+          "protocol": "https",
+          "host": [
+            "irisnet",
+            "wiredleap",
+            "com"
+          ],
+          "path": [
+            "api",
+            "osint",
+            "external",
+            "history"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "GET /api/osint/external/history Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "https://irisnet.wiredleap.com/api/osint/external/history",
+              "protocol": "https",
+              "host": [
+                "irisnet",
+                "wiredleap",
+                "com"
+              ],
+              "path": [
+                "api",
+                "osint",
+                "external",
+                "history"
+              ]
+            }
+          },
+          "status": 401,
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "access-control-allow-origin",
+              "value": "*"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "server",
+              "value": "nginx/1.24.0 (Ubuntu)"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"success\":false,\"message\":\"Access denied. No token provided.\",\"error\":\"UNAUTHORIZED\"}"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/osint/external/dashboard",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "description": "Add your authentication token here"
+          }
+        ],
+        "url": {
+          "raw": "https://irisnet.wiredleap.com/api/osint/external/dashboard",
+          "protocol": "https",
+          "host": [
+            "irisnet",
+            "wiredleap",
+            "com"
+          ],
+          "path": [
+            "api",
+            "osint",
+            "external",
+            "dashboard"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "GET /api/osint/external/dashboard Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "https://irisnet.wiredleap.com/api/osint/external/dashboard",
+              "protocol": "https",
+              "host": [
+                "irisnet",
+                "wiredleap",
+                "com"
+              ],
+              "path": [
+                "api",
+                "osint",
+                "external",
+                "dashboard"
+              ]
+            }
+          },
+          "status": 401,
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "access-control-allow-origin",
+              "value": "*"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "server",
+              "value": "nginx/1.24.0 (Ubuntu)"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"success\":false,\"message\":\"Access denied. No token provided.\",\"error\":\"UNAUTHORIZED\"}"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/social/profiles",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "description": "Add your authentication token here"
+          }
+        ],
+        "url": {
+          "raw": "https://irisnet.wiredleap.com/api/social/profiles",
+          "protocol": "https",
+          "host": [
+            "irisnet",
+            "wiredleap",
+            "com"
+          ],
+          "path": [
+            "api",
+            "social",
+            "profiles"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "GET /api/social/profiles Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "https://irisnet.wiredleap.com/api/social/profiles",
+              "protocol": "https",
+              "host": [
+                "irisnet",
+                "wiredleap",
+                "com"
+              ],
+              "path": [
+                "api",
+                "social",
+                "profiles"
+              ]
+            }
+          },
+          "status": 401,
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "access-control-allow-origin",
+              "value": "*"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "server",
+              "value": "nginx/1.24.0 (Ubuntu)"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"success\":false,\"message\":\"Access denied. No token provided.\",\"error\":\"UNAUTHORIZED\"}"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/social/profiles/test-user-id",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "description": "Add your authentication token here"
+          }
+        ],
+        "url": {
+          "raw": "https://irisnet.wiredleap.com/api/social/profiles/test-user-id",
+          "protocol": "https",
+          "host": [
+            "irisnet",
+            "wiredleap",
+            "com"
+          ],
+          "path": [
+            "api",
+            "social",
+            "profiles",
+            "test-user-id"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "GET /api/social/profiles/test-user-id Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "https://irisnet.wiredleap.com/api/social/profiles/test-user-id",
+              "protocol": "https",
+              "host": [
+                "irisnet",
+                "wiredleap",
+                "com"
+              ],
+              "path": [
+                "api",
+                "social",
+                "profiles",
+                "test-user-id"
+              ]
+            }
+          },
+          "status": 401,
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "access-control-allow-origin",
+              "value": "*"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "server",
+              "value": "nginx/1.24.0 (Ubuntu)"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"success\":false,\"message\":\"Access denied. No token provided.\",\"error\":\"UNAUTHORIZED\"}"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/social/locations/top",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "description": "Add your authentication token here"
+          }
+        ],
+        "url": {
+          "raw": "https://irisnet.wiredleap.com/api/social/locations/top",
+          "protocol": "https",
+          "host": [
+            "irisnet",
+            "wiredleap",
+            "com"
+          ],
+          "path": [
+            "api",
+            "social",
+            "locations",
+            "top"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "GET /api/social/locations/top Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "https://irisnet.wiredleap.com/api/social/locations/top",
+              "protocol": "https",
+              "host": [
+                "irisnet",
+                "wiredleap",
+                "com"
+              ],
+              "path": [
+                "api",
+                "social",
+                "locations",
+                "top"
+              ]
+            }
+          },
+          "status": 401,
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "access-control-allow-origin",
+              "value": "*"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "server",
+              "value": "nginx/1.24.0 (Ubuntu)"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"success\":false,\"message\":\"Access denied. No token provided.\",\"error\":\"UNAUTHORIZED\"}"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/social/locations/analytics",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "description": "Add your authentication token here"
+          }
+        ],
+        "url": {
+          "raw": "https://irisnet.wiredleap.com/api/social/locations/analytics",
+          "protocol": "https",
+          "host": [
+            "irisnet",
+            "wiredleap",
+            "com"
+          ],
+          "path": [
+            "api",
+            "social",
+            "locations",
+            "analytics"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "GET /api/social/locations/analytics Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "https://irisnet.wiredleap.com/api/social/locations/analytics",
+              "protocol": "https",
+              "host": [
+                "irisnet",
+                "wiredleap",
+                "com"
+              ],
+              "path": [
+                "api",
+                "social",
+                "locations",
+                "analytics"
+              ]
+            }
+          },
+          "status": 401,
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "access-control-allow-origin",
+              "value": "*"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "server",
+              "value": "nginx/1.24.0 (Ubuntu)"
+            }
+          ],
+          "cookie": [],
+          "body": "{\"success\":false,\"message\":\"Access denied. No token provided.\",\"error\":\"UNAUTHORIZED\"}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+[
+  {
+    "method": "GET",
+    "endpoint": "/api/api/auth/me",
+    "status": 404,
+    "type": "external",
+    "usedOnPages": [
+      "/login/verify-otp",
+      "/login"
+    ],
+    "responseBodySample": "{\"success\":false,\"error\":{\"message\":\"Route not found\",\"details\":\"The requested endpoint GET /api/api/auth/me does not exist\"},\"timestamp\":\"2025-10-11T22:27:55.233Z\"}..."
+  },
+  {
+    "method": "GET",
+    "endpoint": "/api/api/social/inbox/stats",
+    "status": 404,
+    "type": "external",
+    "usedOnPages": [
+      "/social-inbox"
+    ],
+    "responseBodySample": "{\"success\":false,\"error\":{\"message\":\"Route not found\",\"details\":\"The requested endpoint GET /api/api/social/inbox/stats?timeRange=7d does not exist\"},\"timestamp\":\"2025-10-11T22:28:08.225Z\"}..."
+  },
+  {
+    "method": "GET",
+    "endpoint": "/api/api/social/posts",
+    "status": 404,
+    "type": "external",
+    "usedOnPages": [
+      "/profiles/test-user-id",
+      "/social-inbox",
+      "/social-feed"
+    ],
+    "responseBodySample": "{\"success\":false,\"error\":{\"message\":\"Route not found\",\"details\":\"The requested endpoint GET /api/api/social/posts?author=test-user-id&limit=20&sortBy=createdAt&page=1 does not exist\"},\"timestamp\":\"202..."
+  },
+  {
+    "method": "GET",
+    "endpoint": "/api/api/social/entities/search",
+    "status": 404,
+    "type": "external",
+    "usedOnPages": [
+      "/entities"
+    ],
+    "responseBodySample": "{\"success\":false,\"error\":{\"message\":\"Route not found\",\"details\":\"The requested endpoint GET /api/api/social/entities/search?limit=50 does not exist\"},\"timestamp\":\"2025-10-11T22:28:13.008Z\"}..."
+  },
+  {
+    "method": "GET",
+    "endpoint": "/api/api/osint/external/history",
+    "status": 404,
+    "type": "external",
+    "usedOnPages": [
+      "/osint-tools"
+    ],
+    "responseBodySample": "{\"success\":false,\"error\":{\"message\":\"Route not found\",\"details\":\"The requested endpoint GET /api/api/osint/external/history?limit=10 does not exist\"},\"timestamp\":\"2025-10-11T22:28:46.379Z\"}..."
+  },
+  {
+    "method": "GET",
+    "endpoint": "/api/api/osint/external/dashboard",
+    "status": 404,
+    "type": "external",
+    "usedOnPages": [
+      "/osint-tools"
+    ],
+    "responseBodySample": "{\"success\":false,\"error\":{\"message\":\"Route not found\",\"details\":\"The requested endpoint GET /api/api/osint/external/dashboard does not exist\"},\"timestamp\":\"2025-10-11T22:28:17.308Z\"}..."
+  },
+  {
+    "method": "GET",
+    "endpoint": "/api/api/social/profiles",
+    "status": 404,
+    "type": "external",
+    "usedOnPages": [
+      "/profiles"
+    ],
+    "responseBodySample": "{\"success\":false,\"error\":{\"message\":\"Route not found\",\"details\":\"The requested endpoint GET /api/api/social/profiles?limit=50&page=1 does not exist\"},\"timestamp\":\"2025-10-11T22:28:48.268Z\"}..."
+  },
+  {
+    "method": "GET",
+    "endpoint": "/api/api/social/profiles/test-user-id",
+    "status": 404,
+    "type": "external",
+    "usedOnPages": [
+      "/profiles/test-user-id"
+    ],
+    "responseBodySample": "{\"success\":false,\"error\":{\"message\":\"Route not found\",\"details\":\"The requested endpoint GET /api/api/social/profiles/test-user-id does not exist\"},\"timestamp\":\"2025-10-11T22:28:50.740Z\"}..."
+  },
+  {
+    "method": "GET",
+    "endpoint": "/api/api/social/locations/top",
+    "status": 404,
+    "type": "external",
+    "usedOnPages": [
+      "/locations"
+    ],
+    "responseBodySample": "{\"success\":false,\"error\":{\"message\":\"Route not found\",\"details\":\"The requested endpoint GET /api/api/social/locations/top?limit=50 does not exist\"},\"timestamp\":\"2025-10-11T22:28:53.116Z\"}..."
+  },
+  {
+    "method": "GET",
+    "endpoint": "/api/api/social/locations/analytics",
+    "status": 404,
+    "type": "external",
+    "usedOnPages": [
+      "/locations"
+    ],
+    "responseBodySample": "{\"success\":false,\"error\":{\"message\":\"Route not found\",\"details\":\"The requested endpoint GET /api/api/social/locations/analytics?timeRange=7d does not exist\"},\"timestamp\":\"2025-10-11T22:29:22.364Z\"}..."
+  }
+]

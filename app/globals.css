@@ -85,10 +85,10 @@
     @apply transition-all duration-200 ease-out motion-safe:transform-gpu;
   }
   .card-hover {
-    @apply interactive hover:bg-accent/20 motion-safe:hover:translate-y-[1px] motion-safe:hover:shadow-sm;
+    @apply interactive hover:bg-accent/20 motion-safe:hover:shadow-sm;
   }
   .list-animate-in {
-    @apply animate-in fade-in-50 slide-in-from-bottom-2 duration-300;
+    @apply animate-in fade-in-50 duration-200;
   }
   .pressable {
     @apply active:scale-[0.98];
@@ -103,6 +103,27 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Prevent layout shifts and improve stability */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* Improve animation performance */
+.interactive,
+.card-hover,
+.pressable {
+  will-change: auto;
+  transform: translateZ(0);
 }
 
 /* Fix dropdown chevron padding globally */

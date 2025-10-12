@@ -1,82 +1,83 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
-import { Search, MapPin, Target, TrendingUp, AlertTriangle, ChevronRight, X, Download } from 'lucide-react'
+import { Search, MapPin, TrendingUp, ChevronRight, X, Download, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { useLocationAnalytics, useTopLocations } from '@/hooks/use-api'
 
 interface Location {
   id: string
   name: string
+  type: 'LOCATION'
   mentions: number
   lastSeen: string
-  sentiment: 'positive' | 'negative' | 'neutral'
 }
 
+// Sample data for when API fails
 const sampleLocations: Location[] = [
-  { id: '1', name: 'Bellandur', mentions: 1791, lastSeen: '10/2/2025', sentiment: 'neutral' },
-  { id: '2', name: 'Bengaluru', mentions: 1071, lastSeen: '10/2/2025', sentiment: 'positive' },
-  { id: '3', name: 'Bangalore', mentions: 550, lastSeen: '10/2/2025', sentiment: 'neutral' },
-  { id: '4', name: 'HSR Layout', mentions: 508, lastSeen: '10/2/2025', sentiment: 'positive' },
-  { id: '5', name: 'Sarjapur Road', mentions: 350, lastSeen: '10/2/2025', sentiment: 'neutral' },
-  { id: '6', name: 'Kadubeesanahalli', mentions: 290, lastSeen: '10/2/2025', sentiment: 'positive' },
-  { id: '7', name: 'Sarjapur', mentions: 279, lastSeen: '10/2/2025', sentiment: 'neutral' },
-  { id: '8', name: 'Marathahalli', mentions: 272, lastSeen: '10/2/2025', sentiment: 'positive' },
-  { id: '9', name: 'Whitefield', mentions: 265, lastSeen: '10/2/2025', sentiment: 'neutral' },
-  { id: '10', name: 'HSR', mentions: 259, lastSeen: '10/2/2025', sentiment: 'positive' },
-  { id: '11', name: 'Karnataka', mentions: 227, lastSeen: '10/1/2025', sentiment: 'positive' },
-  { id: '12', name: 'Koramangala', mentions: 166, lastSeen: '10/2/2025', sentiment: 'neutral' },
-  { id: '13', name: 'Outer Ring Road', mentions: 148, lastSeen: '10/1/2025', sentiment: 'negative' },
-  { id: '14', name: 'Marathalli', mentions: 119, lastSeen: '10/1/2025', sentiment: 'neutral' },
-  { id: '15', name: 'Panathur', mentions: 118, lastSeen: '10/1/2025', sentiment: 'positive' },
-  { id: '16', name: 'Green Glen Layout', mentions: 116, lastSeen: '10/2/2025', sentiment: 'positive' },
-  { id: '17', name: 'Mysuru', mentions: 112, lastSeen: '10/2/2025', sentiment: 'neutral' },
-  { id: '18', name: 'Sarjapur main road', mentions: 109, lastSeen: '10/2/2025', sentiment: 'neutral' },
-  { id: '19', name: 'BTM', mentions: 106, lastSeen: '10/2/2025', sentiment: 'positive' },
-  { id: '20', name: 'Varthur', mentions: 105, lastSeen: '10/1/2025', sentiment: 'neutral' }
+  { id: '1', name: 'Bengaluru', type: 'LOCATION', mentions: 387, lastSeen: '10/10/2025' },
+  { id: '2', name: 'Bellandur', type: 'LOCATION', mentions: 359, lastSeen: '10/10/2025' },
+  { id: '3', name: 'Bangalore', type: 'LOCATION', mentions: 176, lastSeen: '10/11/2025' },
+  { id: '4', name: 'Karnataka', type: 'LOCATION', mentions: 161, lastSeen: '10/10/2025' },
+  { id: '5', name: 'India', type: 'LOCATION', mentions: 86, lastSeen: '10/10/2025' },
+  { id: '6', name: 'Marathahalli', type: 'LOCATION', mentions: 83, lastSeen: '10/7/2025' },
+  { id: '7', name: 'BTM', type: 'LOCATION', mentions: 69, lastSeen: '10/8/2025' },
+  { id: '8', name: 'HSR', type: 'LOCATION', mentions: 63, lastSeen: '10/7/2025' },
+  { id: '9', name: 'Kadubeesanahalli', type: 'LOCATION', mentions: 61, lastSeen: '10/8/2025' },
+  { id: '10', name: 'HSR Layout', type: 'LOCATION', mentions: 59, lastSeen: '10/10/2025' },
+  { id: '11', name: 'Chintamani', type: 'LOCATION', mentions: 52, lastSeen: '10/6/2025' },
+  { id: '12', name: 'Sarjapur Road', type: 'LOCATION', mentions: 49, lastSeen: '10/10/2025' },
+  { id: '13', name: 'Koramangala', type: 'LOCATION', mentions: 49, lastSeen: '10/7/2025' },
+  { id: '14', name: 'Whitefield', type: 'LOCATION', mentions: 48, lastSeen: '10/9/2025' },
+  { id: '15', name: 'Sarjapur', type: 'LOCATION', mentions: 44, lastSeen: '10/9/2025' },
+  { id: '16', name: 'Yelahanka', type: 'LOCATION', mentions: 44, lastSeen: '10/7/2025' },
+  { id: '17', name: 'Green Glen Layout', type: 'LOCATION', mentions: 44, lastSeen: '10/9/2025' },
+  { id: '18', name: 'Mysuru', type: 'LOCATION', mentions: 44, lastSeen: '10/8/2025' },
+  { id: '19', name: 'Udupi', type: 'LOCATION', mentions: 43, lastSeen: '10/9/2025' },
+  { id: '20', name: 'Hebbal', type: 'LOCATION', mentions: 43, lastSeen: '10/8/2025' }
 ]
 
 function LocationCard({ location, onClick }: { location: Location; onClick: () => void }) {
-  const getSentimentColor = (sentiment: string) => {
-    switch (sentiment) {
-      case 'positive': return 'text-green-500'
-      case 'negative': return 'text-red-500'
-      default: return 'text-zinc-500'
-    }
-  }
-
   return (
     <div 
       onClick={onClick}
       className="bg-card border border-border rounded-lg p-4 hover:border-muted-foreground/50 transition-colors cursor-pointer hover:bg-accent/5"
     >
       <div className="flex items-start gap-3 mb-3">
-        <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
-          <Target className="w-5 h-5 text-muted-foreground" />
+        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+          <MapPin className="w-4 h-4 text-white" />
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-foreground mb-1">{location.name}</h3>
           <div className="text-xs text-muted-foreground mb-2">LOCATION</div>
-          <div className="text-sm text-muted-foreground">Last seen: {location.lastSeen}</div>
         </div>
+      </div>
+      
+      <div className="mb-3">
+        <div className="text-sm text-muted-foreground">
+          {location.mentions} mentions
+        </div>
+        <div className="text-sm text-muted-foreground">
+          Last seen: {location.lastSeen}
+          </div>
       </div>
       
       <div className="mb-3">
         <div className="text-sm text-blue-600 hover:text-blue-500 transition-colors">
           Click to explore posts
-        </div>
       </div>
-      
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">
-          {location.mentions} mentions
         </div>
-        <div className="text-sm text-muted-foreground">
-          Click to view →
-        </div>
+
+      <div className="flex items-center justify-end">
+        <Button variant="ghost" size="sm" className="h-8 px-2">
+          <Eye className="w-3 h-3 mr-1" />
+          View
+        </Button>
       </div>
     </div>
   )
@@ -97,12 +98,14 @@ function FilterItem({
   label, 
   isActive = false, 
   hasSubmenu = false, 
-  onClick 
+  onClick,
+  count
 }: { 
   label: string
   isActive?: boolean
   hasSubmenu?: boolean
   onClick?: () => void
+  count?: number
 }) {
   return (
     <button
@@ -114,27 +117,82 @@ function FilterItem({
       }`}
     >
       <span>{label}</span>
-      {hasSubmenu && <ChevronRight className="w-4 h-4" />}
+      <div className="flex items-center gap-2">
+        {count !== undefined && <span className="text-xs text-muted-foreground">{count}</span>}
+        {hasSubmenu && <ChevronRight className="w-4 h-4" />}
+      </div>
     </button>
   )
 }
 
 export default function LocationsPage() {
+  const router = useRouter()
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null)
-  const [activeFilter, setActiveFilter] = useState('all-locations')
   const [searchQuery, setSearchQuery] = useState('')
+  const [activeFilter, setActiveFilter] = useState('all-locations')
 
-  const filteredLocations = sampleLocations.filter(location =>
-    location.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const handleLocationClick = (location: Location) => {
+    // Convert location name to URL-friendly format
+    const locationSlug = location.name.toLowerCase().replace(/\s+/g, '-')
+    router.push(`/locations/${locationSlug}`)
+  }
+
+  // Build API params based on search and filter
+  const apiParams = useMemo(() => {
+    const params: any = {
+      limit: 50,
+    }
+
+    if (searchQuery) {
+      params.q = searchQuery
+    }
+
+    return params
+  }, [searchQuery])
+
+  const { data: apiLocations, loading, error } = useTopLocations(apiParams)
+
+  const filteredLocations = useMemo(() => {
+    // Use API data if available, otherwise use sample data
+    const locations = apiLocations && apiLocations.length > 0 ? apiLocations : sampleLocations
+
+    // Apply client-side filtering
+    return locations.filter(location =>
+      location.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  }, [apiLocations, searchQuery])
+
+  // Use sample data for filter counts when API data is not available
+  const locationsForCounts = apiLocations && apiLocations.length > 0 ? apiLocations : sampleLocations
+
+  const filterOptions = [
+    { id: 'all-locations', label: 'All Locations', count: locationsForCounts.length },
+    { id: 'high-impact', label: 'High Impact Locations', count: locationsForCounts.filter(l => l.mentions > 100).length },
+    { id: 'trending', label: 'Trending Locations', count: locationsForCounts.filter(l => l.lastSeen === '10/10/2025').length },
+    { id: 'frequently-mentioned', label: 'Frequently Mentioned', count: locationsForCounts.filter(l => l.mentions > 50).length },
+    { id: 'negative', label: 'Negative Locations', count: 0 },
+    { id: 'positive', label: 'Positive Locations', count: 0 },
+    { id: 'controversial', label: 'Controversial', count: 0 }
+  ]
 
   return (
     <PageLayout>
       <div className="h-screen flex flex-col bg-background overflow-hidden">
         <PageHeader 
           title="Locations"
-          description="Geographic intelligence and location-based insights"
-        />
+          description="Location Explorer"
+        actions={
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-muted-foreground">
+                {filteredLocations.length} locations found
+              </span>
+            <Button variant="outline" size="sm" className="gap-2">
+              <Download className="w-4 h-4" />
+              Export
+            </Button>
+          </div>
+        }
+      />
 
         <div className="flex-1 flex overflow-hidden">
           {/* Left Sidebar - Filters */}
@@ -147,18 +205,22 @@ export default function LocationsPage() {
                   label="All Locations" 
                   isActive={activeFilter === 'all-locations'}
                   onClick={() => setActiveFilter('all-locations')}
+                  count={locationsForCounts.length}
                 />
                 <FilterItem 
                   label="High Impact Locations"
                   onClick={() => setActiveFilter('high-impact')}
+                  count={locationsForCounts.filter(l => l.mentions > 100).length}
                 />
                 <FilterItem 
                   label="Trending Locations"
                   onClick={() => setActiveFilter('trending')}
+                  count={locationsForCounts.filter(l => l.lastSeen === '10/10/2025').length}
                 />
                 <FilterItem 
                   label="Frequently Mentioned"
                   onClick={() => setActiveFilter('frequent')}
+                  count={locationsForCounts.filter(l => l.mentions > 50).length}
                 />
               </FilterSection>
 
@@ -166,40 +228,49 @@ export default function LocationsPage() {
                 <FilterItem 
                   label="Negative Locations"
                   onClick={() => setActiveFilter('negative')}
+                  count={0}
                 />
                 <FilterItem 
                   label="Positive Locations"
                   onClick={() => setActiveFilter('positive')}
+                  count={0}
                 />
                 <FilterItem 
                   label="Controversial"
                   onClick={() => setActiveFilter('controversial')}
+                  count={0}
                 />
               </FilterSection>
 
               <FilterSection title="POLICE DIVISIONS">
                 <FilterItem 
                   label="Whitefield Division"
+                  hasSubmenu
                   onClick={() => setActiveFilter('whitefield')}
                 />
                 <FilterItem 
                   label="South East Division"
+                  hasSubmenu
                   onClick={() => setActiveFilter('south-east')}
                 />
                 <FilterItem 
                   label="Central Division"
+                  hasSubmenu
                   onClick={() => setActiveFilter('central')}
                 />
                 <FilterItem 
                   label="Northeast Division"
+                  hasSubmenu
                   onClick={() => setActiveFilter('northeast')}
                 />
                 <FilterItem 
                   label="East Division"
+                  hasSubmenu
                   onClick={() => setActiveFilter('east')}
                 />
                 <FilterItem 
                   label="North Division"
+                  hasSubmenu
                   onClick={() => setActiveFilter('north')}
                 />
               </FilterSection>
@@ -224,27 +295,18 @@ export default function LocationsPage() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10 w-full"
-                  />
-                </div>
-                <div className="flex items-center justify-between sm:justify-start gap-3">
-                  <span className="text-sm text-muted-foreground">
-                    {filteredLocations.length} found
-                  </span>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Download className="w-4 h-4" />
-                    <span className="hidden sm:inline">Export</span>
-                  </Button>
+              />
                 </div>
               </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 sm:p-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-                {filteredLocations.map((location) => (
+                {(filteredLocations || []).map((location) => (
                   <LocationCard
                     key={location.id}
                     location={location}
-                    onClick={() => setSelectedLocation(location)}
+                    onClick={() => handleLocationClick(location)}
                   />
                 ))}
               </div>

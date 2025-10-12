@@ -3,22 +3,102 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, ArrowRight, Mail, Phone } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Mail, Phone, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { toast } from 'sonner'
 
 export default function ForgotPasswordPage() {
   const router = useRouter()
   const [resetMethod, setResetMethod] = useState<'email' | 'mobile'>('email')
+  const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
-    mobile: ''
+    mobile: '',
+    countryCode: '+91'
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    router.push('/forgot-password/verify-otp')
+    
+    // Validate input
+    if (resetMethod === 'email' && !formData.email.trim()) {
+      toast.error('Please enter your email address')
+      return
+    }
+    if (resetMethod === 'mobile' && !formData.mobile.trim()) {
+      toast.error('Please enter your mobile number')
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      if (resetMethod === 'email') {
+        // For email reset, we'll use a generic reset endpoint
+        const response = await fetch('https://irisnet.wiredleap.com/api/auth/forgot-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: formData.email
+          })
+        })
+
+        const result = await response.json()
+
+        if (result.success) {
+          // Store the contact info in sessionStorage for OTP verification page
+          const contactInfo = {
+            method: resetMethod,
+            value: formData.email,
+            displayValue: formData.email
+          }
+
+          sessionStorage.setItem('otpContactInfo', JSON.stringify(contactInfo))
+          toast.success('Reset code sent to your email!')
+          router.push('/forgot-password/verify-otp')
+        } else {
+          toast.error(result.error?.message || 'Failed to send reset code')
+        }
+      } else {
+        // For mobile reset, use the OTP endpoint
+        const phoneNumber = `${formData.countryCode}${formData.mobile}`
+        const response = await fetch('https://irisnet.wiredleap.com/api/auth/otpLogin', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            phoneNumber: phoneNumber
+          })
+        })
+
+        const result = await response.json()
+
+        if (result.success) {
+          // Store the contact info in sessionStorage for OTP verification page
+          const contactInfo = {
+            method: resetMethod,
+            value: phoneNumber,
+            displayValue: `${formData.countryCode} ${formData.mobile}`
+          }
+
+          sessionStorage.setItem('otpContactInfo', JSON.stringify(contactInfo))
+          toast.success('Reset code sent to your mobile!')
+          router.push('/forgot-password/verify-otp')
+        } else {
+          toast.error(result.error?.message || 'Failed to send reset code')
+        }
+      }
+    } catch (error) {
+      toast.error('Failed to send reset code. Please try again.')
+      console.error('Reset password error:', error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -84,10 +164,16 @@ export default function ForgotPasswordPage() {
               <div className="space-y-2">
                 <Label htmlFor="mobile" className="text-white">Mobile Number</Label>
                 <div className="flex gap-2">
-                  <select className="bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2 w-24">
-                    <option>+91</option>
-                    <option>+1</option>
-                    <option>+44</option>
+                  <select 
+                    value={formData.countryCode}
+                    onChange={(e) => setFormData({ ...formData, countryCode: e.target.value })}
+                    className="bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2 w-28 focus:outline-none focus:border-blue-500 appearance-none cursor-pointer pr-8 text-sm font-medium"
+                  >
+                    <option value="+91" className="bg-zinc-800 text-white">+91</option>
+                    <option value="+1" className="bg-zinc-800 text-white">+1</option>
+                    <option value="+44" className="bg-zinc-800 text-white">+44</option>
+                    <option value="+61" className="bg-zinc-800 text-white">+61</option>
+                    <option value="+86" className="bg-zinc-800 text-white">+86</option>
                   </select>
                   <Input
                     id="mobile"
@@ -102,9 +188,22 @@ export default function ForgotPasswordPage() {
               </div>
             )}
 
-            <Button type="submit" className="w-full gap-2">
-              Send Verification Code
-              <ArrowRight className="w-4 h-4" />
+            <Button 
+              type="submit" 
+              className="w-full gap-2" 
+              disabled={isLoading || (resetMethod === 'email' ? !formData.email.trim() : !formData.mobile.trim())}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Sending Code...
+                </>
+              ) : (
+                <>
+                  Send Verification Code
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </Button>
           </form>
 

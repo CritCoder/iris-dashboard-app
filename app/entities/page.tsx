@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
 import { Search, MapPin, Hash, User, Building, AlertTriangle, TrendingUp, MessageSquare, Share2, ChevronRight, X, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { useEntities, useEntityAnalytics } from '@/hooks/use-api'
 
 interface Entity {
   id: string
@@ -17,166 +18,103 @@ interface Entity {
   icon: React.ElementType
 }
 
+// Sample data for when API fails
 const sampleEntities: Entity[] = [
   {
     id: '1',
-    name: 'Real Estate',
-    type: 'TOPIC',
-    mentions: 2151,
-    lastSeen: '11h ago',
-    icon: Hash
-  },
-  {
-    id: '2',
-    name: 'Bellandur',
-    type: 'LOCATION',
-    mentions: 1784,
-    lastSeen: '9h ago',
-    icon: MapPin
-  },
-  {
-    id: '3',
-    name: 'Bellandur',
-    type: 'ENTITY',
-    mentions: 1530,
-    lastSeen: '9h ago',
+    name: 'Bengaluru Police',
+    type: 'ORGANIZATION',
+    mentions: 1250,
+    lastSeen: '2 hours ago',
     icon: Building
   },
   {
-    id: '4',
-    name: 'rental property',
+    id: '2',
+    name: 'Traffic Management',
     type: 'TOPIC',
-    mentions: 1388,
-    lastSeen: '9h ago',
+    mentions: 890,
+    lastSeen: '1 hour ago',
     icon: Hash
   },
   {
-    id: '5',
-    name: 'Bengaluru',
+    id: '3',
+    name: 'MG Road',
     type: 'LOCATION',
-    mentions: 1064,
-    lastSeen: '9h ago',
+    mentions: 567,
+    lastSeen: '3 hours ago',
+    icon: MapPin
+  },
+  {
+    id: '4',
+    name: 'Karnataka CM',
+    type: 'PERSON',
+    mentions: 2340,
+    lastSeen: '30 minutes ago',
+    icon: User
+  },
+  {
+    id: '5',
+    name: 'Whitefield',
+    type: 'LOCATION',
+    mentions: 445,
+    lastSeen: '4 hours ago',
     icon: MapPin
   },
   {
     id: '6',
-    name: 'Accommodation',
+    name: 'Digital Initiatives',
     type: 'TOPIC',
-    mentions: 624,
-    lastSeen: '11h ago',
+    mentions: 678,
+    lastSeen: '2 hours ago',
     icon: Hash
   },
   {
     id: '7',
-    name: 'Bangalore',
+    name: 'Bellandur',
     type: 'LOCATION',
-    mentions: 553,
-    lastSeen: 'Just now',
+    mentions: 334,
+    lastSeen: '5 hours ago',
     icon: MapPin
   },
   {
     id: '8',
-    name: 'housing',
+    name: 'Women Safety',
     type: 'TOPIC',
-    mentions: 530,
-    lastSeen: '9h ago',
+    mentions: 1120,
+    lastSeen: '1 hour ago',
     icon: Hash
   },
   {
     id: '9',
-    name: 'HSR Layout',
-    type: 'LOCATION',
-    mentions: 507,
-    lastSeen: '12h ago',
-    icon: MapPin
+    name: 'Karnataka Police',
+    type: 'ORGANIZATION',
+    mentions: 980,
+    lastSeen: '2 hours ago',
+    icon: Building
   },
   {
     id: '10',
-    name: 'Bangalore',
-    type: 'ENTITY',
-    mentions: 434,
-    lastSeen: 'Just now',
-    icon: Building
+    name: 'Metro Construction',
+    type: 'TOPIC',
+    mentions: 456,
+    lastSeen: '3 hours ago',
+    icon: Hash
   },
   {
     id: '11',
-    name: 'Bengaluru',
-    type: 'ENTITY',
-    mentions: 427,
-    lastSeen: '9h ago',
-    icon: Building
+    name: 'Dharmasthala',
+    type: 'LOCATION',
+    mentions: 289,
+    lastSeen: '6 hours ago',
+    icon: MapPin
   },
   {
     id: '12',
-    name: 'HSR Layout',
-    type: 'ENTITY',
-    mentions: 423,
-    lastSeen: '12h ago',
-    icon: Building
-  },
-  {
-    id: '13',
-    name: 'Flatmate Search',
+    name: 'Public Safety',
     type: 'TOPIC',
-    mentions: 396,
-    lastSeen: '11h ago',
+    mentions: 789,
+    lastSeen: '1 hour ago',
     icon: Hash
-  },
-  {
-    id: '14',
-    name: '2BHK',
-    type: 'ENTITY',
-    mentions: 374,
-    lastSeen: '9h ago',
-    icon: Building
-  },
-  {
-    id: '15',
-    name: 'Sarjapur Road',
-    type: 'LOCATION',
-    mentions: 350,
-    lastSeen: '12h ago',
-    icon: MapPin
-  },
-  {
-    id: '16',
-    name: 'Ecospace',
-    type: 'ENTITY',
-    mentions: 315,
-    lastSeen: '13h ago',
-    icon: Building
-  },
-  {
-    id: '17',
-    name: 'Apartment Listing',
-    type: 'TOPIC',
-    mentions: 299,
-    lastSeen: '12h ago',
-    icon: Hash
-  },
-  {
-    id: '18',
-    name: 'Kadubeesanahalli',
-    type: 'ENTITY',
-    mentions: 290,
-    lastSeen: '12h ago',
-    icon: Building
-  },
-  {
-    id: '19',
-    name: 'Kadubeesanahalli',
-    type: 'LOCATION',
-    mentions: 290,
-    lastSeen: '12h ago',
-    icon: MapPin
-  },
-  {
-    id: '20',
-    name: 'Sarjapur',
-    type: 'LOCATION',
-    mentions: 277,
-    lastSeen: '12h ago',
-    icon: MapPin
   }
 ]
 
@@ -282,23 +220,69 @@ export default function EntitiesPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeFilter, setActiveFilter] = useState('all-entities')
 
-  const filteredEntities = sampleEntities.filter(entity =>
-    entity.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    entity.type.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  // Build API params based on search and filter
+  const apiParams = useMemo(() => {
+    const params: any = {
+      limit: 50,
+    }
+
+    if (searchQuery) {
+      params.q = searchQuery
+    }
+
+    // Apply filter-based params
+    switch (activeFilter) {
+      case 'topics':
+        params.type = 'topic'
+        break
+      case 'people':
+        params.type = 'person'
+        break
+      case 'organizations':
+        params.type = 'organization'
+        break
+      case 'locations':
+        params.type = 'location'
+        break
+      case 'high-impact':
+        params.category = 'high_impact'
+        break
+      case 'trending':
+        params.category = 'trending'
+        break
+    }
+
+    return params
+  }, [searchQuery, activeFilter])
+
+  const { data: apiEntities, loading, error } = useEntities(apiParams)
+
+  const filteredEntities = useMemo(() => {
+    // Use API data if available, otherwise use sample data
+    const entities = apiEntities && apiEntities.length > 0 ? apiEntities : sampleEntities
+
+    // Apply client-side filtering
+    return entities.filter(entity =>
+      entity.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      entity.type.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  }, [apiEntities, searchQuery])
+
+  // Use sample data for filter counts when API data is not available
+  const entitiesForCounts = apiEntities && apiEntities.length > 0 ? apiEntities : sampleEntities
 
   const filterOptions = [
-    { id: 'all-entities', label: 'All Entities', count: sampleEntities.length },
-    { id: 'topics', label: 'All Topics', count: sampleEntities.filter(e => e.type === 'TOPIC').length },
-    { id: 'people', label: 'All People', count: sampleEntities.filter(e => e.type === 'PERSON').length },
-    { id: 'organizations', label: 'All Organizations', count: sampleEntities.filter(e => e.type === 'ORGANIZATION').length },
-    { id: 'high-impact', label: 'High Impact Entities', count: sampleEntities.filter(e => e.mentions > 1000).length },
-    { id: 'trending', label: 'Trending Topics', count: sampleEntities.filter(e => e.lastSeen === 'Just now').length },
-    { id: 'frequently-mentioned', label: 'Frequently Mentioned', count: sampleEntities.filter(e => e.mentions > 500).length },
+    { id: 'all-entities', label: 'All Entities', count: entitiesForCounts.length },
+    { id: 'topics', label: 'All Topics', count: entitiesForCounts.filter(e => e.type === 'TOPIC').length },
+    { id: 'people', label: 'All People', count: entitiesForCounts.filter(e => e.type === 'PERSON').length },
+    { id: 'organizations', label: 'All Organizations', count: entitiesForCounts.filter(e => e.type === 'ORGANIZATION').length },
+    { id: 'high-impact', label: 'High Impact Entities', count: entitiesForCounts.filter(e => e.mentions > 1000).length },
+    { id: 'trending', label: 'Trending Topics', count: entitiesForCounts.filter(e => e.lastSeen === 'Just now').length },
+    { id: 'frequently-mentioned', label: 'Frequently Mentioned', count: entitiesForCounts.filter(e => e.mentions > 500).length },
     { id: 'negative', label: 'Negative Entities', count: 0 },
     { id: 'positive', label: 'Positive Entities', count: 0 },
     { id: 'controversial', label: 'Controversial', count: 0 },
-    { id: 'locations', label: 'Locations', count: sampleEntities.filter(e => e.type === 'LOCATION').length },
+    { id: 'locations', label: 'Locations', count: entitiesForCounts.filter(e => e.type === 'LOCATION').length },
     { id: 'threats', label: 'Threats', count: 0 },
     { id: 'keywords', label: 'Keywords', count: 0 }
   ]
@@ -322,22 +306,22 @@ export default function EntitiesPage() {
                   label="All Entities" 
                   isActive={activeFilter === 'all-entities'}
                   onClick={() => setActiveFilter('all-entities')}
-                  count={sampleEntities.length}
+                  count={entitiesForCounts.length}
                 />
                 <FilterItem 
                   label="High Impact Entities"
                   onClick={() => setActiveFilter('high-impact')}
-                  count={sampleEntities.filter(e => e.mentions > 1000).length}
+                  count={entitiesForCounts.filter(e => e.mentions > 1000).length}
                 />
                 <FilterItem 
                   label="Trending Topics"
                   onClick={() => setActiveFilter('trending')}
-                  count={sampleEntities.filter(e => e.lastSeen === 'Just now').length}
+                  count={entitiesForCounts.filter(e => e.lastSeen === 'Just now').length}
                 />
                 <FilterItem 
                   label="Frequently Mentioned"
                   onClick={() => setActiveFilter('frequent')}
-                  count={sampleEntities.filter(e => e.mentions > 500).length}
+                  count={entitiesForCounts.filter(e => e.mentions > 500).length}
                 />
               </FilterSection>
 
@@ -345,22 +329,22 @@ export default function EntitiesPage() {
                 <FilterItem 
                   label="All Topics"
                   onClick={() => setActiveFilter('topics')}
-                  count={sampleEntities.filter(e => e.type === 'TOPIC').length}
+                  count={entitiesForCounts.filter(e => e.type === 'TOPIC').length}
                 />
                 <FilterItem 
                   label="All People"
                   onClick={() => setActiveFilter('people')}
-                  count={sampleEntities.filter(e => e.type === 'PERSON').length}
+                  count={entitiesForCounts.filter(e => e.type === 'PERSON').length}
                 />
                 <FilterItem 
                   label="All Organizations"
                   onClick={() => setActiveFilter('organizations')}
-                  count={sampleEntities.filter(e => e.type === 'ORGANIZATION').length}
+                  count={entitiesForCounts.filter(e => e.type === 'ORGANIZATION').length}
                 />
                 <FilterItem 
                   label="Locations"
                   onClick={() => setActiveFilter('locations')}
-                  count={sampleEntities.filter(e => e.type === 'LOCATION').length}
+                  count={entitiesForCounts.filter(e => e.type === 'LOCATION').length}
                 />
               </FilterSection>
 
@@ -418,7 +402,7 @@ export default function EntitiesPage() {
 
             <div className="flex-1 overflow-y-auto p-4 sm:p-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-                {filteredEntities.map((entity) => (
+                {(filteredEntities || []).map((entity) => (
                   <EntityCard
                     key={entity.id}
                     entity={entity}

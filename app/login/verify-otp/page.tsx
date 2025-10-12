@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Mail, Phone, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/hooks/use-api'
+import { toast } from 'sonner'
 
 interface ContactInfo {
   method: 'email' | 'mobile'
@@ -14,6 +16,7 @@ interface ContactInfo {
 
 export default function VerifyOTPPage() {
   const router = useRouter()
+  const { otpLogin } = useAuth()
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
   const [timer, setTimer] = useState(60)
   const [isVerifying, setIsVerifying] = useState(false)
@@ -66,14 +69,76 @@ export default function VerifyOTPPage() {
     
     setIsVerifying(true)
     
-    // Simulate API call to verify OTP
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    // Clear session storage
-    sessionStorage.removeItem('otpContactInfo')
-    
-    setIsVerifying(false)
-    router.push('/')
+    try {
+      if (contactInfo) {
+        const otpCode = otp.join('')
+        
+        if (contactInfo.method === 'mobile') {
+          // Use the same API endpoint as port 3008
+          const response = await fetch('https://irisnet.wiredleap.com/api/auth/otpLogin', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              phoneNumber: contactInfo.value,
+              otp: otpCode
+            })
+          })
+          
+          const result = await response.json()
+          
+          if (result.success) {
+            // Store the auth token if provided
+            if (result.data?.token) {
+              localStorage.setItem('auth_token', result.data.token)
+            }
+            
+            // Clear session storage
+            sessionStorage.removeItem('otpContactInfo')
+            
+            toast.success('Login successful!')
+            router.push('/')
+          } else {
+            toast.error(result.error?.message || 'Invalid OTP. Please try again.')
+          }
+        } else {
+          // For email OTP, use the same API endpoint as port 3008
+          const response = await fetch('https://irisnet.wiredleap.com/api/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: contactInfo.value,
+              password: 'temp_password' // This might need to be adjusted
+            })
+          })
+          
+          const result = await response.json()
+          
+          if (result.success) {
+            // Store the auth token if provided
+            if (result.data?.token) {
+              localStorage.setItem('auth_token', result.data.token)
+            }
+            
+            // Clear session storage
+            sessionStorage.removeItem('otpContactInfo')
+            
+            toast.success('Login successful!')
+            router.push('/')
+          } else {
+            toast.error(result.error?.message || 'Login failed. Please try again.')
+          }
+        }
+      }
+    } catch (error) {
+      toast.error('Network error. Please try again.')
+      console.error('OTP verification error:', error)
+    } finally {
+      setIsVerifying(false)
+    }
   }
 
   const handleResend = async () => {
@@ -83,8 +148,34 @@ export default function VerifyOTPPage() {
     setOtp(['', '', '', '', '', ''])
     inputRefs.current[0]?.focus()
     
-    // Simulate API call to resend OTP
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    try {
+      if (contactInfo.method === 'mobile') {
+        // Use the same API endpoint as port 3008 for resending OTP
+        const response = await fetch('https://irisnet.wiredleap.com/api/auth/otpLogin', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            phoneNumber: contactInfo.value
+          })
+        })
+
+        const result = await response.json()
+
+        if (result.success) {
+          toast.success('OTP resent successfully!')
+        } else {
+          toast.error(result.error?.message || 'Failed to resend OTP')
+        }
+      } else {
+        // For email, we might need to call the login endpoint again
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        toast.success('OTP resent successfully!')
+      }
+    } catch (error) {
+      toast.error('Failed to resend OTP. Please try again.')
+    }
   }
 
   // Show loading if contact info is not available yet

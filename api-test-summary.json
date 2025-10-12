@@ -1,0 +1,109 @@
+{
+  "timestamp": "2025-10-11T22:29:32.219Z",
+  "totalPages": 20,
+  "totalRequests": 5548,
+  "internalRequests": 183,
+  "externalRequests": 5365,
+  "pages": [
+    {
+      "path": "/",
+      "internalRequests": 10,
+      "externalRequests": 10
+    },
+    {
+      "path": "/login",
+      "internalRequests": 8,
+      "externalRequests": 16
+    },
+    {
+      "path": "/login/verify-otp",
+      "internalRequests": 11,
+      "externalRequests": 19
+    },
+    {
+      "path": "/signup",
+      "internalRequests": 8,
+      "externalRequests": 8
+    },
+    {
+      "path": "/signup/verify-otp",
+      "internalRequests": 8,
+      "externalRequests": 8
+    },
+    {
+      "path": "/forgot-password",
+      "internalRequests": 8,
+      "externalRequests": 8
+    },
+    {
+      "path": "/forgot-password/verify-otp",
+      "internalRequests": 8,
+      "externalRequests": 8
+    },
+    {
+      "path": "/forgot-password/reset",
+      "internalRequests": 8,
+      "externalRequests": 8
+    },
+    {
+      "path": "/social-inbox",
+      "internalRequests": 11,
+      "externalRequests": 33
+    },
+    {
+      "path": "/social-feed",
+      "internalRequests": 11,
+      "externalRequests": 21
+    },
+    {
+      "path": "/entities",
+      "internalRequests": 8,
+      "externalRequests": 16
+    },
+    {
+      "path": "/entity-search",
+      "internalRequests": 8,
+      "externalRequests": 8
+    },
+    {
+      "path": "/osint-tools",
+      "internalRequests": 8,
+      "externalRequests": 2526
+    },
+    {
+      "path": "/profiles",
+      "internalRequests": 11,
+      "externalRequests": 19
+    },
+    {
+      "path": "/profiles/test-user-id",
+      "internalRequests": 17,
+      "externalRequests": 33
+    },
+    {
+      "path": "/locations",
+      "internalRequests": 8,
+      "externalRequests": 2590
+    },
+    {
+      "path": "/start-analysis",
+      "internalRequests": 8,
+      "externalRequests": 10
+    },
+    {
+      "path": "/analysis-history",
+      "internalRequests": 8,
+      "externalRequests": 8
+    },
+    {
+      "path": "/analysis-history/test-analysis-id",
+      "internalRequests": 8,
+      "externalRequests": 8
+    },
+    {
+      "path": "/analysis-history/test-analysis-id/post/test-post-id",
+      "internalRequests": 8,
+      "externalRequests": 8
+    }
+  ]
+}

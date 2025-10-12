@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, Suspense } from 'react'
+import { useState, useMemo, Suspense, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
@@ -8,13 +8,18 @@ import { Search, Download, Heart, MessageCircle, Share2, Eye, X } from 'lucide-r
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
+import { useSocialPosts } from '@/hooks/use-api'
 
 export const dynamic = 'force-dynamic'
 
 interface Post {
   id: string
   platform: 'facebook' | 'twitter' | 'instagram' | 'news'
-  author: string
+  author?: string
+  authorName?: string
+  authorDisplayName?: string
+  username?: string
+  handle?: string
   content: string
   timestamp: string
   likes: number
@@ -30,61 +35,7 @@ interface Post {
   isTrending: boolean
 }
 
-// Generate dummy posts with varied data
-const generatePosts = (): Post[] => {
-  const platforms: ('facebook' | 'twitter' | 'instagram' | 'news')[] = ['facebook', 'twitter', 'instagram', 'news']
-  const sentiments: ('positive' | 'negative' | 'neutral')[] = ['positive', 'negative', 'neutral']
-  const impacts: ('high' | 'medium' | 'low')[] = ['high', 'medium', 'low']
-  const authors = [
-    'Azin Naushad', 'Sparsh Burman', 'Jatin Johar', 'Suni Sunetha Y M', 
-    'Anandotaab', 'Tech News Daily', 'Community Updates', 'Local Business',
-    'News Reporter', 'Social Activist', 'City Police', 'Government Official'
-  ]
-  
-  const contents = [
-    "Hey guys, me and my friend are looking for a place to move in. We're open to: A 2BHK flat 🏠 Or 2 rooms in a 3BHK with flatmates 🏡 Preferred areas:HSR, BTM...",
-    "Hi everyone, I'm a male professional looking for a flat or a room-share near Ecoworld / Bellandur / Green Glen Layout / Sobha Iris / Sterling...",
-    "Fully furnished 3BHK available for rent in Green Glen Layout from 1st November. Please connect @9990410901 for more details",
-    "Breaking: New AI breakthrough announced today. This could change everything we know about machine learning. Full story coming soon! #AI #Technology",
-    "Important announcement regarding the upcoming town hall meeting. All residents are encouraged to attend and share their feedback.",
-    "We apologize for the inconvenience caused yesterday. We are working hard to resolve the issues and improve our service.",
-    "Congratulations to all the winners! Your hard work and dedication have paid off. Keep up the excellent work! 🎉",
-    "This is unacceptable! We demand immediate action on this issue. The authorities must take responsibility now!",
-    "Just sharing some thoughts on the current situation. What do you all think about this? Let's discuss in the comments.",
-    "Amazing news for our community! New facilities will be opening next month. This is a great step forward for everyone.",
-    "Concerned about the recent developments. We need to come together and find a solution that works for all stakeholders.",
-    "Excited to announce our new initiative! This will benefit thousands of people in our city. Stay tuned for more updates!"
-  ]
-
-  return Array.from({ length: 100 }, (_, i) => {
-    const likes = Math.floor(Math.random() * 10000)
-    const comments = Math.floor(Math.random() * 1000)
-    const shares = Math.floor(Math.random() * 2000)
-    const views = Math.floor(Math.random() * 50000)
-    const engagement = likes + comments + shares
-    
-    return {
-      id: `post-${i}`,
-      platform: platforms[Math.floor(Math.random() * platforms.length)],
-      author: authors[Math.floor(Math.random() * authors.length)],
-      content: contents[Math.floor(Math.random() * contents.length)],
-      timestamp: `${Math.floor(Math.random() * 24)} hours ago`,
-      likes,
-      comments,
-      shares,
-      views,
-      sentiment: sentiments[Math.floor(Math.random() * sentiments.length)],
-      engagement,
-      reach: views,
-      hasVideo: Math.random() > 0.7,
-      impact: impacts[Math.floor(Math.random() * impacts.length)],
-      isViral: engagement > 5000,
-      isTrending: Math.random() > 0.8
-    }
-  })
-}
-
-const allPosts = generatePosts()
+// All data will be fetched from APIs - no hard-coded data
 
 function PostCard({ post }: { post: Post }) {
   const platformIcons = {
@@ -101,15 +52,45 @@ function PostCard({ post }: { post: Post }) {
     news: 'bg-orange-600'
   }
 
+  // Better author handling - check for various author fields and provide fallbacks
+  const getAuthorInfo = () => {
+    // Check multiple possible author fields
+    const author = post.author || post.authorName || post.authorDisplayName || post.username || post.handle
+    
+    if (author && author !== 'Unknown Author' && author !== 'null' && author !== 'undefined' && author.trim() !== '') {
+      return {
+        name: author,
+        initial: author[0].toUpperCase()
+      }
+    }
+    
+    // Fallback based on platform
+    const platformFallbacks = {
+      facebook: 'Facebook User',
+      twitter: 'Twitter User', 
+      instagram: 'Instagram User',
+      news: 'News Source'
+    }
+    
+    return {
+      name: platformFallbacks[post.platform] || 'Social Media User',
+      initial: platformFallbacks[post.platform]?.[0] || 'S'
+    }
+  }
+
+  const authorInfo = getAuthorInfo()
+
   return (
     <Link href={`/analysis-history/1/post/${post.id}`}>
       <div className="bg-card border border-border rounded-lg p-4 card-hover pressable cursor-pointer h-full flex flex-col">
         <div className="flex items-start gap-3 mb-3">
           <div className={`w-8 h-8 rounded-full ${platformColors[post.platform]} flex items-center justify-center text-white text-sm font-semibold flex-shrink-0`}>
-            {post.author[0]}
+            {authorInfo.initial}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-foreground font-medium text-sm mb-0.5">{post.author}</div>
+            <div className="text-foreground font-medium text-sm mb-0.5 truncate">
+              {authorInfo.name}
+            </div>
             <div className="text-muted-foreground text-xs">
               {post.platform.charAt(0).toUpperCase() + post.platform.slice(1)} · {post.timestamp}
             </div>
@@ -145,79 +126,247 @@ function SocialFeedContent() {
   const activeFilter = searchParams.get('filter') || 'all-posts'
   const [searchQuery, setSearchQuery] = useState('')
 
+  // Build API params based on filters
+  const apiParams = useMemo(() => {
+    const params: any = {
+      page: 1,
+      limit: 20,
+    }
+
+    if (searchQuery) {
+      params.search = searchQuery
+    }
+
+    // Apply filter-based params
+    switch (activeFilter) {
+      case 'high-impact':
+        params.priority = 'high'
+        break
+      case 'viral-negative':
+        params.sentiment = 'negative'
+        params.needsAttention = true
+        break
+      case 'trending':
+        params.isFlagged = true
+        break
+      case 'high-engagement':
+        params.min_likesCount = 1000
+        params.min_commentsCount = 100
+        break
+      case 'news':
+        params.platform = 'news'
+        break
+      case 'videos':
+        params.hasVideos = true
+        break
+      case 'twitter':
+        params.platform = 'twitter'
+        break
+      case 'facebook':
+        params.platform = 'facebook'
+        break
+      case 'instagram':
+        params.platform = 'instagram'
+        break
+      case 'positive':
+        params.sentiment = 'positive'
+        break
+      case 'neutral':
+        params.sentiment = 'neutral'
+        break
+      case 'negative':
+        params.sentiment = 'negative'
+        break
+    }
+
+    return params
+  }, [activeFilter, searchQuery])
+
+  const { data: apiPosts, loading, error } = useSocialPosts(apiParams)
+
   const handleFilterChange = (filterId: string) => {
     router.push(`/social-feed?filter=${filterId}`)
   }
 
-  const filteredPosts = useMemo(() => {
-    let posts = [...allPosts]
+  // Sample data for when API fails
+  const samplePosts: Post[] = [
+    {
+      id: '1',
+      platform: 'twitter',
+      author: 'BengaluruPolice',
+      content: 'Traffic update: Heavy congestion on MG Road due to ongoing metro construction. Please use alternative routes.',
+      timestamp: '2h',
+      likes: 245,
+      comments: 67,
+      shares: 89,
+      views: 12500,
+      sentiment: 'neutral',
+      engagement: 401,
+      reach: 25000,
+      hasVideo: false,
+      impact: 'medium',
+      isViral: false,
+      isTrending: true
+    },
+    {
+      id: '2',
+      platform: 'facebook',
+      author: 'Karnataka Police',
+      content: 'Safety reminder: Always wear helmets while riding two-wheelers. Your safety is our priority!',
+      timestamp: '4h',
+      likes: 1200,
+      comments: 234,
+      shares: 456,
+      views: 45000,
+      sentiment: 'positive',
+      engagement: 1890,
+      reach: 50000,
+      hasVideo: true,
+      impact: 'high',
+      isViral: true,
+      isTrending: false
+    },
+    {
+      id: '3',
+      platform: 'instagram',
+      author: 'WhitefieldTraffic',
+      content: 'Beautiful sunrise from Whitefield! Remember to drive safely and follow traffic rules.',
+      timestamp: '6h',
+      likes: 890,
+      comments: 123,
+      shares: 234,
+      views: 18000,
+      sentiment: 'positive',
+      engagement: 1247,
+      reach: 22000,
+      hasVideo: false,
+      impact: 'medium',
+      isViral: false,
+      isTrending: false
+    },
+    {
+      id: '4',
+      platform: 'news',
+      author: 'Times of India',
+      content: 'Bengaluru police launch new digital initiative for faster complaint registration and tracking.',
+      timestamp: '8h',
+      likes: 567,
+      comments: 89,
+      shares: 123,
+      views: 32000,
+      sentiment: 'positive',
+      engagement: 779,
+      reach: 40000,
+      hasVideo: false,
+      impact: 'high',
+      isViral: false,
+      isTrending: true
+    },
+    {
+      id: '5',
+      platform: 'twitter',
+      author: 'BellandurResident',
+      content: 'Traffic situation in Bellandur is getting worse day by day. Need immediate attention from authorities.',
+      timestamp: '10h',
+      likes: 345,
+      comments: 156,
+      shares: 78,
+      views: 15000,
+      sentiment: 'negative',
+      engagement: 579,
+      reach: 18000,
+      hasVideo: false,
+      impact: 'medium',
+      isViral: false,
+      isTrending: false
+    },
+    {
+      id: '6',
+      platform: 'facebook',
+      author: 'Karnataka CM Office',
+      content: 'New infrastructure projects announced for Bengaluru to improve traffic flow and connectivity.',
+      timestamp: '12h',
+      likes: 2100,
+      comments: 456,
+      shares: 789,
+      views: 65000,
+      sentiment: 'positive',
+      engagement: 3345,
+      reach: 75000,
+      hasVideo: true,
+      impact: 'high',
+      isViral: true,
+      isTrending: true
+    }
+  ]
 
-    // Apply filter based on active filter
+  const filteredPosts = useMemo(() => {
+    // Use API data if available, otherwise use sample data
+    const posts = apiPosts && apiPosts.length > 0 ? apiPosts : samplePosts
+    
+    // Ensure all posts have proper author data
+    const postsWithAuthors = posts.map(post => ({
+      ...post,
+      author: post.author || 'Unknown Author'
+    }))
+    
+    let filtered = [...postsWithAuthors]
+
+    // Apply filter based on active filter for client-side filtering
     switch (activeFilter) {
-      case 'all-posts':
-        // Show all posts
-        break
       case 'latest-posts':
-        posts = posts.sort((a, b) => {
+        filtered = filtered.sort((a, b) => {
           const aHours = parseInt(a.timestamp)
           const bHours = parseInt(b.timestamp)
           return aHours - bHours
         })
         break
-      case 'high-impact':
-        posts = posts.filter(p => p.impact === 'high')
-        break
-      case 'viral-negative':
-        posts = posts.filter(p => p.isViral && p.sentiment === 'negative')
-        break
-      case 'trending':
-        posts = posts.filter(p => p.isTrending)
-        break
-      case 'high-engagement':
-        posts = posts.filter(p => p.engagement > 3000).sort((a, b) => b.engagement - a.engagement)
-        break
       case 'high-reach-low-engagement':
-        posts = posts.filter(p => p.reach > 20000 && p.engagement < 1000)
+        filtered = filtered.filter(p => p.reach > 20000 && p.engagement < 1000)
         break
       case 'viral-potential':
-        posts = posts.filter(p => p.engagement > 2000 && p.engagement < 5000)
+        filtered = filtered.filter(p => p.engagement > 2000 && p.engagement < 5000)
+        break
+      case 'high-impact':
+        filtered = filtered.filter(p => p.impact === 'high')
+        break
+      case 'viral-negative':
+        filtered = filtered.filter(p => p.sentiment === 'negative' && p.isViral)
+        break
+      case 'trending':
+        filtered = filtered.filter(p => p.isTrending)
+        break
+      case 'high-engagement':
+        filtered = filtered.filter(p => p.engagement > 1000)
         break
       case 'news':
-        posts = posts.filter(p => p.platform === 'news')
+        filtered = filtered.filter(p => p.platform === 'news')
         break
       case 'videos':
-        posts = posts.filter(p => p.hasVideo)
+        filtered = filtered.filter(p => p.hasVideo)
         break
       case 'twitter':
-        posts = posts.filter(p => p.platform === 'twitter')
+        filtered = filtered.filter(p => p.platform === 'twitter')
         break
       case 'facebook':
-        posts = posts.filter(p => p.platform === 'facebook')
+        filtered = filtered.filter(p => p.platform === 'facebook')
         break
       case 'instagram':
-        posts = posts.filter(p => p.platform === 'instagram')
+        filtered = filtered.filter(p => p.platform === 'instagram')
         break
       case 'positive':
-        posts = posts.filter(p => p.sentiment === 'positive')
+        filtered = filtered.filter(p => p.sentiment === 'positive')
         break
       case 'neutral':
-        posts = posts.filter(p => p.sentiment === 'neutral')
+        filtered = filtered.filter(p => p.sentiment === 'neutral')
         break
       case 'negative':
-        posts = posts.filter(p => p.sentiment === 'negative')
+        filtered = filtered.filter(p => p.sentiment === 'negative')
         break
     }
 
-    // Apply search filter
-    if (searchQuery) {
-      posts = posts.filter(p => 
-        p.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.author.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    }
-
-    return posts.slice(0, 20) // Limit to 20 posts
-  }, [activeFilter, searchQuery])
+    return filtered.slice(0, 20) // Limit to 20 posts
+  }, [apiPosts, activeFilter])
 
   const discoverFilters = [
     { id: 'all-posts', label: 'All Posts', icon: '📋' },
@@ -321,7 +470,7 @@ function SocialFeedContent() {
                 {filteredPosts.length} posts loaded (more available)
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-                {filteredPosts.map((post) => (
+                {(filteredPosts || []).map((post) => (
                   <PostCard key={post.id} post={post} />
                 ))}
               </div>

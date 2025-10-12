@@ -7,10 +7,13 @@ import { Mail, Phone, ArrowRight, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useAuth } from '@/hooks/use-api'
+import { toast } from 'sonner'
 
 export default function LoginPage() {
   const router = useRouter()
-  const [loginMethod, setLoginMethod] = useState<'email' | 'mobile'>('email')
+  const { login, otpLogin } = useAuth()
+  const [loginMethod, setLoginMethod] = useState<'email' | 'mobile'>('mobile')
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
@@ -27,22 +30,70 @@ export default function LoginPage() {
 
     setIsLoading(true)
 
-    // Simulate API call to send OTP
-    await new Promise(resolve => setTimeout(resolve, 1500))
+        try {
+          if (loginMethod === 'email') {
+            // For email login, use the actual API
+            const response = await fetch('https://irisnet.wiredleap.com/api/auth/login', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                email: formData.email,
+                password: 'temp_password' // This might need to be adjusted based on the actual API
+              })
+            })
 
-    // Store the contact info in sessionStorage for OTP verification page
-    const contactInfo = {
-      method: loginMethod,
-      value: loginMethod === 'email' ? formData.email : `${formData.countryCode}${formData.mobile}`,
-      displayValue: loginMethod === 'email' 
-        ? formData.email 
-        : `${formData.countryCode} ${formData.mobile}`
+            const result = await response.json()
+
+            if (result.success) {
+              // Store the contact info in sessionStorage for OTP verification page
+              const contactInfo = {
+                method: loginMethod,
+                value: formData.email,
+                displayValue: formData.email
+              }
+
+              sessionStorage.setItem('otpContactInfo', JSON.stringify(contactInfo))
+              router.push('/login/verify-otp')
+            } else {
+              toast.error(result.error?.message || 'Login failed')
+            }
+          } else {
+            // For mobile login, use the correct OTP endpoint
+            const phoneNumber = `${formData.countryCode}${formData.mobile}`
+            const response = await fetch('https://irisnet.wiredleap.com/api/auth/otpLogin', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                phoneNumber: phoneNumber
+              })
+            })
+
+            const result = await response.json()
+
+            if (result.success) {
+              // Store the contact info in sessionStorage for OTP verification page
+              const contactInfo = {
+                method: loginMethod,
+                value: phoneNumber,
+                displayValue: `${formData.countryCode} ${formData.mobile}`
+              }
+
+              sessionStorage.setItem('otpContactInfo', JSON.stringify(contactInfo))
+              router.push('/login/verify-otp')
+            } else {
+              toast.error(result.error?.message || 'Failed to send OTP')
+            }
+          }
+    } catch (error) {
+      toast.error('Failed to send OTP. Please try again.')
+      console.error('Login error:', error)
+    } finally {
+      setIsLoading(false)
     }
-    
-    sessionStorage.setItem('otpContactInfo', JSON.stringify(contactInfo))
-    
-    setIsLoading(false)
-    router.push('/login/verify-otp')
   }
 
   return (
@@ -103,17 +154,24 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <Label htmlFor="mobile" className="text-white">Mobile Number</Label>
                 <div className="flex gap-2">
-                  <select 
-                    value={formData.countryCode}
-                    onChange={(e) => setFormData({ ...formData, countryCode: e.target.value })}
-                    className="bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2 w-24 focus:outline-none focus:border-blue-500"
-                  >
-                    <option value="+91">+91</option>
-                    <option value="+1">+1</option>
-                    <option value="+44">+44</option>
-                    <option value="+61">+61</option>
-                    <option value="+86">+86</option>
-                  </select>
+                  <div className="relative">
+                    <select 
+                      value={formData.countryCode}
+                      onChange={(e) => setFormData({ ...formData, countryCode: e.target.value })}
+                      className="bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2 w-28 focus:outline-none focus:border-blue-500 appearance-none cursor-pointer pr-8 text-sm font-medium"
+                    >
+                      <option value="+91" className="bg-zinc-800 text-white">+91</option>
+                      <option value="+1" className="bg-zinc-800 text-white">+1</option>
+                      <option value="+44" className="bg-zinc-800 text-white">+44</option>
+                      <option value="+61" className="bg-zinc-800 text-white">+61</option>
+                      <option value="+86" className="bg-zinc-800 text-white">+86</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                      <svg className="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
                   <Input
                     id="mobile"
                     type="tel"

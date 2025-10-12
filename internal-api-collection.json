@@ -1,0 +1,8 @@
+{
+  "info": {
+    "name": "Internal API Collection",
+    "description": "Collection of internal API calls captured from Puppeteer\n\nNote: This app is frontend-only and doesn't have internal API routes. All API calls go to external backend server.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": []
+}

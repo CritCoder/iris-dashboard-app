@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
 import { Search, Eye, Pause, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -96,24 +96,53 @@ const campaigns: Campaign[] = [
     shares: '1.9K',
     sentiment: 15,
     status: 'active'
+  },
+  {
+    id: '8',
+    name: 'mysore palace',
+    date: 'Sep 25, 2025',
+    posts: '156',
+    engage: '8.2K',
+    likes: '6.1K',
+    shares: '342',
+    sentiment: 68,
+    status: 'inactive'
+  },
+  {
+    id: '9',
+    name: 'coorg tourism',
+    date: 'Sep 23, 2025',
+    posts: '89',
+    engage: '4.1K',
+    likes: '3.2K',
+    shares: '198',
+    sentiment: 82,
+    status: 'inactive'
   }
 ]
 
 function CampaignRow({ campaign }: { campaign: Campaign }) {
+  const router = useRouter()
+
   const getSentimentColor = (sentiment: number) => {
     if (sentiment >= 70) return 'bg-green-500'
     if (sentiment >= 40) return 'bg-yellow-500'
     return 'bg-orange-500'
   }
 
+  const handleRowClick = () => {
+    router.push(`/analysis-history/${campaign.id}`)
+  }
+
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border-b border-border hover:bg-accent/20 transition-colors gap-3">
+    <div
+      onClick={handleRowClick}
+      className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border-b border-border hover:bg-accent/20 transition-colors gap-3 cursor-pointer"
+    >
       <div className="flex-1 min-w-0">
-        <Link href={`/analysis-history/${campaign.id}`}>
-          <h3 className="text-foreground font-medium mb-1 hover:text-blue-400 transition-colors cursor-pointer">
-            {campaign.name}
-          </h3>
-        </Link>
+        <h3 className="text-foreground font-medium mb-1 hover:text-blue-400 transition-colors">
+          {campaign.name}
+        </h3>
         <p className="text-sm text-muted-foreground">{campaign.date}</p>
       </div>
 
@@ -145,7 +174,7 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
             <div className="text-xs text-muted-foreground mt-1">SENTIMENT</div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
             <button className="p-2 hover:bg-accent/30 rounded-lg transition-colors text-muted-foreground hover:text-blue-400">
               <Eye className="w-4 sm:w-5 h-4 sm:h-5" />
             </button>
@@ -165,7 +194,16 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
 export default function AnalysisHistoryPage() {
   const [activeTab, setActiveTab] = useState<'all' | 'active' | 'inactive'>('all')
   const [currentPage, setCurrentPage] = useState(1)
+  const [searchQuery, setSearchQuery] = useState('')
   const totalPages = 3
+
+  // Filter campaigns based on active tab and search query
+  const filteredCampaigns = campaigns.filter((campaign) => {
+    const matchesTab = activeTab === 'all' || campaign.status === activeTab
+    const matchesSearch = searchQuery === '' || 
+      campaign.name.toLowerCase().includes(searchQuery.toLowerCase())
+    return matchesTab && matchesSearch
+  })
 
   return (
     <PageLayout>
@@ -173,64 +211,76 @@ export default function AnalysisHistoryPage() {
         <PageHeader
           title="Analysis History"
           description="Track and manage your campaign analyses"
-          actions={
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-              <div className="relative w-full sm:w-auto">
-                <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 sm:w-5 h-4 sm:h-5 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Search campaigns..."
-                  className="pl-10 sm:pl-12 pr-4 py-2 sm:py-3 text-sm w-full sm:w-64 md:w-80"
-                />
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setActiveTab('all')}
-                  className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    activeTab === 'all'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-secondary text-muted-foreground hover:bg-accent/30'
-                  }`}
-                >
-                  All
-                </button>
-                <button
-                  onClick={() => setActiveTab('active')}
-                  className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    activeTab === 'active'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-secondary text-muted-foreground hover:bg-accent/30'
-                  }`}
-                >
-                  Active
-                </button>
-                <button
-                  onClick={() => setActiveTab('inactive')}
-                  className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    activeTab === 'inactive'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-secondary text-muted-foreground hover:bg-accent/30'
-                  }`}
-                >
-                  Inactive
-                </button>
-              </div>
-            </div>
-          }
         />
+
+        {/* Mobile-friendly search and filters */}
+        <div className="border-b border-border bg-background p-3 sm:p-4">
+          <div className="flex flex-col gap-3">
+            {/* Search bar */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search campaigns..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-4 py-2 text-sm w-full"
+              />
+            </div>
+
+            {/* Filter buttons */}
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              <button
+                onClick={() => setActiveTab('all')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
+                  activeTab === 'all'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary text-muted-foreground hover:bg-accent/30'
+                }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setActiveTab('active')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
+                  activeTab === 'active'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary text-muted-foreground hover:bg-accent/30'
+                }`}
+              >
+                Active
+              </button>
+              <button
+                onClick={() => setActiveTab('inactive')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
+                  activeTab === 'inactive'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary text-muted-foreground hover:bg-accent/30'
+                }`}
+              >
+                Inactive
+              </button>
+            </div>
+          </div>
+        </div>
 
         <div className="flex-1 overflow-y-auto">
           <div className="divide-y divide-border list-animate-in">
-            {campaigns.map((campaign) => (
-              <CampaignRow key={campaign.id} campaign={campaign} />
-            ))}
+            {filteredCampaigns.length > 0 ? (
+              filteredCampaigns.map((campaign) => (
+                <CampaignRow key={campaign.id} campaign={campaign} />
+              ))
+            ) : (
+              <div className="p-8 text-center text-muted-foreground">
+                <p>No campaigns found matching your criteria.</p>
+              </div>
+            )}
           </div>
         </div>
 
         <div className="border-t border-border p-3 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-sm text-muted-foreground">
-            Showing 1 to 10 of 24 campaigns
+            Showing {filteredCampaigns.length} of {campaigns.length} campaigns
           </p>
           <div className="flex items-center gap-2">
             <button

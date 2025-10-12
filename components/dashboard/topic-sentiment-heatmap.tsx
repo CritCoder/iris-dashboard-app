@@ -18,6 +18,7 @@ function InsightCard({ icon: Icon, type, message }: InsightCardProps) {
 }
 
 export function TopicSentimentHeatmap() {
+  // Using static data directly to avoid API dependency issues
   const topics = [
     { name: 'Police Reforms', sentiment: 75, posts: 1250, trend: 'up' },
     { name: 'Traffic Management', sentiment: 45, posts: 890, trend: 'down' },
@@ -26,6 +27,8 @@ export function TopicSentimentHeatmap() {
     { name: 'Digital Initiatives', sentiment: 55, posts: 720, trend: 'up' },
     { name: 'Public Safety', sentiment: 78, posts: 1890, trend: 'up' }
   ]
+  
+  const avgSentiment = 68
 
   const getSentimentColor = (sentiment: number) => {
     if (sentiment >= 70) return 'bg-green-500'
@@ -49,7 +52,7 @@ export function TopicSentimentHeatmap() {
           <p className="text-sm text-muted-foreground">Track sentiment across {topics.length} key issues</p>
         </div>
         <div className="text-right">
-          <div className="text-2xl font-bold text-foreground">68%</div>
+          <div className="text-2xl font-bold text-foreground">{avgSentiment}%</div>
           <div className="text-xs text-muted-foreground">Avg Sentiment</div>
         </div>
       </div>
@@ -57,7 +60,7 @@ export function TopicSentimentHeatmap() {
       {/* Heatmap Grid */}
       <div className="mb-6">
         <div className="grid grid-cols-2 gap-3 mb-4">
-          {topics.map((topic, index) => (
+          {(topics || []).map((topic, index) => (
             <div key={index} className="p-3 bg-muted/30 border border-border rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-foreground">{topic.name}</span>

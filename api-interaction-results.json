@@ -1,0 +1,31 @@
+{
+  "pages": [
+    {
+      "name": "Social Feed",
+      "url": "http://localhost:3001/social-feed",
+      "status": "success",
+      "requests": 8,
+      "responses": 8
+    },
+    {
+      "name": "Entities",
+      "url": "http://localhost:3001/entities",
+      "status": "success",
+      "requests": 15,
+      "responses": 15
+    },
+    {
+      "name": "Entity Search",
+      "url": "http://localhost:3001/entity-search",
+      "status": "success",
+      "requests": 22,
+      "responses": 22
+    }
+  ],
+  "totalRequests": 22,
+  "totalResponses": 22,
+  "apiCalls": {
+    "internal": [],
+    "external": []
+  }
+}

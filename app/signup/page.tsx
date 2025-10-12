@@ -3,27 +3,125 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Mail, Phone, ArrowRight, Eye, EyeOff, User } from 'lucide-react'
+import { Mail, Phone, ArrowRight, Eye, EyeOff, User, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { toast } from 'sonner'
 
 export default function SignupPage() {
   const router = useRouter()
   const [signupMethod, setSignupMethod] = useState<'email' | 'mobile'>('email')
   const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     mobile: '',
+    countryCode: '+91',
     password: '',
     confirmPassword: ''
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle signup logic here
-    router.push('/signup/verify-otp')
+    
+    // Validate input
+    if (!formData.name.trim()) {
+      toast.error('Please enter your full name')
+      return
+    }
+    if (signupMethod === 'email' && !formData.email.trim()) {
+      toast.error('Please enter your email address')
+      return
+    }
+    if (signupMethod === 'mobile' && !formData.mobile.trim()) {
+      toast.error('Please enter your mobile number')
+      return
+    }
+    if (!formData.password.trim()) {
+      toast.error('Please enter a password')
+      return
+    }
+    if (formData.password !== formData.confirmPassword) {
+      toast.error('Passwords do not match')
+      return
+    }
+    if (formData.password.length < 8) {
+      toast.error('Password must be at least 8 characters long')
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      if (signupMethod === 'email') {
+        // For email signup, use the actual API
+        const response = await fetch('https://irisnet.wiredleap.com/api/auth/add-user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: formData.name,
+            email: formData.email,
+            password: formData.password,
+            role: 'user'
+          })
+        })
+
+        const result = await response.json()
+
+        if (result.success) {
+          // Store the contact info in sessionStorage for OTP verification page
+          const contactInfo = {
+            method: signupMethod,
+            value: formData.email,
+            displayValue: formData.email
+          }
+
+          sessionStorage.setItem('otpContactInfo', JSON.stringify(contactInfo))
+          toast.success('Account created successfully! Please verify your email.')
+          router.push('/signup/verify-otp')
+        } else {
+          toast.error(result.error?.message || 'Signup failed')
+        }
+      } else {
+        // For mobile signup, use the OTP endpoint
+        const phoneNumber = `${formData.countryCode}${formData.mobile}`
+        const response = await fetch('https://irisnet.wiredleap.com/api/auth/otpLogin', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            phoneNumber: phoneNumber
+          })
+        })
+
+        const result = await response.json()
+
+        if (result.success) {
+          // Store the contact info in sessionStorage for OTP verification page
+          const contactInfo = {
+            method: signupMethod,
+            value: phoneNumber,
+            displayValue: `${formData.countryCode} ${formData.mobile}`
+          }
+
+          sessionStorage.setItem('otpContactInfo', JSON.stringify(contactInfo))
+          toast.success('OTP sent successfully! Please verify your mobile number.')
+          router.push('/signup/verify-otp')
+        } else {
+          toast.error(result.error?.message || 'Failed to send OTP')
+        }
+      }
+    } catch (error) {
+      toast.error('Failed to create account. Please try again.')
+      console.error('Signup error:', error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -103,10 +201,16 @@ export default function SignupPage() {
               <div className="space-y-2">
                 <Label htmlFor="mobile" className="text-white">Mobile Number</Label>
                 <div className="flex gap-2">
-                  <select className="bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2 w-24">
-                    <option>+91</option>
-                    <option>+1</option>
-                    <option>+44</option>
+                  <select 
+                    value={formData.countryCode}
+                    onChange={(e) => setFormData({ ...formData, countryCode: e.target.value })}
+                    className="bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2 w-28 focus:outline-none focus:border-blue-500 appearance-none cursor-pointer pr-8 text-sm font-medium"
+                  >
+                    <option value="+91" className="bg-zinc-800 text-white">+91</option>
+                    <option value="+1" className="bg-zinc-800 text-white">+1</option>
+                    <option value="+44" className="bg-zinc-800 text-white">+44</option>
+                    <option value="+61" className="bg-zinc-800 text-white">+61</option>
+                    <option value="+86" className="bg-zinc-800 text-white">+86</option>
                   </select>
                   <div className="relative flex-1">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
@@ -170,9 +274,22 @@ export default function SignupPage() {
               </label>
             </div>
 
-            <Button type="submit" className="w-full gap-2">
-              Create Account
-              <ArrowRight className="w-4 h-4" />
+            <Button 
+              type="submit" 
+              className="w-full gap-2" 
+              disabled={isLoading || !formData.name.trim() || (signupMethod === 'email' ? !formData.email.trim() : !formData.mobile.trim()) || !formData.password.trim() || formData.password !== formData.confirmPassword}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Creating Account...
+                </>
+              ) : (
+                <>
+                  Create Account
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </Button>
           </form>
 

@@ -2,7 +2,7 @@
 
 import { useState, createContext, useContext } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   Home,
   Mail,
@@ -27,14 +27,18 @@ import {
   Smile,
   Meh,
   Frown,
-  X
+  X,
+  Shield,
+  Database,
+  TrendingUp,
+  Building
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 
 // Create a context for mobile menu state
-const MobileMenuContext = createContext<{
+export const MobileMenuContext = createContext<{
   isOpen: boolean
   setIsOpen: (open: boolean) => void
 } | null>(null)
@@ -58,7 +62,15 @@ interface NavItemProps {
 function NavItem({ icon: Icon, label, href, hasSubmenu = false, submenuContent }: NavItemProps) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
-  const active = href ? (pathname === href || (href !== '/' && pathname.startsWith(href + '/'))) : false
+  
+  // Special case: Individual post pages should show Social Feed as active
+  const isPostPage = pathname.includes('/post/')
+  const shouldShowSocialFeedActive = isPostPage && label === 'Social Feed'
+  const shouldShowAnalysisHistoryActive = isPostPage && label === 'Analysis History'
+  
+  const active = shouldShowSocialFeedActive ? true : 
+                 shouldShowAnalysisHistoryActive ? false :
+                 href ? (pathname === href || (href !== '/' && pathname.startsWith(href + '/'))) : false
 
   const buttonContent = (
     <div
@@ -191,6 +203,172 @@ function SocialFeedSubmenu() {
   )
 }
 
+function LocationsSubmenu() {
+  return (
+    <div className="py-2 animate-in fade-in-50 slide-in-from-left-2 duration-150">
+      <div className="px-4 py-3 border-b border-border">
+        <h3 className="text-sm font-semibold text-foreground">Locations</h3>
+        <p className="text-xs text-muted-foreground mt-0.5">Explore and filter by location</p>
+      </div>
+      
+      <div className="py-2">
+        <SectionLabel>Primary</SectionLabel>
+        <div className="px-2 space-y-1">
+          <SubNavItem icon={MapPin} label="All Locations" href="/locations?filter=all" />
+          <SubNavItem icon={TrendingUp} label="High Impact Locations" href="/locations?filter=high-impact" />
+          <SubNavItem icon={Activity} label="Trending Locations" href="/locations?filter=trending" />
+          <SubNavItem icon={MessageSquare} label="Frequently Mentioned" href="/locations?filter=frequent" />
+        </div>
+        
+        <SectionLabel>Sentiment Based</SectionLabel>
+        <div className="px-2 space-y-1">
+          <SubNavItem icon={Frown} label="Negative Locations" href="/locations?filter=negative" />
+          <SubNavItem icon={Smile} label="Positive Locations" href="/locations?filter=positive" />
+          <SubNavItem icon={AlertTriangle} label="Controversial" href="/locations?filter=controversial" />
+        </div>
+        
+        <SectionLabel>Police Divisions</SectionLabel>
+        <div className="px-2 space-y-1">
+          <SubNavItem icon={MapPin} label="Whitefield Division" href="/locations?filter=whitefield" />
+          <SubNavItem icon={MapPin} label="South East Division" href="/locations?filter=south-east" />
+          <SubNavItem icon={MapPin} label="Central Division" href="/locations?filter=central" />
+          <SubNavItem icon={MapPin} label="Northeast Division" href="/locations?filter=northeast" />
+          <SubNavItem icon={MapPin} label="East Division" href="/locations?filter=east" />
+          <SubNavItem icon={MapPin} label="North Division" href="/locations?filter=north" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function EntitiesSubmenu() {
+  return (
+    <div className="py-2 animate-in fade-in-50 slide-in-from-left-2 duration-150">
+      <div className="px-4 py-3 border-b border-border">
+        <h3 className="text-sm font-semibold text-foreground">Entities</h3>
+        <p className="text-xs text-muted-foreground mt-0.5">Explore and filter entities</p>
+      </div>
+      
+      <div className="py-2">
+        <SectionLabel>Primary</SectionLabel>
+        <div className="px-2 space-y-1">
+          <SubNavItem icon={Hash} label="All Entities" href="/entities?filter=all" />
+          <SubNavItem icon={Hash} label="All Topics" href="/entities?filter=topics" />
+          <SubNavItem icon={User} label="All People" href="/entities?filter=people" />
+          <SubNavItem icon={Building} label="All Organizations" href="/entities?filter=organizations" />
+        </div>
+        
+        <SectionLabel>Engagement & Impact</SectionLabel>
+        <div className="px-2 space-y-1">
+          <SubNavItem icon={TrendingUp} label="High Impact Entities" href="/entities?filter=high-impact" />
+          <SubNavItem icon={Activity} label="Trending Topics" href="/entities?filter=trending" />
+          <SubNavItem icon={MessageSquare} label="Frequently Mentioned" href="/entities?filter=frequent" />
+        </div>
+        
+        <SectionLabel>Sentiment Based</SectionLabel>
+        <div className="px-2 space-y-1">
+          <SubNavItem icon={Frown} label="Negative Entities" href="/entities?filter=negative" />
+          <SubNavItem icon={Smile} label="Positive Entities" href="/entities?filter=positive" />
+          <SubNavItem icon={AlertTriangle} label="Controversial" href="/entities?filter=controversial" />
+        </div>
+        
+        <SectionLabel>Entity Types</SectionLabel>
+        <div className="px-2 space-y-1">
+          <SubNavItem icon={Hash} label="Topics" href="/entities?filter=topics" />
+          <SubNavItem icon={User} label="People" href="/entities?filter=people" />
+          <SubNavItem icon={Building} label="Organizations" href="/entities?filter=organizations" />
+          <SubNavItem icon={MapPin} label="Locations" href="/entities?filter=locations" />
+          <SubNavItem icon={AlertTriangle} label="Threats" href="/entities?filter=threats" />
+          <SubNavItem icon={Hash} label="Keywords" href="/entities?filter=keywords" />
+        </div>
+        
+        <SectionLabel>Categories</SectionLabel>
+        <div className="px-2 space-y-1">
+          <SubNavItem icon={Building} label="Political Parties" href="/entities?filter=political-parties" />
+          <SubNavItem icon={User} label="Politicians" href="/entities?filter=politicians" />
+          <SubNavItem icon={Newspaper} label="News Outlets" href="/entities?filter=news-outlets" />
+          <SubNavItem icon={Shield} label="Government Agencies" href="/entities?filter=government" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ProfilesSubmenu() {
+  return (
+    <div className="py-2 animate-in fade-in-50 slide-in-from-left-2 duration-150">
+      <div className="px-4 py-3 border-b border-border">
+        <h3 className="text-sm font-semibold text-foreground">Profiles</h3>
+        <p className="text-xs text-muted-foreground mt-0.5">Explore and filter profiles</p>
+      </div>
+      
+      <div className="py-2">
+        <SectionLabel>Primary</SectionLabel>
+        <div className="px-2 space-y-1">
+          <SubNavItem icon={Users} label="All Authors" href="/profiles?filter=all" />
+        </div>
+        
+        <SectionLabel>Engagement & Impact</SectionLabel>
+        <div className="px-2 space-y-1">
+          <SubNavItem icon={TrendingUp} label="High Impact Authors" href="/profiles?filter=high-impact" />
+          <SubNavItem icon={Eye} label="High Reach Authors" href="/profiles?filter=high-reach" />
+          <SubNavItem icon={MessageSquare} label="Frequent Posters" href="/profiles?filter=frequent" />
+        </div>
+        
+        <SectionLabel>Sentiment Based</SectionLabel>
+        <div className="px-2 space-y-1">
+          <SubNavItem icon={Frown} label="Negative Influencers" href="/profiles?filter=negative" />
+          <SubNavItem icon={Smile} label="Positive Influencers" href="/profiles?filter=positive" />
+        </div>
+        
+        <SectionLabel>Platforms</SectionLabel>
+        <div className="px-2 space-y-1">
+          <SubNavItem icon={MessageSquare} label="Twitter Influencers" href="/profiles?filter=twitter" />
+          <SubNavItem icon={Users} label="Facebook Pages" href="/profiles?filter=facebook" />
+          <SubNavItem icon={MapPin} label="Instagram Influencers" href="/profiles?filter=instagram" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function EntitySearchSubmenu() {
+  return (
+    <div className="py-2 animate-in fade-in-50 slide-in-from-left-2 duration-150">
+      <div className="px-4 py-3 border-b border-border">
+        <h3 className="text-sm font-semibold text-foreground">Entity Search</h3>
+        <p className="text-xs text-muted-foreground mt-0.5">Advanced search and intelligence tools</p>
+      </div>
+      
+      <div className="py-2">
+        <SectionLabel>Search</SectionLabel>
+        <div className="px-2 space-y-1">
+          <SubNavItem icon={Search} label="Search" href="/entity-search?type=search" />
+        </div>
+        
+        <SectionLabel>Phone Intelligence</SectionLabel>
+        <div className="px-2 space-y-1">
+          <SubNavItem icon={Search} label="Unified Mobile Search" href="/entity-search?type=unified-mobile" />
+          <SubNavItem icon={Search} label="TrueCaller Search" href="/entity-search?type=truecaller" />
+          <SubNavItem icon={Search} label="Mobile to Account" href="/entity-search?type=mobile-account" />
+          <SubNavItem icon={Search} label="UPI to Bank" href="/entity-search?type=upi-bank" />
+          <SubNavItem icon={Search} label="Mobile to Address" href="/entity-search?type=mobile-address" />
+          <SubNavItem icon={Search} label="Mobile to Name" href="/entity-search?type=mobile-name" />
+          <SubNavItem icon={Search} label="Mobile to PAN" href="/entity-search?type=mobile-pan" />
+          <SubNavItem icon={Search} label="Mobile to Vehicle" href="/entity-search?type=mobile-vehicle" />
+        </div>
+        
+        <SectionLabel>Vehicle Intelligence</SectionLabel>
+        <div className="px-2 space-y-1">
+          <SubNavItem icon={Search} label="Vehicle Unified Search" href="/entity-search?type=vehicle-unified" />
+          <SubNavItem icon={Search} label="Vehicle Details (RC)" href="/entity-search?type=vehicle-rc" />
+          <SubNavItem icon={Search} label="Vehicle to Mobile" href="/entity-search?type=vehicle-mobile" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function SidebarContent() {
   return (
     <>
@@ -217,14 +395,43 @@ function SidebarContent() {
         <NavItem
           icon={Globe}
           label="Social Feed"
+          href="/social-feed"
           hasSubmenu
           submenuContent={<SocialFeedSubmenu />}
         />
 
-        <NavItem icon={User} label="Profiles" href="/profiles" />
-        <NavItem icon={Hash} label="Entities" href="/entities" />
-        <NavItem icon={MapPin} label="Locations" href="/locations" />
-        <NavItem icon={Search} label="Entity Search" href="/entity-search" />
+        <NavItem
+          icon={User}
+          label="Profiles"
+          href="/profiles"
+          hasSubmenu
+          submenuContent={<ProfilesSubmenu />}
+        />
+        
+        <NavItem
+          icon={Hash}
+          label="Entities"
+          href="/entities"
+          hasSubmenu
+          submenuContent={<EntitiesSubmenu />}
+        />
+        
+        <NavItem
+          icon={MapPin}
+          label="Locations"
+          href="/locations"
+          hasSubmenu
+          submenuContent={<LocationsSubmenu />}
+        />
+        
+        <NavItem
+          icon={Search}
+          label="Entity Search"
+          href="/entity-search"
+          hasSubmenu
+          submenuContent={<EntitySearchSubmenu />}
+        />
+        <NavItem icon={Shield} label="OSINT Tools" href="/osint-tools" />
       </nav>
 
       <div className="p-4 border-t border-border flex-shrink-0">
@@ -247,11 +454,21 @@ function SidebarContent() {
   )
 }
 
-export function Sidebar() {
+export function MobileMenuProvider({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
     <MobileMenuContext.Provider value={{ isOpen: mobileOpen, setIsOpen: setMobileOpen }}>
+      {children}
+    </MobileMenuContext.Provider>
+  )
+}
+
+export function Sidebar() {
+  const { isOpen: mobileOpen, setIsOpen: setMobileOpen } = useMobileMenu()
+
+  return (
+    <>
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex w-56 border-r border-border bg-background flex-col fixed h-screen overflow-y-auto z-40 pointer-events-auto">
         <SidebarContent />
@@ -265,6 +482,6 @@ export function Sidebar() {
           </div>
         </SheetContent>
       </Sheet>
-    </MobileMenuContext.Provider>
+    </>
   )
 }

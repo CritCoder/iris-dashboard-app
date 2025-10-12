@@ -1,0 +1,8 @@
+{
+  "info": {
+    "name": "Internal API Collection - CORRECTED",
+    "description": "Collection of internal API calls\n\n✅ CORRECT: This collection is empty because this is a frontend-only Next.js application\n✅ No internal API routes exist - all API calls go to external backend server\n✅ This is the expected behavior for this architecture",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": []
+}

@@ -1,16 +1,23 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { FacebookIcon, InstagramIcon, TwitterIcon, NewsIcon } from '@/components/ui/platform-icons'
+import { toast } from 'sonner'
+import { Loader2, Search, Zap } from 'lucide-react'
 
 export default function StartAnalysisPage() {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState<'topic' | 'poi'>('topic')
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['facebook', 'instagram', 'twitter', 'india-news'])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [timeRange, setTimeRange] = useState('any')
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
 
   const platforms = [
     { id: 'facebook', name: 'Facebook', icon: FacebookIcon, color: 'text-blue-500', bgColor: 'bg-blue-600', borderColor: 'border-blue-500' },
@@ -25,6 +32,53 @@ export default function StartAnalysisPage() {
         ? prev.filter(id => id !== platformId)
         : [...prev, platformId]
     )
+  }
+
+  const handleAnalyze = async () => {
+    if (!searchQuery.trim()) {
+      toast.error('Please enter a search query')
+      return
+    }
+
+    if (selectedPlatforms.length === 0) {
+      toast.error('Please select at least one platform')
+      return
+    }
+
+    setIsAnalyzing(true)
+
+    try {
+      // Create a new campaign for analysis
+      const response = await fetch('https://irisnet.wiredleap.com/api/campaigns', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: `${activeTab === 'topic' ? 'Topic' : 'POI'} Analysis: ${searchQuery.substring(0, 50)}`,
+          type: activeTab === 'topic' ? 'TOPIC' : 'PERSON',
+          description: `Analysis of ${searchQuery} across ${selectedPlatforms.join(', ')} platforms`,
+          keywords: searchQuery.split(',').map(k => k.trim()).filter(k => k.length > 0),
+          platforms: selectedPlatforms,
+          timeRange: timeRange
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        toast.success('Analysis started successfully!')
+        // Redirect to the campaign page or analysis results
+        router.push(`/post-campaign/${result.data.id}`)
+      } else {
+        toast.error(result.error?.message || 'Failed to start analysis')
+      }
+    } catch (error) {
+      toast.error('Failed to start analysis. Please try again.')
+      console.error('Analysis error:', error)
+    } finally {
+      setIsAnalyzing(false)
+    }
   }
 
   return (
@@ -77,7 +131,7 @@ export default function StartAnalysisPage() {
             <div className="mb-8">
               <h3 className="text-foreground font-semibold mb-4">Select Platforms</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {platforms.map((platform) => {
+                {(platforms || []).map((platform) => {
                   const IconComponent = platform.icon
                   return (
                     <button

@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { PageLayout } from '@/components/layout/page-layout'
 import { Heart, MessageCircle, Share2, Eye, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { useSocialPosts, useProfileDetails } from '@/hooks/use-api'
 
 interface Post {
   id: string
@@ -16,15 +17,7 @@ interface Post {
   views: number
 }
 
-const samplePosts: Post[] = Array.from({ length: 12 }, (_, i) => ({
-  id: `post-${i}`,
-  content: '@nikuamit @TPCentralOdisha @OdishaVigilance @DrDhanankanal @ForestDeptt @DEFCCOfficial...',
-  timestamp: '1 day ago',
-  likes: Math.floor(Math.random() * 5),
-  comments: 0,
-  shares: Math.floor(Math.random() * 3),
-  views: 0
-}))
+// All data will be fetched from APIs - no hard-coded data
 
 function PostCard({ post }: { post: Post }) {
   return (
@@ -61,9 +54,18 @@ function PostCard({ post }: { post: Post }) {
   )
 }
 
-export default function ProfileDetailPage() {
+export default function ProfileDetailPage({ params }: { params: { id: string } }) {
   const [activeTab, setActiveTab] = useState<'overview' | 'analysis'>('overview')
   const [postFilter, setPostFilter] = useState<'latest' | 'top' | 'positive' | 'negative'>('latest')
+
+  // Fetch profile details and posts
+  const { data: profileData, loading: profileLoading } = useProfileDetails(params.id)
+  
+  const { data: posts, loading: postsLoading } = useSocialPosts({
+    author: params.id,
+    limit: 20,
+    sortBy: postFilter === 'latest' ? 'createdAt' : 'engagement'
+  })
 
   return (
     <PageLayout>
@@ -294,9 +296,22 @@ export default function ProfileDetailPage() {
 
           <div className="flex-1 overflow-y-auto bg-black p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {samplePosts.map((post) => (
-                <PostCard key={post.id} post={post} />
-              ))}
+              {postsLoading ? (
+                Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-4 animate-pulse">
+                    <div className="h-4 bg-zinc-700 rounded w-3/4 mb-2" />
+                    <div className="h-3 bg-zinc-700 rounded w-1/2" />
+                  </div>
+                ))
+              ) : posts && posts.length > 0 ? (
+                posts.map((post) => (
+                  <PostCard key={post.id} post={post} />
+                ))
+              ) : (
+                <div className="col-span-full text-center text-zinc-500 py-8">
+                  <p>No posts found for this profile.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

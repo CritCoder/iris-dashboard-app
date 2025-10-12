@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
-import { Search, ChevronDown, Heart, MessageCircle, Share2, Eye, Plus } from 'lucide-react'
+import { Search, Heart, MessageCircle, Share2, Eye, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { FacebookIcon, InstagramIcon, TwitterIcon } from '@/components/ui/platform-icons'
+import { useSocialPosts, useInboxStats } from '@/hooks/use-api'
 
 interface Post {
   id: string
@@ -23,51 +24,6 @@ interface Post {
   campaign: string
   relevanceScore: number
 }
-
-const samplePosts: Post[] = [
-  {
-    id: '1',
-    author: 'Azin Naushad',
-    platform: 'facebook',
-    content: 'Hey guys, me and my friend are looking for a place to move in. We\'re open to: A 2BHK flat 🏠 Or 2 rooms in a 3BHK with flatmates 🏡 Preferred areas:HSR, BTM, Bellandur, CV Raman Nagar (and nearby) 💰 Budget: ~15-18k per head We\'re both working professionals, easy-going and chill. Looking to move in soon by this month DM if you\'ve got any leads or are looking for flatmates',
-    priority: 'MEDIUM',
-    timestamp: '2 hours ago',
-    likes: 0,
-    comments: 0,
-    shares: 0,
-    views: 0,
-    campaign: 'bellandur',
-    relevanceScore: 20.0
-  },
-  {
-    id: '2',
-    author: 'Azin Naushad',
-    platform: 'facebook',
-    content: 'Hey guys, me and my friend are looking for a place to move in. We\'re open to: A 2BHK flat 🏠 Or 2 rooms in a 3BHK with flatmates 🏡 Preferred areas:HSR...',
-    priority: 'MEDIUM',
-    timestamp: '2 hours ago',
-    likes: 0,
-    comments: 0,
-    shares: 0,
-    views: 0,
-    campaign: 'bellandur',
-    relevanceScore: 20.0
-  },
-  {
-    id: '3',
-    author: 'Azin Naushad',
-    platform: 'facebook',
-    content: 'Hey guys, me and my friend are looking for a place to move in. We\'re open to: A 2BHK flat 🏠 Or 2 rooms in a 3BHK with flatmates 🏡 Preferred areas:HSR...',
-    priority: 'MEDIUM',
-    timestamp: '2 hours ago',
-    likes: 0,
-    comments: 0,
-    shares: 0,
-    views: 0,
-    campaign: 'bellandur',
-    relevanceScore: 20.0
-  }
-]
 
 function PostListItem({ post, isSelected, onClick }: { post: Post; isSelected: boolean; onClick: () => void }) {
   const platformIcons = {
@@ -127,9 +83,110 @@ function PostListItem({ post, isSelected, onClick }: { post: Post; isSelected: b
 }
 
 export default function SocialInboxPage() {
-  const [selectedPost, setSelectedPost] = useState<Post>(samplePosts[0])
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null)
   const [showAddNote, setShowAddNote] = useState(false)
   const [noteText, setNoteText] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [activeTab, setActiveTab] = useState<'posts' | 'notes'>('posts')
+  const [selectedSentiment, setSelectedSentiment] = useState('all')
+  const [selectedPlatform, setSelectedPlatform] = useState('all')
+  const [selectedCampaign, setSelectedCampaign] = useState('all')
+  const [selectedTimeRange, setSelectedTimeRange] = useState('24h')
+  const [sortBy, setSortBy] = useState('date')
+
+  // Fetch posts that need attention/review
+  const { data: apiPosts, loading, error } = useSocialPosts({
+    needsAttention: true,
+    reviewStatus: 'pending',
+    page: 1,
+    limit: 50
+  })
+
+  const { data: inboxStats } = useInboxStats({ timeRange: '7d' })
+
+  // Sample data for when API fails
+  const samplePosts: Post[] = [
+    {
+      id: '1',
+      author: 'BengaluruPolice',
+      platform: 'twitter',
+      content: 'URGENT: Traffic congestion reported on Outer Ring Road. Please avoid the area and use alternative routes.',
+      priority: 'HIGH',
+      timestamp: '2h ago',
+      likes: 1250,
+      comments: 89,
+      shares: 234,
+      views: 25000,
+      campaign: 'Traffic Management',
+      relevanceScore: 95
+    },
+    {
+      id: '2',
+      author: 'KarnatakaPolice',
+      platform: 'facebook',
+      content: 'Safety alert: Multiple accidents reported on MG Road due to poor visibility. Drive with caution.',
+      priority: 'HIGH',
+      timestamp: '4h ago',
+      likes: 890,
+      comments: 156,
+      shares: 123,
+      views: 18000,
+      campaign: 'Public Safety',
+      relevanceScore: 88
+    },
+    {
+      id: '3',
+      author: 'WhitefieldTraffic',
+      platform: 'instagram',
+      content: 'Community complaint: Street lights not working in Whitefield area. Residents concerned about safety.',
+      priority: 'MEDIUM',
+      timestamp: '6h ago',
+      likes: 456,
+      comments: 78,
+      shares: 45,
+      views: 12000,
+      campaign: 'Infrastructure',
+      relevanceScore: 72
+    },
+    {
+      id: '4',
+      author: 'BellandurResident',
+      platform: 'twitter',
+      content: 'Noise pollution complaint: Construction work continuing late at night. Affecting residents sleep.',
+      priority: 'MEDIUM',
+      timestamp: '8h ago',
+      likes: 234,
+      comments: 45,
+      shares: 23,
+      views: 8500,
+      campaign: 'Community Issues',
+      relevanceScore: 65
+    },
+    {
+      id: '5',
+      author: 'KarnatakaCM',
+      platform: 'facebook',
+      content: 'New digital initiatives launched for better citizen services. Feedback welcome from residents.',
+      priority: 'LOW',
+      timestamp: '10h ago',
+      likes: 2100,
+      comments: 345,
+      shares: 567,
+      views: 45000,
+      campaign: 'Digital Initiatives',
+      relevanceScore: 82
+    }
+  ]
+
+  // Use API data if available, otherwise use sample data
+  const posts = apiPosts && apiPosts.length > 0 ? apiPosts : samplePosts
+
+  // Auto-select first post when posts are available and no post is selected
+  useEffect(() => {
+    if (posts && posts.length > 0 && !selectedPost) {
+      setSelectedPost(posts[0])
+    }
+  }, [posts, selectedPost])
 
   return (
     <PageLayout>
@@ -139,49 +196,177 @@ export default function SocialInboxPage() {
           description="New posts from all campaigns"
           actions={
             <div className="w-full">
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-                <div className="relative w-full sm:flex-1 sm:max-w-md">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
+                {/* Tab Toggle */}
+                <div className="flex items-center bg-muted/50 rounded-md border border-border overflow-hidden">
+                  <button 
+                    onClick={() => setActiveTab('posts')}
+                    className={`px-4 py-2 text-sm font-medium transition-all duration-200 border-r border-border ${
+                      activeTab === 'posts' 
+                        ? 'bg-primary/10 text-primary' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                    }`}
+                  >
+                    Posts
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('notes')}
+                    className={`px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                      activeTab === 'notes' 
+                        ? 'bg-primary/10 text-primary' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                    }`}
+                  >
+                    Notes
+                  </button>
+                </div>
+
+                {/* Search Bar */}
+                <div className="relative flex-1 min-w-0">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                   <Input
                     type="text"
                     placeholder="Search posts..."
-                    className="pl-10 pr-4 py-2 text-sm h-9 w-full"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 w-full"
                   />
                 </div>
 
+                {/* Filters Row */}
                 <div className="flex flex-wrap items-center gap-2">
-                  <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none flex-1 sm:flex-none min-w-[120px]">
-                    <option>All Sentiments</option>
-                    <option>Positive</option>
-                    <option>Negative</option>
-                    <option>Neutral</option>
+                  {/* Sentiment Filter */}
+                  <select 
+                    value={selectedSentiment}
+                    onChange={(e) => setSelectedSentiment(e.target.value)}
+                    className="bg-background border border-border rounded-md px-3 py-2 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30"
+                  >
+                    <option value="all">All Sentiments</option>
+                    <option value="POSITIVE">Positive</option>
+                    <option value="NEGATIVE">Negative</option>
+                    <option value="NEUTRAL">Neutral</option>
+                    <option value="MIXED">Mixed</option>
                   </select>
 
-                  <select className="bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none flex-1 sm:flex-none min-w-[120px]">
-                    <option>All Platforms</option>
-                    <option>Facebook</option>
-                    <option>Twitter</option>
-                    <option>Instagram</option>
+                  {/* Platform Filter */}
+                  <select 
+                    value={selectedPlatform}
+                    onChange={(e) => setSelectedPlatform(e.target.value)}
+                    className="bg-background border border-border rounded-md px-3 py-2 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30"
+                  >
+                    <option value="all">All Platforms</option>
+                    <option value="twitter">Twitter</option>
+                    <option value="facebook">Facebook</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="youtube">YouTube</option>
+                    <option value="india-news">India News</option>
                   </select>
 
-                  <select className="hidden md:block bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
-                    <option>All Campaigns</option>
-                    <option>bellandur</option>
+                  {/* Campaign Filter */}
+                  <select 
+                    value={selectedCampaign}
+                    onChange={(e) => setSelectedCampaign(e.target.value)}
+                    className="bg-background border border-border rounded-md px-2 py-2 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 max-w-[10rem] truncate"
+                  >
+                    <option value="all">All Campaigns</option>
+                    <option value="cmgjzn11q0001z2alaq70ckwk">Bengaluru Police</option>
+                    <option value="cmgjzjpf50001z2yqum0gfs8a">Bengaluru Police</option>
+                    <option value="cmgjz4l4k0001z2cknnhlna63">Karnataka</option>
+                    <option value="cmghzsbzu0001z2ks8m3lkqwy">Karnataka</option>
+                    <option value="cmghlcu8i00b1z2ulan0hltsc">Person: Namma Karnataka Sene</option>
+                    <option value="cmggordtg00ahz2ulvpwmh2c2">https://www.facebook.com/share/17Uviu2NRS/</option>
+                    <option value="cmggomfez00adz2ulbx65o7ta">[8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/15hQEYpsJg/ [8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/19QKn8syac/ [8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/1A6jV8udxm/ [8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/17Uviu2NRS/</option>
+                    <option value="cmgf1njtx000hz2ulnb7tt1o5">Namma Karnataka Sene</option>
+                    <option value="cmgf1hd160003z2ul846zyil1">Namma Karnataka Sene</option>
+                    <option value="cmgf0cqjl006tz21oqzh47ko2">Person: kiran_murthy_</option>
+                    <option value="cmgf0b9ox006pz21oxhlst5r7">Person: @kiranmurthy</option>
+                    <option value="cmgf09e56006lz21odzy5zkeb">PAVANKALYAN</option>
+                    <option value="cmgezjz1q0069z21olev19tk3">Person: yenri_mediaa_</option>
+                    <option value="cmgezggpq0065z21owi57rlv5">https://www.instagram.com/stories/ganesh__thanushree_/</option>
+                    <option value="cmgez9r6g005xz21orvu254i0">BANGALORE PROTEST</option>
+                    <option value="cmgeyjmsb004zz21oczivhqs2">BlrCityPolice</option>
+                    <option value="cmgeybbcj004dz21owmdvctzi">Person: @rytdwrong</option>
+                    <option value="cmgey3uou003hz21o1d7v3a8l">#pavankalyan</option>
+                    <option value="cmgexzr2e0035z21olrzgr6qr">@rytdwrong</option>
+                    <option value="cmgexxhfe002xz21oy24q4zyb">pavan kalyan visit</option>
+                    <option value="cmgexvufc002tz21opejgkg61">pavan kalyan visit</option>
+                    <option value="cmgew0hk5001dz21o26089sfy">I LOVE MOHAMMADA</option>
+                    <option value="cmgeuzzte000hz21otshx88k2">Person: BlrCityPolice</option>
+                    <option value="cmgbvyjuj005zz2quv8c7mp28">bengaluru dasara</option>
+                    <option value="cmgazwhd40031z2que2uhbuzh">the wholetruth foods</option>
+                    <option value="cmgamhaxm0019z2qu1ga00opq">social media</option>
+                    <option value="cmgaltvwr000xz2que4fq08v6">ರೈತರ ಭೂಸ್ವಾದಿನ ಹೋರಾಟ</option>
+                    <option value="cmgalozw6000pz2qu6krys0mu">gen-Z karnataka</option>
+                    <option value="cmgal9c16000dz2quurnwe3cj">Person: Kavanagala__kavitegara___anita</option>
+                    <option value="cmgal6hkn0009z2qu72fqfju2">Person: https://www.instagram.com/kavanagala__kavitegara___anita?igsh=MTlmb2dyZzl0YzVwcQ==</option>
+                    <option value="cmgal3i0p0005z2quvmfsxbjf">Person: tourismcares</option>
+                    <option value="cmgakel42001vz2dt29ptboaa">Person: kavanagala_kavitegara_anita</option>
+                    <option value="cmgak4ote001pz2dtf53lu6pq">Person: nasa</option>
+                    <option value="cmgak40vs001dz2dthcg7mzrn">Person: nasa</option>
+                    <option value="cmg4v0oeo0015z25e2napklew">women safety blr</option>
+                    <option value="cmg4uu17s000hz25eiw0gcdwe">kanakpura taluk</option>
+                    <option value="cmg4u8zpr0009z25efza5o89x">whitefield bengaluru</option>
+                    <option value="cmg4tfvqu002dz2hb48gzy7qz">whitefield</option>
+                    <option value="cmg4t110g0023z2hbxbjch5rj">bellandur</option>
+                    <option value="cmg44b9200003z25vdrgrpzi4">bengaluru police</option>
+                    <option value="cmg27ryub004xz2iwa19kbat6">dharmasthala</option>
+                    <option value="cmg1vlcou0019z2iw3jadm3wx">https://www.instagram.com/noel.sdh?igsh=ejE0dXU1dGJpNGFh</option>
+                    <option value="cmg0jamy400j5z2q4smnpy8pi">@karnatakaportfolio_</option>
+                    <option value="cmg0iwdsc00irz2q4bjjsdbip">https://www.instagram.com/share/p/BAIi6rar/M</option>
+                    <option value="cmg0irpnh00inz2q4ros3j5tp">https://www.instagram.com/share/reel/_38TPRUCC</option>
+                    <option value="cmfzfjttw00frz2q42jxyqp4k">MA SALEEM</option>
+                    <option value="cmfzfewgd00fnz2q4i5n7mqrn">BCP</option>
+                    <option value="cmfzb7lb600e9z2q441t9wd9u">manemanepolice</option>
+                    <option value="cmfxwg4fu009lz2q4uzev1rni">S L Bhyrappa</option>
+                    <option value="cmfxwezq6009hz2q4ob76nlst">S L Bhyrappa</option>
+                    <option value="cmfwptjon0049z2q43qv6v35j">vaibhavceramics2025</option>
+                    <option value="cmfwjtiuq0037z2q4hcaxf3cw">dasara</option>
+                    <option value="cmfwjsh1m0031z2q4vjqctbfz">chain snatch</option>
+                    <option value="cmfus0rj4001nz2b5if1stf0d">Banu Mushtaq</option>
+                    <option value="cmfurzgg0001jz2b56jxmo12r">Mysore Dasara</option>
+                    <option value="cmftn1zqa0017z2gnxxjcch1u">modi ji</option>
+                    <option value="cmdmvv64a0005z204lkihy0gl">@blrcitypolice</option>
+                    <option value="cmdk56kqg0001z2yxe0f73hyv">bangalore traffic</option>
                   </select>
 
-                  <select className="hidden md:block bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
-                    <option>Last 24 Hours</option>
-                    <option>Last 7 Days</option>
-                    <option>Last 30 Days</option>
+                  {/* Time Range Filter */}
+                  <select 
+                    value={selectedTimeRange}
+                    onChange={(e) => setSelectedTimeRange(e.target.value)}
+                    className="bg-background border border-border rounded-md px-3 py-2 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30"
+                  >
+                    <option value="30m">Last 30 Minutes</option>
+                    <option value="1h">Last 1 Hour</option>
+                    <option value="6h">Last 6 Hours</option>
+                    <option value="12h">Last 12 Hours</option>
+                    <option value="24h">Last 24 Hours</option>
+                    <option value="1w">Last Week</option>
                   </select>
 
-                  <select className="hidden lg:block bg-background border border-border text-foreground text-sm rounded-lg pl-3 pr-8 py-2 h-9 cursor-pointer hover:bg-accent/20 transition-colors appearance-none">
-                    <option>Sort by Date</option>
-                    <option>Sort by Engagement</option>
-                    <option>Sort by Priority</option>
+                  {/* Sort Filter */}
+                  <select 
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="bg-background border border-border rounded-md px-3 py-2 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30"
+                  >
+                    <option value="date">Sort by Date</option>
+                    <option value="relevance">Sort by Relevance</option>
                   </select>
 
-                  <Button variant="outline" size="sm" className="h-9 hidden sm:block">
+                  {/* Reset Button */}
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      setSelectedSentiment('all')
+                      setSelectedPlatform('all')
+                      setSelectedCampaign('all')
+                      setSelectedTimeRange('24h')
+                      setSortBy('date')
+                      setSearchQuery('')
+                    }}
+                    className="bg-background hover:bg-accent border border-border hover:border-accent/50"
+                  >
                     Reset
                   </Button>
                 </div>
@@ -193,210 +378,255 @@ export default function SocialInboxPage() {
         {/* Main Content */}
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden w-full h-full">
           {/* Left Column - Post List */}
-          <div className="w-full lg:w-[350px] border-r border-border bg-background flex-shrink-0 flex flex-col h-full max-h-[40vh] lg:max-h-none">
+          <div className="w-full lg:w-[300px] border-r border-border bg-background flex-shrink-0 flex flex-col h-full max-h-[40vh] lg:max-h-none">
             <div className="p-3 sm:p-4 border-b border-border flex-shrink-0">
-              <h2 className="text-foreground font-semibold mb-1 text-sm sm:text-base">Inbox (1441)</h2>
+              <h2 className="text-foreground font-semibold mb-1 text-sm sm:text-base">Inbox ({posts?.length || 0})</h2>
               <p className="text-xs text-muted-foreground">New posts that have not been classified yet</p>
             </div>
             <div className="divide-y divide-border flex-1 overflow-y-auto">
-              {samplePosts.map((post) => (
-                <PostListItem
-                  key={post.id}
-                  post={post}
-                  isSelected={selectedPost.id === post.id}
-                  onClick={() => setSelectedPost(post)}
-                />
-              ))}
+              {loading ? (
+                <div className="p-4 space-y-4">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="h-4 bg-secondary rounded w-3/4 mb-2" />
+                      <div className="h-3 bg-secondary rounded w-1/2" />
+                    </div>
+                  ))}
+                </div>
+              ) : posts && posts.length > 0 ? (
+                posts.map((post) => (
+                  <PostListItem
+                    key={post.id}
+                    post={post}
+                    isSelected={selectedPost?.id === post.id}
+                    onClick={() => setSelectedPost(post)}
+                  />
+                ))
+              ) : (
+                <div className="p-8 text-center text-muted-foreground">
+                  <p>No posts requiring attention at the moment.</p>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Middle Column - Post Detail */}
-          <div className="flex-1 overflow-y-auto min-w-0 h-full border-r border-border">
-            <div className="p-4 sm:p-6 max-w-none">
-              {/* Selected Post */}
-              <div className="bg-card border border-border rounded-lg p-6 mb-6 list-animate-in">
-                <div className="flex items-start gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-foreground font-semibold">
-                    {selectedPost.author[0]}
-                  </div>
-                  <div className="flex-1">
-                        <div className="text-foreground font-medium mb-1">{selectedPost.author}</div>
-                        <div className="text-muted-foreground text-sm">
-                      {selectedPost.platform} · {selectedPost.timestamp}
+          {/* Center Column - Post Detail (Main Focus) */}
+          <div className="flex-1 overflow-y-auto min-w-0 h-full max-w-4xl mx-auto">
+            {selectedPost ? (
+              <div className="p-4 sm:p-8 max-w-4xl mx-auto">
+                {/* Selected Post - Centered and Prominent */}
+                <div className="bg-card border border-border rounded-xl p-8 mb-8 list-animate-in shadow-sm">
+                  <div className="flex items-start gap-4 mb-6">
+                    <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-foreground font-semibold text-lg">
+                      {selectedPost.author[0]}
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-foreground font-semibold text-lg mb-1">{selectedPost.author}</div>
+                      <div className="text-muted-foreground text-sm flex items-center gap-2">
+                        <span className="capitalize">{selectedPost.platform}</span>
+                        <span>•</span>
+                        <span>{selectedPost.timestamp}</span>
+                        <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
+                          selectedPost.priority === 'HIGH' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' :
+                          selectedPost.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' :
+                          'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                        }`}>
+                          {selectedPost.priority}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                    <p className="text-foreground/90 mb-4 leading-relaxed whitespace-pre-wrap break-words">{selectedPost.content}</p>
+                  <p className="text-foreground/90 mb-6 leading-relaxed text-base whitespace-pre-wrap break-words">{selectedPost.content}</p>
 
-                <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center justify-between pt-6 border-t border-border">
+                    <div className="flex items-center gap-8">
+                      <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+                        <Heart className="w-5 h-5" />
+                        <span className="font-medium">{selectedPost.likes.toLocaleString()}</span>
+                      </button>
+                      <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+                        <MessageCircle className="w-5 h-5" />
+                        <span className="font-medium">{selectedPost.comments.toLocaleString()}</span>
+                      </button>
+                      <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+                        <Share2 className="w-5 h-5" />
+                        <span className="font-medium">{selectedPost.shares.toLocaleString()}</span>
+                      </button>
+                    </div>
                     <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-                      <Heart className="w-4 h-4" />
-                      <span>{selectedPost.likes}</span>
-                    </button>
-                    <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-                      <MessageCircle className="w-4 h-4" />
-                      <span>{selectedPost.comments}</span>
-                    </button>
-                    <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-                      <Share2 className="w-4 h-4" />
-                      <span>{selectedPost.shares}</span>
+                      <Eye className="w-5 h-5" />
+                      <span className="font-medium">{selectedPost.views.toLocaleString()} views</span>
                     </button>
                   </div>
-                  <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm">
-                    <span>View</span>
-                    <Eye className="w-4 h-4" />
-                    <span>{selectedPost.views}</span>
-                  </button>
-                </div>
-              </div>
-
-                  {/* AI Analysis */}
-                  <div className="bg-card border border-border rounded-lg p-6 mb-6 list-animate-in">
-                    <h3 className="text-foreground font-semibold mb-4">AI Analysis</h3>
-                
-                <div className="mb-6">
-                  <h4 className="text-muted-foreground text-sm font-medium mb-2">Summary</h4>
-                      <p className="text-foreground/90 text-sm leading-relaxed whitespace-pre-wrap break-words">
-                    Azin Naushad and a friend are seeking a 2BHK flat or two rooms in a 3BHK with flatmates in HSR, BTM, Bellandur, or CV Raman Nagar, with a budget of 15-18k per person. They are working professionals looking to move in by the end of the current month.
-                  </p>
                 </div>
 
-                <div>
-                  <h4 className="text-muted-foreground text-sm font-medium mb-2">Relevance Score</h4>
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
+                {/* Post Analytics - Centered */}
+                <div className="bg-card border border-border rounded-xl p-8 mb-8 shadow-sm">
+                  <h3 className="text-foreground font-semibold text-xl mb-6">Post Analytics</h3>
+                  
+                  <div className="mb-8">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-base text-muted-foreground">Relevance Score</span>
+                      <span className="text-foreground font-semibold text-lg">{selectedPost.relevanceScore}%</span>
+                    </div>
+                    <div className="w-full bg-secondary rounded-full h-3">
                       <div
-                        className="h-full bg-primary/60 rounded-full"
+                        className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500"
                         style={{ width: `${selectedPost.relevanceScore}%` }}
                       />
                     </div>
-                    <span className="text-foreground font-medium text-sm">{selectedPost.relevanceScore}%</span>
                   </div>
-                </div>
-              </div>
 
-                  {/* Engagement */}
-                  <div className="bg-card border border-border rounded-lg p-4 sm:p-6">
-                    <h3 className="text-foreground font-semibold mb-4">Engagement</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white mb-1">{selectedPost.likes}</div>
-                    <div className="text-xs text-zinc-600 dark:text-zinc-500">Likes</div>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                      <div className="text-3xl font-bold text-foreground mb-2">{selectedPost.likes.toLocaleString()}</div>
+                      <div className="text-sm text-muted-foreground">Likes</div>
+                    </div>
+                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                      <div className="text-3xl font-bold text-foreground mb-2">{selectedPost.shares.toLocaleString()}</div>
+                      <div className="text-sm text-muted-foreground">Shares</div>
+                    </div>
+                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                      <div className="text-3xl font-bold text-foreground mb-2">{selectedPost.comments.toLocaleString()}</div>
+                      <div className="text-sm text-muted-foreground">Comments</div>
+                    </div>
+                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                      <div className="text-3xl font-bold text-foreground mb-2">{selectedPost.views.toLocaleString()}</div>
+                      <div className="text-sm text-muted-foreground">Views</div>
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white mb-1">{selectedPost.shares}</div>
-                    <div className="text-xs text-zinc-600 dark:text-zinc-500">Shares</div>
+                </div>
+
+                {/* Actions - Centered */}
+                <div className="bg-card border border-border rounded-xl p-8 mb-8 shadow-sm">
+                  <h3 className="text-foreground font-semibold text-xl mb-6">Actions</h3>
+                  <div className="flex flex-wrap gap-3 justify-center">
+                    <Button variant="outline" size="lg" className="min-w-[140px]">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add to Campaign
+                    </Button>
+                    <Button variant="outline" size="lg" className="min-w-[140px]">
+                      Flag for Review
+                    </Button>
+                    <Button variant="outline" size="lg" className="min-w-[140px]">
+                      Mark as Read
+                    </Button>
+                    <Button variant="outline" size="lg" className="min-w-[140px]">
+                      Archive
+                    </Button>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white mb-1">{selectedPost.comments}</div>
-                    <div className="text-xs text-zinc-600 dark:text-zinc-500">Comments</div>
+                </div>
+
+                {/* Notes - Centered */}
+                <div className="bg-card border border-border rounded-xl p-8 shadow-sm">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-foreground font-semibold text-xl">Notes</h3>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={() => setShowAddNote(!showAddNote)}
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Note
+                    </Button>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white mb-1">{selectedPost.views}</div>
-                    <div className="text-xs text-zinc-600 dark:text-zinc-500">Views</div>
+
+                  {showAddNote && (
+                    <div className="mb-6">
+                      <Textarea
+                        placeholder="Add your note here..."
+                        value={noteText}
+                        onChange={(e) => setNoteText(e.target.value)}
+                        className="mb-4 min-h-[100px]"
+                      />
+                      <div className="flex gap-3 justify-center">
+                        <Button size="lg" onClick={() => {
+                          // Handle save note
+                          setShowAddNote(false)
+                          setNoteText('')
+                        }}>
+                          Save Note
+                        </Button>
+                        <Button variant="outline" size="lg" onClick={() => {
+                          setShowAddNote(false)
+                          setNoteText('')
+                        }}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <div className="text-center text-muted-foreground py-8">
+                      No notes added yet.
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center text-muted-foreground">
+                  <div className="text-6xl mb-4">📧</div>
+                  <h3 className="text-xl font-semibold mb-2">Select a post from the inbox</h3>
+                  <p>Choose a post from the left sidebar to view detailed information and analytics.</p>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Right Column - Unified Notes & Post Details */}
-          <div className="w-full lg:w-[320px] bg-background flex-shrink-0 h-full flex flex-col hidden lg:flex">
-            {/* Notes Section */}
-            <div className="p-3 sm:p-4 border-b border-border flex-shrink-0">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-foreground font-semibold">Notes & Analysis</h3>
-                <Button 
-                  size="sm" 
-                  className="gap-2 h-8 text-xs"
-                  onClick={() => setShowAddNote(true)}
-                >
-                  <Plus className="w-3 h-3" />
-                  Add Note
-                </Button>
-              </div>
-              <div className="max-h-48 overflow-y-auto">
-                {showAddNote ? (
+          {/* Right Column - Quick Details */}
+          <div className="w-full lg:w-[320px] bg-muted/30 p-4 sm:p-6 overflow-y-auto">
+            <h3 className="text-foreground font-semibold mb-4">Quick Details</h3>
+            
+            {selectedPost ? (
+              <div className="space-y-4">
+                <div className="bg-card border border-border rounded-lg p-4">
                   <div className="space-y-3">
-                    <Textarea
-                      placeholder="Add your note here..."
-                      value={noteText}
-                      onChange={(e) => setNoteText(e.target.value)}
-                      className="min-h-[80px] resize-none"
-                    />
-                    <div className="flex gap-2">
-                      <Button 
-                        size="sm" 
-                        onClick={() => {
-                          // Here you would save the note
-                          console.log('Note saved:', noteText)
-                          setNoteText('')
-                          setShowAddNote(false)
-                        }}
-                      >
-                        Save Note
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => {
-                          setNoteText('')
-                          setShowAddNote(false)
-                        }}
-                      >
-                        Cancel
-                      </Button>
+                    <div className="flex items-center justify-between py-2">
+                      <span className="text-sm text-muted-foreground">Platform:</span>
+                      <span className="text-sm text-foreground font-medium capitalize">{selectedPost.platform}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-2">
+                      <span className="text-sm text-muted-foreground">Posted:</span>
+                      <span className="text-sm text-foreground font-medium">{selectedPost.timestamp}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-2">
+                      <span className="text-sm text-muted-foreground">Author:</span>
+                      <span className="text-sm text-foreground font-medium">{selectedPost.author}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-2">
+                      <span className="text-sm text-muted-foreground">Priority:</span>
+                      <span className={`text-sm font-medium px-2 py-1 rounded-full ${
+                        selectedPost.priority === 'HIGH' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' :
+                        selectedPost.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' :
+                        'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                      }`}>
+                        {selectedPost.priority}
+                      </span>
+                    </div>
+                    <div className="pt-2 border-t border-border">
+                      <div className="flex items-center justify-between py-2">
+                        <span className="text-sm text-muted-foreground">Relevance:</span>
+                        <span className="text-sm text-foreground font-medium">{selectedPost.relevanceScore}%</span>
+                      </div>
                     </div>
                   </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="w-12 h-12 mx-auto mb-3 rounded-lg bg-muted flex items-center justify-center">
-                      <MessageCircle className="w-6 h-6 text-muted-foreground" />
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-2">No notes yet</p>
-                    <p className="text-xs text-muted-foreground">Add your first note</p>
+                </div>
+
+                <div className="mt-6">
+                  <h3 className="text-foreground font-semibold mb-3">Campaign</h3>
+                  <div className="bg-muted border border-border rounded-lg px-3 py-2">
+                    <span className="text-sm text-foreground">{selectedPost.campaign}</span>
                   </div>
-                )}
-              </div>
-            </div>
-
-            {/* Post Details */}
-            <div className="p-4 border-t border-border flex-1 overflow-y-auto">
-              <h3 className="text-foreground font-semibold mb-3">Post Details</h3>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-sm text-muted-foreground">Platform:</span>
-                  <span className="text-sm text-foreground font-medium">{selectedPost.platform}</span>
-                </div>
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-sm text-muted-foreground">Posted:</span>
-                  <span className="text-sm text-foreground font-medium">{selectedPost.timestamp}</span>
-                </div>
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-sm text-muted-foreground">Author:</span>
-                  <span className="text-sm text-foreground font-medium">{selectedPost.author}</span>
-                </div>
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-sm text-muted-foreground">Priority:</span>
-                  <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">{selectedPost.priority}</span>
-                </div>
-                <div className="pt-2 border-t border-border">
-                  <button className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors">
-                    View Original Post
-                  </button>
                 </div>
               </div>
-
-              {/* Campaign */}
-              <div className="mt-6">
-                <h3 className="text-foreground font-semibold mb-3">Campaign</h3>
-                <div className="bg-muted border border-border rounded-lg px-3 py-2">
-                  <span className="text-sm text-foreground">{selectedPost.campaign}</span>
-                </div>
+            ) : (
+              <div className="text-center text-muted-foreground">
+                <p>Select a post to view details.</p>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
