@@ -413,27 +413,27 @@ function SocialFeedContent() {
         />
 
         {/* Filters Section - Below Header */}
-        <div className="border-b border-border bg-background p-3 sm:p-4">
-          <div className="flex flex-col gap-3">
+        <div className="border-b border-border bg-background/50 backdrop-blur-sm">
+          <div className="p-4 sm:p-6">
             {/* Search Bar */}
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <div className="relative w-full mb-4">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="text"
                 placeholder="Search posts..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 text-sm h-9 w-full"
+                className="pl-11 pr-4 h-11 w-full text-sm bg-background/80"
               />
             </div>
 
-            {/* Filter Buttons Row 1 - Quick Filters */}
-            <div className="flex flex-wrap items-center gap-2">
+            {/* Quick Filter Buttons */}
+            <div className="flex flex-wrap items-center gap-2 mb-4">
               <Button
                 variant={activeFilter === 'latest-posts' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => handleFilterChange('latest-posts')}
-                className="h-8 text-xs"
+                className="h-9 px-4 rounded-full"
               >
                 Latest
               </Button>
@@ -441,7 +441,7 @@ function SocialFeedContent() {
                 variant={activeFilter === 'high-impact' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => handleFilterChange('high-impact')}
-                className="h-8 text-xs"
+                className="h-9 px-4 rounded-full"
               >
                 Top Posts
               </Button>
@@ -449,7 +449,7 @@ function SocialFeedContent() {
                 variant={activeFilter === 'positive' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => handleFilterChange('positive')}
-                className="h-8 text-xs"
+                className="h-9 px-4 rounded-full"
               >
                 Positive
               </Button>
@@ -457,19 +457,19 @@ function SocialFeedContent() {
                 variant={activeFilter === 'negative' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => handleFilterChange('negative')}
-                className="h-8 text-xs"
+                className="h-9 px-4 rounded-full"
               >
                 Negative
               </Button>
             </div>
 
-            {/* Filter Dropdowns Row 2 */}
-            <div className="flex flex-wrap items-center gap-2">
-              <select className="bg-background border border-border text-foreground text-xs rounded-lg px-3 py-1.5 h-8 cursor-pointer hover:bg-accent/20 transition-colors">
+            {/* Advanced Filters */}
+            <div className="flex flex-wrap items-center gap-3">
+              <select className="bg-background border border-border text-foreground text-sm rounded-lg px-4 py-2 h-10 cursor-pointer hover:bg-accent/20 transition-colors min-w-[140px]">
                 <option>All Campaigns</option>
               </select>
 
-              <select className="bg-background border border-border text-foreground text-xs rounded-lg px-3 py-1.5 h-8 cursor-pointer hover:bg-accent/20 transition-colors">
+              <select className="bg-background border border-border text-foreground text-sm rounded-lg px-4 py-2 h-10 cursor-pointer hover:bg-accent/20 transition-colors min-w-[140px]">
                 <option>All Platforms</option>
                 <option>Facebook</option>
                 <option>Twitter</option>
@@ -477,14 +477,14 @@ function SocialFeedContent() {
                 <option>News</option>
               </select>
 
-              <select className="bg-background border border-border text-foreground text-xs rounded-lg px-3 py-1.5 h-8 cursor-pointer hover:bg-accent/20 transition-colors">
+              <select className="bg-background border border-border text-foreground text-sm rounded-lg px-4 py-2 h-10 cursor-pointer hover:bg-accent/20 transition-colors min-w-[130px]">
                 <option>All Media</option>
                 <option>With Images</option>
                 <option>With Videos</option>
                 <option>Text Only</option>
               </select>
 
-              <select className="bg-background border border-border text-foreground text-xs rounded-lg px-3 py-1.5 h-8 cursor-pointer hover:bg-accent/20 transition-colors">
+              <select className="bg-background border border-border text-foreground text-sm rounded-lg px-4 py-2 h-10 cursor-pointer hover:bg-accent/20 transition-colors min-w-[130px]">
                 <option>All Time</option>
                 <option>Last Hour</option>
                 <option>Last 24 Hours</option>
@@ -492,9 +492,9 @@ function SocialFeedContent() {
                 <option>Last 30 Days</option>
               </select>
 
-              <Button variant="outline" size="sm" className="gap-2 h-8 ml-auto">
-                <Download className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline text-xs">Export</span>
+              <Button variant="outline" size="sm" className="gap-2 h-10 ml-auto">
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">Export</span>
               </Button>
             </div>
           </div>
