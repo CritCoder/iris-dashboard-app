@@ -186,15 +186,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     checkAuth()
   }, [])
 
-  // Redirect to login if not authenticated and not on a public route
-  useEffect(() => {
-    if (!loading && !user) {
-      const publicRoutes = ['/login', '/signup', '/forgot-password', '/login/verify-otp']
-      if (!publicRoutes.includes(pathname)) {
-        router.push('/login')
-      }
-    }
-  }, [user, loading, pathname, router])
+  // Note: Redirect logic is now handled by ProtectedRoute component
+  // This allows authentication pages to render without interference
 
   const value: AuthContextType = {
     user,
