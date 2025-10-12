@@ -50,21 +50,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return
       }
 
-      // For testing purposes, if it's a mock token, create a mock user
-      if (token.startsWith('mock_token_')) {
-        const mockUser = {
-          id: '1',
-          email: 'test@example.com',
-          name: 'Test User',
-          role: 'user'
-        }
-        setUser(mockUser)
-        setLoading(false)
-        return
-      }
-
-      // Original API call (commented out for testing)
-      /*
       const response = await fetch('https://irisnet.wiredleap.com/api/auth/me', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -72,8 +57,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         },
       })
 
+      console.log('Auth check response status:', response.status) // Debug log
+
       if (response.ok) {
         const result = await response.json()
+        console.log('Auth check response:', result) // Debug log
+        
         if (result.success) {
           setUser(result.data)
         } else {
@@ -81,10 +70,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setUser(null)
         }
       } else {
+        console.log('Auth check failed with status:', response.status)
         localStorage.removeItem('auth_token')
         setUser(null)
       }
-      */
     } catch (error) {
       console.error('Auth check failed:', error)
       localStorage.removeItem('auth_token')
@@ -124,28 +113,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const otpLogin = async (data: { phoneNumber: string; otp: string }): Promise<boolean> => {
     try {
-      // For testing purposes, accept any 6-digit OTP
-      if (data.otp.length === 6 && /^\d+$/.test(data.otp)) {
-        // Mock successful login for testing
-        const mockToken = 'mock_token_' + Date.now()
-        const mockUser = {
-          id: '1',
-          email: data.phoneNumber + '@example.com',
-          name: 'Test User',
-          role: 'user'
-        }
-        
-        localStorage.setItem('auth_token', mockToken)
-        setUser(mockUser)
-        toast.success('Login successful! (Mock authentication)')
-        return true
-      } else {
-        toast.error('Please enter a valid 6-digit OTP')
-        return false
-      }
-      
-      // Original API call (commented out for testing)
-      /*
       const response = await fetch('https://irisnet.wiredleap.com/api/auth/otpLogin', {
         method: 'POST',
         headers: {
@@ -155,17 +122,36 @@ export function AuthProvider({ children }: AuthProviderProps) {
       })
 
       const result = await response.json()
+      console.log('OTP Login Response:', result) // Debug log
 
-      if (result.success && result.data?.token) {
-        localStorage.setItem('auth_token', result.data.token)
-        setUser(result.data.user)
-        toast.success('Login successful!')
-        return true
+      if (result.success) {
+        // Handle different possible response structures
+        const token = result.data?.token || result.token || result.accessToken
+        const user = result.data?.user || result.user || result.data
+        
+        if (token) {
+          localStorage.setItem('auth_token', token)
+          if (user) {
+            setUser(user)
+          } else {
+            // If no user data, create a basic user object
+            setUser({
+              id: '1',
+              email: data.phoneNumber + '@example.com',
+              name: 'User',
+              role: 'user'
+            })
+          }
+          toast.success('Login successful!')
+          return true
+        } else {
+          toast.error('No authentication token received')
+          return false
+        }
       } else {
-        toast.error(result.error?.message || 'OTP verification failed')
+        toast.error(result.error?.message || result.message || 'OTP verification failed')
         return false
       }
-      */
     } catch (error) {
       console.error('OTP login error:', error)
       toast.error('OTP verification failed. Please try again.')

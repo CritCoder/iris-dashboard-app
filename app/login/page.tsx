@@ -60,21 +60,36 @@ export default function LoginPage() {
               toast.error(result.error?.message || 'Login failed')
             }
           } else {
-            // For mobile login, mock OTP sending for testing
+            // For mobile login, send OTP
             const phoneNumber = `${formData.countryCode}${formData.mobile}`
-            
-            // Mock successful OTP sending
-            toast.success('OTP sent successfully! (Mock)')
-            
-            // Store the contact info in sessionStorage for OTP verification page
-            const contactInfo = {
-              method: loginMethod,
-              value: phoneNumber,
-              displayValue: `${formData.countryCode} ${formData.mobile}`
-            }
+            const response = await fetch('https://irisnet.wiredleap.com/api/auth/otpLogin', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                phoneNumber: phoneNumber
+              })
+            })
 
-            sessionStorage.setItem('otpContactInfo', JSON.stringify(contactInfo))
-            router.push('/login/verify-otp')
+            const result = await response.json()
+            console.log('OTP Send Response:', result) // Debug log
+
+            if (result.success) {
+              toast.success('OTP sent successfully!')
+              
+              // Store the contact info in sessionStorage for OTP verification page
+              const contactInfo = {
+                method: loginMethod,
+                value: phoneNumber,
+                displayValue: `${formData.countryCode} ${formData.mobile}`
+              }
+
+              sessionStorage.setItem('otpContactInfo', JSON.stringify(contactInfo))
+              router.push('/login/verify-otp')
+            } else {
+              toast.error(result.error?.message || result.message || 'Failed to send OTP')
+            }
           }
     } catch (error) {
       toast.error('Failed to send OTP. Please try again.')
