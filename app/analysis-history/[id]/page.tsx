@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
 import { Download, Play, Square, RefreshCw, ChevronDown, ExternalLink, Heart, MessageCircle, Share2, Eye } from 'lucide-react'
@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { FacebookIcon, InstagramIcon, TwitterIcon } from '@/components/ui/platform-icons'
 import Link from 'next/link'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import jsPDF from 'jspdf'
+import html2canvas from 'html2canvas'
 
 interface Post {
   id: string
@@ -156,12 +158,70 @@ export default function CampaignDetailPage() {
   const [selectedPlatform, setSelectedPlatform] = useState('all')
   const [isMonitoring, setIsMonitoring] = useState(true)
   const [isExporting, setIsExporting] = useState(false)
+  const contentRef = useRef<HTMLDivElement>(null)
 
   const filteredPosts = samplePosts.filter(post => {
     const matchesSentiment = selectedSentiment === 'all' || post.sentiment === selectedSentiment
     const matchesPlatform = selectedPlatform === 'all' || post.platform === selectedPlatform
     return matchesSentiment && matchesPlatform
   })
+
+  const handleExportPDF = async () => {
+    if (!contentRef.current) return
+
+    try {
+      setIsExporting(true)
+
+      // Create a new jsPDF instance
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      })
+
+      // Get the content element
+      const content = contentRef.current
+
+      // Convert HTML to canvas
+      const canvas = await html2canvas(content, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#1a1a1a'
+      })
+
+      // Calculate dimensions
+      const imgWidth = 210 // A4 width in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      const pageHeight = 297 // A4 height in mm
+      let heightLeft = imgHeight
+      let position = 0
+
+      // Convert canvas to image
+      const imgData = canvas.toDataURL('image/png')
+
+      // Add image to PDF (with pagination if needed)
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+      heightLeft -= pageHeight
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight
+        pdf.addPage()
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+        heightLeft -= pageHeight
+      }
+
+      // Save the PDF
+      const date = new Date().toISOString().split('T')[0]
+      pdf.save(`bengaluru-police-campaign-${date}.pdf`)
+
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      alert('Failed to generate PDF. Please try again.')
+    } finally {
+      setIsExporting(false)
+    }
+  }
 
   return (
     <PageLayout>
@@ -170,9 +230,15 @@ export default function CampaignDetailPage() {
           title="Bengaluru Police"
           actions={
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={handleExportPDF}
+                disabled={isExporting}
+              >
                 <Download className="w-4 h-4" />
-                Export PDF
+                {isExporting ? 'Generating...' : 'Export PDF'}
               </Button>
               <Button variant="outline" size="sm" className="gap-2 bg-green-900/20 border-green-800 text-green-400 hover:bg-green-900/30">
                 <Play className="w-4 h-4" />
@@ -268,7 +334,7 @@ export default function CampaignDetailPage() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex overflow-hidden">
+        <div ref={contentRef} className="flex-1 flex overflow-hidden">
           {/* Left Column - Analytics */}
           <div className="w-full lg:w-1/2 border-r border-border bg-background p-4 sm:p-6 overflow-y-auto">
             <div className="space-y-6">

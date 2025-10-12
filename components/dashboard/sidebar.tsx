@@ -157,11 +157,6 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 function SocialFeedSubmenu() {
   return (
     <div className="py-2 animate-in fade-in-50 slide-in-from-left-2 duration-150">
-      <div className="px-4 py-3 border-b border-border">
-        <h3 className="text-sm font-semibold text-foreground">Social Feed</h3>
-        <p className="text-xs text-muted-foreground mt-0.5">Browse and filter social content</p>
-      </div>
-      
       <div className="py-2">
         <SectionLabel>Discover</SectionLabel>
         <div className="px-2 space-y-1">
@@ -202,11 +197,6 @@ function SocialFeedSubmenu() {
 function LocationsSubmenu() {
   return (
     <div className="py-2 animate-in fade-in-50 slide-in-from-left-2 duration-150">
-      <div className="px-4 py-3 border-b border-border">
-        <h3 className="text-sm font-semibold text-foreground">Locations</h3>
-        <p className="text-xs text-muted-foreground mt-0.5">Explore and filter by location</p>
-      </div>
-      
       <div className="py-2">
         <SectionLabel>Primary</SectionLabel>
         <div className="px-2 space-y-1">
@@ -240,11 +230,6 @@ function LocationsSubmenu() {
 function EntitiesSubmenu() {
   return (
     <div className="py-2 animate-in fade-in-50 slide-in-from-left-2 duration-150">
-      <div className="px-4 py-3 border-b border-border">
-        <h3 className="text-sm font-semibold text-foreground">Entities</h3>
-        <p className="text-xs text-muted-foreground mt-0.5">Explore and filter entities</p>
-      </div>
-      
       <div className="py-2">
         <SectionLabel>Primary</SectionLabel>
         <div className="px-2 space-y-1">
@@ -293,11 +278,6 @@ function EntitiesSubmenu() {
 function ProfilesSubmenu() {
   return (
     <div className="py-2 animate-in fade-in-50 slide-in-from-left-2 duration-150">
-      <div className="px-4 py-3 border-b border-border">
-        <h3 className="text-sm font-semibold text-foreground">Profiles</h3>
-        <p className="text-xs text-muted-foreground mt-0.5">Explore and filter profiles</p>
-      </div>
-      
       <div className="py-2">
         <SectionLabel>Primary</SectionLabel>
         <div className="px-2 space-y-1">
@@ -331,11 +311,6 @@ function ProfilesSubmenu() {
 function EntitySearchSubmenu() {
   return (
     <div className="py-2 animate-in fade-in-50 slide-in-from-left-2 duration-150">
-      <div className="px-4 py-3 border-b border-border">
-        <h3 className="text-sm font-semibold text-foreground">Entity Search</h3>
-        <p className="text-xs text-muted-foreground mt-0.5">Advanced search and intelligence tools</p>
-      </div>
-      
       <div className="py-2">
         <SectionLabel>Search</SectionLabel>
         <div className="px-2 space-y-1">
