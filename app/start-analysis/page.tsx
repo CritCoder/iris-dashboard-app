@@ -195,7 +195,7 @@ export default function StartAnalysisPage() {
             {/* Select Platforms */}
             <SlideUp className="mb-8">
               <h3 className="text-foreground font-semibold mb-4">Select Platforms</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {(platforms || []).map((platform) => {
                   const IconComponent = platform.icon
                   return (
