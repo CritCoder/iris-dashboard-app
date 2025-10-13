@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
-import { Download, Play, Square, RefreshCw, ChevronDown, ExternalLink, Heart, MessageCircle, Share2, Eye } from 'lucide-react'
+import { Download, Play, Square, RefreshCw, ChevronDown, ExternalLink, Heart, MessageCircle, Share2, Eye, Bell, BarChart3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { FacebookIcon, InstagramIcon, TwitterIcon } from '@/components/ui/platform-icons'
@@ -11,6 +11,8 @@ import Link from 'next/link'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
+import { CampaignNotificationSettings } from '@/components/notifications/campaign-notification-settings'
+import { useParams } from 'next/navigation'
 
 interface Post {
   id: string
@@ -116,48 +118,53 @@ function PostCard({ post }: { post: Post }) {
   const IconComponent = platformIcons[post.platform]
 
   return (
-    <div className={`bg-card border rounded-lg p-4 hover:bg-accent/20 transition-colors ${sentimentColors[post.sentiment]}`}>
-      <div className="flex items-start gap-3 mb-3">
-        <div className="w-6 h-6 flex items-center justify-center">
-          <IconComponent className="w-5 h-5 text-muted-foreground" />
+    <Link href={`/analysis-history/1/post/${post.id}`}>
+      <div className={`bg-card border rounded-lg p-4 hover:bg-accent/20 transition-colors cursor-pointer ${sentimentColors[post.sentiment]}`}>
+        <div className="flex items-start gap-3 mb-3">
+          <div className="w-6 h-6 flex items-center justify-center">
+            <IconComponent className="w-5 h-5 text-muted-foreground" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-foreground font-medium text-sm mb-1">{post.author}</div>
+            <div className="text-muted-foreground text-xs mb-2">
+              {post.platform} - {post.timestamp}
+            </div>
+          </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-foreground font-medium text-sm mb-1">{post.author}</div>
-          <div className="text-muted-foreground text-xs mb-2">
-            {post.platform} - {post.timestamp}
+
+        <p className="text-foreground/90 text-sm mb-4 leading-relaxed">{post.content}</p>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Heart className="w-3 h-3" /> {post.likes}
+            </span>
+            <span className="flex items-center gap-1">
+              <MessageCircle className="w-3 h-3" /> {post.comments}
+            </span>
+            <span className="flex items-center gap-1">
+              <Share2 className="w-3 h-3" /> {post.shares}
+            </span>
+          </div>
+          <div className="flex items-center gap-1 text-xs text-primary">
+            <Eye className="w-3 h-3" />
+            <span>View</span>
+            <ExternalLink className="w-3 h-3" />
           </div>
         </div>
       </div>
-      
-      <p className="text-foreground/90 text-sm mb-4 leading-relaxed">{post.content}</p>
-      
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <Heart className="w-3 h-3" /> {post.likes}
-          </span>
-          <span className="flex items-center gap-1">
-            <MessageCircle className="w-3 h-3" /> {post.comments}
-          </span>
-          <span className="flex items-center gap-1">
-            <Share2 className="w-3 h-3" /> {post.shares}
-          </span>
-        </div>
-        <Button variant="ghost" size="sm" className="h-8 px-2">
-          <Eye className="w-3 h-3 mr-1" />
-          View
-          <ExternalLink className="w-3 h-3 ml-1" />
-        </Button>
-      </div>
-    </div>
+    </Link>
   )
 }
 
 export default function CampaignDetailPage() {
+  const params = useParams()
+  const campaignId = params.id as string
   const [selectedSentiment, setSelectedSentiment] = useState('all')
   const [selectedPlatform, setSelectedPlatform] = useState('all')
   const [isMonitoring, setIsMonitoring] = useState(true)
   const [isExporting, setIsExporting] = useState(false)
+  const [activeTab, setActiveTab] = useState<'analytics' | 'notifications'>('analytics')
   const contentRef = useRef<HTMLDivElement>(null)
 
   const filteredPosts = samplePosts.filter(post => {
@@ -286,9 +293,40 @@ export default function CampaignDetailPage() {
           }
         />
 
+        {/* Tabs */}
+        <div className="border-b border-border bg-background">
+          <div className="flex items-center gap-2 px-4 sm:px-6">
+            <Button
+              variant="ghost"
+              onClick={() => setActiveTab('analytics')}
+              className={`gap-2 rounded-none border-b-2 ${
+                activeTab === 'analytics'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <BarChart3 className="w-4 h-4" />
+              Analytics
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => setActiveTab('notifications')}
+              className={`gap-2 rounded-none border-b-2 ${
+                activeTab === 'notifications'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Bell className="w-4 h-4" />
+              Notifications
+            </Button>
+          </div>
+        </div>
+
         {/* Stats Bar */}
-        <div className="border-b border-border bg-background px-4 sm:px-6 py-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        {activeTab === 'analytics' && (
+          <div className="border-b border-border bg-background px-4 sm:px-6 py-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-purple-400">129</div>
@@ -361,9 +399,11 @@ export default function CampaignDetailPage() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Main Content */}
-        <div ref={contentRef} className="flex-1 flex overflow-hidden">
+        {activeTab === 'analytics' ? (
+          <div ref={contentRef} className="flex-1 flex overflow-hidden">
           {/* Left Column - Analytics */}
           <div className="w-full lg:w-1/2 border-r border-border bg-background p-4 sm:p-6 overflow-y-auto">
             <div className="space-y-6">
@@ -488,6 +528,16 @@ export default function CampaignDetailPage() {
             </div>
           </div>
         </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+            <div className="max-w-4xl mx-auto">
+              <CampaignNotificationSettings
+                campaignId={campaignId}
+                campaignName="Bengaluru Police"
+              />
+            </div>
+          </div>
+        )}
       </div>
     </PageLayout>
   )

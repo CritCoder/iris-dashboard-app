@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { FacebookIcon, InstagramIcon, TwitterIcon } from '@/components/ui/platform-icons'
+import Link from 'next/link'
 
 interface Organization {
   id: number
@@ -300,41 +301,43 @@ function PostCard({ post }: { post: Post }) {
   const IconComponent = platformIcons[post.platform]
 
   return (
-    <div className={`bg-card border rounded-lg p-4 hover:bg-accent/20 transition-colors ${sentimentColors[post.sentiment]}`}>
-      <div className="flex items-start gap-3 mb-3">
-        <div className="w-6 h-6 flex items-center justify-center">
-          <IconComponent className="w-5 h-5 text-muted-foreground" />
+    <Link href={`/analysis-history/1/post/${post.id}`}>
+      <div className={`bg-card border rounded-lg p-4 hover:bg-accent/20 transition-colors cursor-pointer ${sentimentColors[post.sentiment]}`}>
+        <div className="flex items-start gap-3 mb-3">
+          <div className="w-6 h-6 flex items-center justify-center">
+            <IconComponent className="w-5 h-5 text-muted-foreground" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-foreground font-medium text-sm mb-1">{post.author}</div>
+            <div className="text-muted-foreground text-xs mb-2">
+              {post.platform} - {post.timestamp}
+            </div>
+          </div>
+          <Badge variant="secondary" className="text-xs">
+            {post.sentiment}
+          </Badge>
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-foreground font-medium text-sm mb-1">{post.author}</div>
-          <div className="text-muted-foreground text-xs mb-2">
-            {post.platform} - {post.timestamp}
+
+        <p className="text-foreground/90 text-sm mb-4 leading-relaxed">{post.content}</p>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Heart className="w-3 h-3" /> {post.likes}
+            </span>
+            <span className="flex items-center gap-1">
+              <MessageCircle className="w-3 h-3" /> {post.comments}
+            </span>
+            <span className="flex items-center gap-1">
+              <Share2 className="w-3 h-3" /> {post.shares}
+            </span>
+            <span className="flex items-center gap-1">
+              <Eye className="w-3 h-3" /> {post.views}
+            </span>
           </div>
         </div>
-        <Badge variant="secondary" className="text-xs">
-          {post.sentiment}
-        </Badge>
       </div>
-
-      <p className="text-foreground/90 text-sm mb-4 leading-relaxed">{post.content}</p>
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <Heart className="w-3 h-3" /> {post.likes}
-          </span>
-          <span className="flex items-center gap-1">
-            <MessageCircle className="w-3 h-3" /> {post.comments}
-          </span>
-          <span className="flex items-center gap-1">
-            <Share2 className="w-3 h-3" /> {post.shares}
-          </span>
-          <span className="flex items-center gap-1">
-            <Eye className="w-3 h-3" /> {post.views}
-          </span>
-        </div>
-      </div>
-    </div>
+    </Link>
   )
 }
 

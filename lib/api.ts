@@ -632,6 +632,49 @@ export const reportApi = {
   },
 }
 
+// Notifications API
+export const notificationApi = {
+  // Get notification settings for a campaign
+  getCampaignSettings: (campaignId: string) =>
+    apiClient.get(`/api/notifications/campaigns/${campaignId}/settings`),
+
+  // Update notification settings for a campaign
+  updateCampaignSettings: (campaignId: string, data: {
+    emailEnabled: boolean
+    emailRecipients: string[]
+    notifyOnNewPost: boolean
+    notifyOnHighPriority: boolean
+    notifyOnNegativeSentiment: boolean
+    notifyOnHighEngagement: boolean
+    minEngagementThreshold?: number
+    digestFrequency?: 'realtime' | 'hourly' | 'daily' | 'weekly'
+  }) => apiClient.put(`/api/notifications/campaigns/${campaignId}/settings`, data),
+
+  // Get all notification preferences for current user
+  getUserPreferences: () =>
+    apiClient.get('/api/notifications/preferences'),
+
+  // Update user notification preferences
+  updateUserPreferences: (data: {
+    emailEnabled: boolean
+    emailAddress?: string
+    digestEnabled: boolean
+    digestFrequency?: string
+  }) => apiClient.put('/api/notifications/preferences', data),
+
+  // Get notification history
+  getHistory: (params?: { page?: number; limit?: number; campaignId?: string }) =>
+    apiClient.get('/api/notifications/history', params),
+
+  // Test email notification
+  testEmail: (data: { campaignId: string; recipientEmail: string }) =>
+    apiClient.post('/api/notifications/test-email', data),
+
+  // Get team members for notifications
+  getTeamMembers: () =>
+    apiClient.get('/api/notifications/team-members'),
+}
+
 // Export all APIs
 export const api = {
   auth: authApi,
@@ -649,6 +692,7 @@ export const api = {
   account: accountApi,
   incident: incidentApi,
   report: reportApi,
+  notification: notificationApi,
 }
 
 export default api
