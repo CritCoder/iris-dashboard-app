@@ -24,9 +24,11 @@ import { PostList } from '@/components/posts/post-list'
 import { PostRows } from '@/components/posts/post-rows'
 import { TrendsWidget } from '@/components/trends/trends-widget'
 import { Post } from '@/components/posts/post-card'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useCampaigns } from '@/hooks/use-campaigns'
 import { usePosts, convertToPostCardFormat } from '@/hooks/use-posts'
+import { useProfiles, convertToProfileCardFormat } from '@/hooks/use-profiles'
+import { ProfileList } from '@/components/profiles/profile-list'
 
 const samplePosts: Post[] = [
   {
@@ -105,6 +107,8 @@ const samplePosts: Post[] = [
 
 export default function CampaignDetailPage() {
   const params = useParams()
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const campaignId = params.id as string
   const { data: campaigns, loading: campaignsLoading, error: campaignsError } = useCampaigns({ enabled: true })
 
@@ -118,6 +122,16 @@ export default function CampaignDetailPage() {
     minSharesCount?: number
     minCommentsCount?: number
     sentiment?: string
+    platform?: string
+  }>({})
+
+  // State for profile-based filtering
+  const [currentProfileFilters, setCurrentProfileFilters] = useState<{
+    minFollowers?: number
+    maxFollowers?: number
+    minPosts?: number
+    isVerified?: boolean
+    accountType?: string
     platform?: string
   }>({})
 
@@ -138,6 +152,26 @@ export default function CampaignDetailPage() {
     minCommentsCount: currentFilters.minCommentsCount,
     enabled: true
   })
+
+  // Fetch profiles for the current campaign
+  const {
+    data: profilesData,
+    loading: profilesLoading,
+    error: profilesError,
+    total: profilesTotal
+  } = useProfiles({
+    campaignId: campaignId,
+    page: 1,
+    limit: 50,
+    platform: currentProfileFilters.platform,
+    minFollowers: currentProfileFilters.minFollowers,
+    maxFollowers: currentProfileFilters.maxFollowers,
+    minPosts: currentProfileFilters.minPosts,
+    isVerified: currentProfileFilters.isVerified,
+    accountType: currentProfileFilters.accountType,
+    enabled: true
+  })
+
   const [isMonitoring, setIsMonitoring] = useState(true)
   const [isExporting, setIsExporting] = useState(false)
   const [activeAnalysisTab, setActiveAnalysisTab] = useState<'social-feed' | 'profiles' | 'entities' | 'locations' | 'notifications'>('social-feed')
@@ -156,6 +190,9 @@ export default function CampaignDetailPage() {
     const matchesPlatform = selectedPlatform === 'all' || post.platform === selectedPlatform
     return matchesSentiment && matchesPlatform
   })
+
+  // Convert API profiles to ProfileCard format
+  const allProfiles = profilesData ? profilesData.map(convertToProfileCardFormat) : []
 
   // Handle category-based filtering for navigation
   const handleCategorySelect = (categoryName: string) => {
@@ -188,6 +225,50 @@ export default function CampaignDetailPage() {
         setCurrentFilters({}) // Clear filters for "All Posts"
         break
     }
+  }
+
+  // Handle profile filtering for navigation
+  const handleProfileCategorySelect = (categoryName: string, params?: any) => {
+    setSelectedNavItem(categoryName)
+
+    // Apply profile-specific filters based on category and params
+    let newFilters = {}
+
+    if (params) {
+      // Handle minFollowers from params
+      if (params.minFollowers) {
+        newFilters = { minFollowers: parseInt(params.minFollowers) }
+      }
+
+      // Handle minPosts from params
+      if (params.minPosts) {
+        newFilters = { ...newFilters, minPosts: parseInt(params.minPosts) }
+      }
+    } else {
+      // Handle predefined categories
+      switch (categoryName) {
+        case 'High Impact Authors':
+          newFilters = { minFollowers: 500000 }
+          break
+        case 'High Reach Authors':
+          newFilters = { minFollowers: 100000 }
+          break
+        case 'Frequent Posters':
+          newFilters = { minPosts: 1000 }
+          break
+        case 'Verified Accounts':
+          newFilters = { isVerified: true }
+          break
+        case 'Business Accounts':
+          newFilters = { accountType: 'business' }
+          break
+        default:
+          newFilters = {}
+          break
+      }
+    }
+
+    setCurrentProfileFilters(newFilters)
   }
 
   const menuItems = [
@@ -685,26 +766,32 @@ export default function CampaignDetailPage() {
                                 e.stopPropagation()
                                 setSelectedNavItem(subItem.name)
 
-                                // Apply API filters based on navigation item
-                                let newFilters = {}
+                                // Apply appropriate filters based on the current tab
+                                if (activeAnalysisTab === 'profiles') {
+                                  // Handle profile filtering
+                                  handleProfileCategorySelect(subItem.name, subItem.params)
+                                } else {
+                                  // Handle post filtering (existing logic)
+                                  let newFilters = {}
 
-                                if (subItem.params?.sentiment) {
-                                  newFilters = { sentiment: subItem.params.sentiment }
-                                } else if (subItem.name === 'High Impact') {
-                                  newFilters = { minLikesCount: 1000, minSharesCount: 500 }
-                                } else if (subItem.name === 'Viral Negative') {
-                                  newFilters = { sentiment: 'NEGATIVE', minSharesCount: 50 }
-                                } else if (subItem.name === 'Popular Content') {
-                                  newFilters = { minLikesCount: 500 }
-                                } else if (subItem.name === 'Trending Discussions') {
-                                  newFilters = { minCommentsCount: 10 }
-                                } else if (subItem.name === 'Breaking News') {
-                                  newFilters = { minSharesCount: 100 }
-                                } else if (subItem.name === 'Latest Posts') {
-                                  newFilters = {}
+                                  if (subItem.params?.sentiment) {
+                                    newFilters = { sentiment: subItem.params.sentiment }
+                                  } else if (subItem.name === 'High Impact') {
+                                    newFilters = { minLikesCount: 1000, minSharesCount: 500 }
+                                  } else if (subItem.name === 'Viral Negative') {
+                                    newFilters = { sentiment: 'NEGATIVE', minSharesCount: 50 }
+                                  } else if (subItem.name === 'Popular Content') {
+                                    newFilters = { minLikesCount: 500 }
+                                  } else if (subItem.name === 'Trending Discussions') {
+                                    newFilters = { minCommentsCount: 10 }
+                                  } else if (subItem.name === 'Breaking News') {
+                                    newFilters = { minSharesCount: 100 }
+                                  } else if (subItem.name === 'Latest Posts') {
+                                    newFilters = {}
+                                  }
+
+                                  setCurrentFilters(newFilters)
                                 }
-
-                                setCurrentFilters(newFilters)
                               }}
                             >
                               <SubIcon className="w-3 h-3 flex-shrink-0" />
@@ -732,7 +819,8 @@ export default function CampaignDetailPage() {
                         <button
                           onClick={() => {
                             setSelectedNavItem(null)
-                            setCurrentFilters({}) // Clear all filters when going back to main view
+                            setCurrentFilters({}) // Clear post filters
+                            setCurrentProfileFilters({}) // Clear profile filters
                           }}
                           className="text-sm text-primary hover:text-primary/80 transition-colors mt-1"
                         >
@@ -769,16 +857,70 @@ export default function CampaignDetailPage() {
                 )
               )}
 
-              {activeAnalysisTab === 'profiles' && (
-                <div className="space-y-6">
-                  <div className="bg-card border border-border rounded-lg p-6">
-                    <h3 className="text-foreground font-semibold mb-4">Profiles - Who is talking</h3>
-                    <div className="h-64 bg-muted/20 rounded-lg flex items-center justify-center">
+              {activeAnalysisTab === 'profiles' && !selectedNavItem && (
+                <div className="p-4 sm:p-6">
+                  {profilesLoading ? (
+                    <div className="flex items-center justify-center h-64">
                       <div className="text-center text-muted-foreground">
-                        <UserGroupIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>Profile analysis content will be displayed here</p>
+                        <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                        <p className="text-sm">Loading profiles...</p>
                       </div>
                     </div>
+                  ) : profilesError ? (
+                    <div className="flex items-center justify-center h-64">
+                      <div className="text-center text-muted-foreground">
+                        <p className="text-sm text-red-500 mb-2">Failed to load profiles</p>
+                        <p className="text-xs">{profilesError}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <ProfileList
+                      profiles={allProfiles}
+                      campaignId={campaignId}
+                      defaultView="grid"
+                    />
+                  )}
+                </div>
+              )}
+
+              {activeAnalysisTab === 'profiles' && selectedNavItem && (
+                <div className="p-4 sm:p-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-xl font-semibold text-foreground">{selectedNavItem}</h2>
+                        <button
+                          onClick={() => {
+                            setSelectedNavItem(null)
+                            setCurrentProfileFilters({}) // Clear profile filters
+                          }}
+                          className="text-sm text-primary hover:text-primary/80 transition-colors mt-1"
+                        >
+                          ← Back to All Profiles
+                        </button>
+                      </div>
+                    </div>
+                    {profilesLoading ? (
+                      <div className="flex items-center justify-center h-64">
+                        <div className="text-center text-muted-foreground">
+                          <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                          <p className="text-sm">Loading profiles...</p>
+                        </div>
+                      </div>
+                    ) : profilesError ? (
+                      <div className="flex items-center justify-center h-64">
+                        <div className="text-center text-muted-foreground">
+                          <p className="text-sm text-red-500 mb-2">Failed to load profiles</p>
+                          <p className="text-xs">{profilesError}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <ProfileList
+                        profiles={allProfiles}
+                        campaignId={campaignId}
+                        defaultView="grid"
+                      />
+                    )}
                   </div>
                 </div>
               )}
