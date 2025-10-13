@@ -222,7 +222,7 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
         {/* Main Sidebar - 64 units wide */}
         <div className="w-64 bg-background border-r border-border flex flex-col h-full overflow-hidden">
           {/* Header */}
-          <div className="h-16 border-b border-border px-4 flex items-center gap-3 flex-shrink-0">
+          <div className="h-[72px] sm:h-[84px] border-b border-border px-4 flex items-center gap-3 flex-shrink-0">
             <div className="w-9 h-9 bg-blue-500/10 rounded-md flex items-center justify-center flex-shrink-0 border border-blue-500/20">
               <span className="text-blue-500 font-bold text-sm">I</span>
             </div>
@@ -311,7 +311,7 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
         {expandedSubMenu === 'profiles' && (
           <div className="w-72 bg-background border-r border-border flex flex-col h-full overflow-hidden sidebar-enter">
             {/* Submenu Header */}
-            <div className="h-16 border-b border-border px-4 flex items-center justify-between flex-shrink-0">
+            <div className="h-[72px] sm:h-[84px] border-b border-border px-4 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 bg-blue-500/10 rounded-lg border border-blue-500/20">
                   <Users size={16} className="text-blue-500" />
