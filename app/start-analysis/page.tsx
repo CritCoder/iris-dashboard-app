@@ -124,7 +124,7 @@ export default function StartAnalysisPage() {
                         : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
                     }`}
                   >
-                    <div className="text-center">
+                    <div className="text-left">
                       <div className="font-semibold text-base mb-1">Topic Analysis</div>
                       <div className="text-xs opacity-90">Search for topics, keywords, hashtags</div>
                     </div>
@@ -137,7 +137,7 @@ export default function StartAnalysisPage() {
                         : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
                     }`}
                   >
-                    <div className="text-center">
+                    <div className="text-left">
                       <div className="font-semibold text-base mb-1">Person of Interest (POI)</div>
                       <div className="text-xs opacity-90">Search for specific individuals, profiles</div>
                     </div>
@@ -186,7 +186,7 @@ export default function StartAnalysisPage() {
                 )}
               </Button>
               {searchQuery.trim().length > 0 && searchQuery.trim().length < 3 && (
-                <p className="text-xs text-muted-foreground mt-2 text-center">
+                <p className="text-xs text-muted-foreground mt-2 text-left">
                   Enter at least 3 characters to start analysis
                 </p>
               )}

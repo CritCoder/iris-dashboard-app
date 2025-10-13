@@ -169,9 +169,9 @@ function ResultCard({ result }: { result: SearchResult }) {
       </CardHeader>
       <CardContent>
         {result.loading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="text-center">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-muted-foreground" />
+          <div className="flex items-center justify-start py-8">
+            <div className="text-left">
+              <Loader2 className="w-8 h-8 animate-spin mb-2 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">Searching...</p>
             </div>
           </div>

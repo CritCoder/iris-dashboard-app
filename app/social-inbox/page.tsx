@@ -538,19 +538,19 @@ export default function SocialInboxPage() {
                   </div>
 
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                    <div className="text-left p-4 bg-muted/50 rounded-lg">
                       <div className="text-3xl font-bold text-foreground mb-2">{selectedPost.likes.toLocaleString()}</div>
                       <div className="text-sm text-muted-foreground">Likes</div>
                     </div>
-                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                    <div className="text-left p-4 bg-muted/50 rounded-lg">
                       <div className="text-3xl font-bold text-foreground mb-2">{selectedPost.shares.toLocaleString()}</div>
                       <div className="text-sm text-muted-foreground">Shares</div>
                     </div>
-                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                    <div className="text-left p-4 bg-muted/50 rounded-lg">
                       <div className="text-3xl font-bold text-foreground mb-2">{selectedPost.comments.toLocaleString()}</div>
                       <div className="text-sm text-muted-foreground">Comments</div>
                     </div>
-                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                    <div className="text-left p-4 bg-muted/50 rounded-lg">
                       <div className="text-3xl font-bold text-foreground mb-2">{selectedPost.views.toLocaleString()}</div>
                       <div className="text-sm text-muted-foreground">Views</div>
                     </div>
@@ -625,7 +625,7 @@ export default function SocialInboxPage() {
                         onChange={(e) => setNoteText(e.target.value)}
                         className="mb-4 min-h-[100px]"
                       />
-                      <div className="flex gap-3 justify-center">
+                      <div className="flex gap-3 justify-start">
                         <Button size="lg" onClick={() => {
                           // Handle save note
                           setShowAddNote(false)
@@ -644,7 +644,7 @@ export default function SocialInboxPage() {
                   )}
 
                   <div className="space-y-2">
-                    <div className="text-center text-muted-foreground py-8">
+                    <div className="text-left text-muted-foreground py-8">
                       No notes added yet.
                     </div>
                   </div>
