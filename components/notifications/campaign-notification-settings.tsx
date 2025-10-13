@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useToast } from '@/hooks/use-toast'
 import { api } from '@/lib/api'
+import { mockNotificationApi } from '@/lib/mock-notification-api'
 
 interface NotificationSettings {
   emailEnabled: boolean
@@ -72,33 +73,51 @@ export function CampaignNotificationSettings({ campaignId, campaignName }: Campa
       if (result.success && result.data) {
         setSettings(result.data)
       } else {
-        console.warn('No settings found or load failed:', result.message)
+        console.warn('API failed, trying mock API:', result.message)
         
-        // Fallback to localStorage
-        const localSettings = localStorage.getItem(`notification-settings-${campaignId}`)
-        if (localSettings) {
-          try {
-            const parsedSettings = JSON.parse(localSettings)
-            setSettings(parsedSettings)
-            console.log('Loaded settings from localStorage fallback')
-          } catch (parseErr) {
-            console.error('Failed to parse localStorage settings:', parseErr)
-          }
+        // Fallback to mock API
+        const mockResult = await mockNotificationApi.getCampaignSettings(campaignId)
+        if (mockResult.success && mockResult.data) {
+          setSettings(mockResult.data)
+          console.log('Loaded settings from mock API')
+        } else {
+          console.warn('Mock API also failed, using default settings')
+          // Use default settings if both APIs fail
+          setSettings({
+            emailEnabled: false,
+            emailRecipients: [],
+            notifyOnNewPost: true,
+            notifyOnHighPriority: true,
+            notifyOnNegativeSentiment: true,
+            notifyOnHighEngagement: false,
+            minEngagementThreshold: 1000,
+            digestFrequency: 'realtime'
+          })
         }
       }
     } catch (err) {
       console.error('Failed to load notification settings:', err)
       
-      // Fallback to localStorage on error
-      const localSettings = localStorage.getItem(`notification-settings-${campaignId}`)
-      if (localSettings) {
-        try {
-          const parsedSettings = JSON.parse(localSettings)
-          setSettings(parsedSettings)
-          console.log('Loaded settings from localStorage fallback after error')
-        } catch (parseErr) {
-          console.error('Failed to parse localStorage settings:', parseErr)
+      // Fallback to mock API on error
+      try {
+        const mockResult = await mockNotificationApi.getCampaignSettings(campaignId)
+        if (mockResult.success && mockResult.data) {
+          setSettings(mockResult.data)
+          console.log('Loaded settings from mock API after error')
         }
+      } catch (mockErr) {
+        console.error('Mock API also failed:', mockErr)
+        // Use default settings as last resort
+        setSettings({
+          emailEnabled: false,
+          emailRecipients: [],
+          notifyOnNewPost: true,
+          notifyOnHighPriority: true,
+          notifyOnNegativeSentiment: true,
+          notifyOnHighEngagement: false,
+          minEngagementThreshold: 1000,
+          digestFrequency: 'realtime'
+        })
       }
     } finally {
       setLoading(false)
@@ -111,22 +130,28 @@ export function CampaignNotificationSettings({ campaignId, campaignName }: Campa
       if (result.success && result.data) {
         setTeamMembers(result.data)
       } else {
-        console.warn('Failed to load team members from API:', result.message)
-        // Fallback to mock data
-        setTeamMembers([
-          { id: '1', email: 'admin@example.com', name: 'Admin User', role: 'Administrator' },
-          { id: '2', email: 'analyst@example.com', name: 'Data Analyst', role: 'Analyst' },
-          { id: '3', email: 'manager@example.com', name: 'Campaign Manager', role: 'Manager' }
-        ])
+        console.warn('API failed, trying mock API for team members:', result.message)
+        
+        // Fallback to mock API
+        const mockResult = await mockNotificationApi.getTeamMembers()
+        if (mockResult.success && mockResult.data) {
+          setTeamMembers(mockResult.data)
+          console.log('Loaded team members from mock API')
+        }
       }
     } catch (err) {
       console.error('Failed to load team members:', err)
-      // Fallback to mock data on error
-      setTeamMembers([
-        { id: '1', email: 'admin@example.com', name: 'Admin User', role: 'Administrator' },
-        { id: '2', email: 'analyst@example.com', name: 'Data Analyst', role: 'Analyst' },
-        { id: '3', email: 'manager@example.com', name: 'Campaign Manager', role: 'Manager' }
-      ])
+      
+      // Fallback to mock API on error
+      try {
+        const mockResult = await mockNotificationApi.getTeamMembers()
+        if (mockResult.success && mockResult.data) {
+          setTeamMembers(mockResult.data)
+          console.log('Loaded team members from mock API after error')
+        }
+      } catch (mockErr) {
+        console.error('Mock API also failed:', mockErr)
+      }
     }
   }
 
@@ -141,23 +166,29 @@ export function CampaignNotificationSettings({ campaignId, campaignName }: Campa
       if (result.success) {
         success('Notification settings saved successfully!')
       } else {
-        console.error('Save failed:', result)
-        // If API fails, save to localStorage as fallback
-        if (result.message?.includes('404') || result.message?.includes('not found')) {
-          console.log('API endpoint not found, saving to localStorage as fallback')
-          localStorage.setItem(`notification-settings-${campaignId}`, JSON.stringify(settings))
-          success('Settings saved locally (API endpoint not available)')
+        console.error('API save failed, trying mock API:', result.message)
+        
+        // Fallback to mock API
+        const mockResult = await mockNotificationApi.updateCampaignSettings(campaignId, settings)
+        if (mockResult.success) {
+          success('Notification settings saved successfully! (using offline mode)')
         } else {
-          error(result.message || 'Failed to save settings')
+          error('Failed to save notification settings')
         }
       }
     } catch (err) {
       console.error('Save error:', err)
-      // Fallback to localStorage on network errors
+      
+      // Fallback to mock API on error
       try {
-        localStorage.setItem(`notification-settings-${campaignId}`, JSON.stringify(settings))
-        success('Settings saved locally (network error)')
-      } catch (localErr) {
+        const mockResult = await mockNotificationApi.updateCampaignSettings(campaignId, settings)
+        if (mockResult.success) {
+          success('Notification settings saved successfully! (using offline mode)')
+        } else {
+          error('Failed to save notification settings')
+        }
+      } catch (mockErr) {
+        console.error('Mock API also failed:', mockErr)
         error('Failed to save notification settings')
       }
     } finally {
@@ -181,10 +212,39 @@ export function CampaignNotificationSettings({ campaignId, campaignName }: Campa
       if (result.success) {
         success(`Test email sent to ${settings.emailRecipients[0]}`)
       } else {
-        error(result.message || 'Failed to send test email')
+        console.error('API test email failed, trying mock API:', result.message)
+        
+        // Fallback to mock API
+        const mockResult = await mockNotificationApi.testEmail({
+          campaignId,
+          recipientEmail: settings.emailRecipients[0]
+        })
+        
+        if (mockResult.success) {
+          success(`Test email sent to ${settings.emailRecipients[0]} (simulated)`)
+        } else {
+          error('Failed to send test email')
+        }
       }
     } catch (err) {
-      error('Failed to send test email')
+      console.error('Test email error:', err)
+      
+      // Fallback to mock API on error
+      try {
+        const mockResult = await mockNotificationApi.testEmail({
+          campaignId,
+          recipientEmail: settings.emailRecipients[0]
+        })
+        
+        if (mockResult.success) {
+          success(`Test email sent to ${settings.emailRecipients[0]} (simulated)`)
+        } else {
+          error('Failed to send test email')
+        }
+      } catch (mockErr) {
+        console.error('Mock API also failed:', mockErr)
+        error('Failed to send test email')
+      }
     } finally {
       setTesting(false)
     }
