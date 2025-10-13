@@ -10,28 +10,10 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AnimatedPage, AnimatedGrid, AnimatedCard } from '@/components/ui/animated'
+import { organizationsData, type Organization } from './organizations-data'
 
-interface Organization {
-  id: number
-  category: string
-  name: string
-  totalMembers: number
-  topInfluencers: string[]
-  socialMedia: {
-    facebook: string | null
-    twitter: string | null
-    instagram: string | null
-    youtube: string | null
-  }
-  contact: {
-    physicalAddress: string | null
-    phoneNumber: string | null
-    email: string | null
-  }
-}
-
-// Sample data based on provided JSON
-const organizationsData: Organization[] = [
+// Using imported data - uncomment below for legacy local data
+const legacyOrganizationsData: Organization[] = [
   {
     id: 1,
     category: "Hindu Nationalist Organizations",

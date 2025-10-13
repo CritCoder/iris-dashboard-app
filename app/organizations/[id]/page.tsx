@@ -11,25 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { FacebookIcon, InstagramIcon, TwitterIcon } from '@/components/ui/platform-icons'
 import Link from 'next/link'
-
-interface Organization {
-  id: number
-  category: string
-  name: string
-  totalMembers: number
-  topInfluencers: string[]
-  socialMedia: {
-    facebook: string | null
-    twitter: string | null
-    instagram: string | null
-    youtube: string | null
-  }
-  contact: {
-    physicalAddress: string | null
-    phoneNumber: string | null
-    email: string | null
-  }
-}
+import { organizationsData, type Organization } from '../organizations-data'
 
 interface Post {
   id: string
@@ -44,8 +26,9 @@ interface Post {
   sentiment: 'positive' | 'negative' | 'neutral'
 }
 
-// Sample organizations data
-const organizationsData: Organization[] = [
+// Using imported data now from organizations-data.ts
+// Legacy sample organizations data kept for reference
+const legacyOrganizationsData: Organization[] = [
   {
     id: 1,
     category: "Hindu Nationalist Organizations",

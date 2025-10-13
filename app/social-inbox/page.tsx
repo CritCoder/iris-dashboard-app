@@ -439,7 +439,7 @@ export default function SocialInboxPage() {
                   />
                 ))
               ) : (
-                <div className="p-8 text-center text-muted-foreground">
+                <div className="flex items-center justify-center h-full p-8 text-center text-muted-foreground">
                   <p>No posts requiring attention at the moment.</p>
                 </div>
               )}
@@ -685,7 +685,7 @@ export default function SocialInboxPage() {
                 </div>
               </div>
             ) : (
-              <div className="text-center text-muted-foreground">
+              <div className="flex items-center justify-center h-full text-center text-muted-foreground">
                 <p>Select a post to view details.</p>
               </div>
             )}
