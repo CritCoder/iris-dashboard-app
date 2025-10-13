@@ -104,11 +104,16 @@ export default function Page() {
 
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-[1800px] mx-auto px-4 sm:px-6 py-4 sm:py-8">
-          {/* Tab Navigation */}
-          <div className="flex gap-2 mb-6">
+          {/* Tab Navigation with Better Contrast */}
+          <div className="flex gap-1 mb-6 p-1 bg-muted/20 rounded-lg w-fit">
             <Button
-              variant={activeTab === 'overview' ? 'default' : 'outline'}
+              variant={activeTab === 'overview' ? 'default' : 'ghost'}
               size="sm"
+              className={`font-semibold ${
+                activeTab === 'overview' 
+                  ? 'bg-primary text-primary-foreground shadow-lg' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
               onClick={() => {
                 if (activeTab !== 'overview') {
                   setIsTransitioning(true)
@@ -119,11 +124,16 @@ export default function Page() {
                 }
               }}
             >
-              Overview
+              📊 Overview
             </Button>
             <Button
-              variant={activeTab === 'analytics' ? 'default' : 'outline'}
+              variant={activeTab === 'analytics' ? 'default' : 'ghost'}
               size="sm"
+              className={`font-semibold ${
+                activeTab === 'analytics' 
+                  ? 'bg-primary text-primary-foreground shadow-lg' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
               onClick={() => {
                 if (activeTab !== 'analytics') {
                   setIsTransitioning(true)
@@ -134,11 +144,16 @@ export default function Page() {
                 }
               }}
             >
-              Analytics
+              📈 Analytics
             </Button>
             <Button
-              variant={activeTab === 'monitoring' ? 'default' : 'outline'}
+              variant={activeTab === 'monitoring' ? 'default' : 'ghost'}
               size="sm"
+              className={`font-semibold ${
+                activeTab === 'monitoring' 
+                  ? 'bg-primary text-primary-foreground shadow-lg' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
               onClick={() => {
                 if (activeTab !== 'monitoring') {
                   setIsTransitioning(true)
@@ -149,88 +164,104 @@ export default function Page() {
                 }
               }}
             >
-              Monitoring
+              🔍 Monitoring
             </Button>
           </div>
 
           {!isTransitioning && activeTab === 'overview' && (
             <AnimatedPage className="animate-in fade-in duration-200">
-              {/* Key Metrics Row */}
+              {/* CRITICAL ALERT BAR - Highest Priority */}
+              <div className="mb-6 p-4 bg-red-950/20 border border-red-900/50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  <div className="flex-1">
+                    <p className="text-red-400 font-semibold text-sm">⚠️ CRITICAL ALERT</p>
+                    <p className="text-red-300 text-xs">Traffic Management sentiment dropped 15% this week - Immediate attention required</p>
+                  </div>
+                  <Button variant="destructive" size="sm">View Details</Button>
+                </div>
+              </div>
+
+              {/* PRIMARY METRICS - High Contrast, High Priority */}
               <AnimatedGrid stagger={0.05} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+                {/* Most Important - Total Mentions */}
                 <AnimatedCard>
-                  <Card className="border border-border">
+                  <Card className="border-2 border-blue-500/30 bg-gradient-to-br from-blue-950/40 to-blue-900/20 shadow-lg">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium text-muted-foreground">Total Mentions</p>
-                          <p className="text-2xl font-bold text-foreground">12,847</p>
-                          <p className="text-xs text-green-600 dark:text-green-500 flex items-center gap-1 font-medium">
+                          <p className="text-xs font-medium text-blue-300 uppercase tracking-wide">Total Mentions</p>
+                          <p className="text-3xl font-black text-white mb-1">12,847</p>
+                          <p className="text-xs text-green-400 flex items-center gap-1 font-bold">
                             <TrendingUp className="w-3 h-3" />
                             +12.5% from last week
                           </p>
                         </div>
-                        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                          <ChatBubbleIcon className="w-6 h-6 text-blue-600" />
+                        <div className="w-14 h-14 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center">
+                          <ChatBubbleIcon className="w-7 h-7 text-blue-400" />
                         </div>
                       </div>
                     </CardContent>
                   </Card>
                 </AnimatedCard>
 
+                {/* Critical - Sentiment Score */}
                 <AnimatedCard>
-                  <Card className="border border-border">
+                  <Card className="border-2 border-green-500/30 bg-gradient-to-br from-green-950/40 to-green-900/20 shadow-lg">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium text-muted-foreground">Sentiment Score</p>
-                          <p className="text-2xl font-bold text-foreground">68%</p>
-                          <p className="text-xs text-green-600 dark:text-green-500 flex items-center gap-1 font-medium">
+                          <p className="text-xs font-medium text-green-300 uppercase tracking-wide">Sentiment Score</p>
+                          <p className="text-3xl font-black text-white mb-1">68%</p>
+                          <p className="text-xs text-green-400 flex items-center gap-1 font-bold">
                             <TrendingUp className="w-3 h-3" />
                             +3.2% from last week
                           </p>
                         </div>
-                        <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                          <HeartIcon className="w-6 h-6 text-green-600" />
+                        <div className="w-14 h-14 rounded-xl bg-green-500/20 border border-green-400/30 flex items-center justify-center">
+                          <HeartIcon className="w-7 h-7 text-green-400" />
                         </div>
                       </div>
                     </CardContent>
                   </Card>
                 </AnimatedCard>
 
+                {/* Secondary - Active Campaigns */}
                 <AnimatedCard>
-                  <Card className="border border-border">
+                  <Card className="border border-border/50 bg-card/50">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm font-medium text-muted-foreground">Active Campaigns</p>
                           <p className="text-2xl font-bold text-foreground">8</p>
-                          <p className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1 font-medium">
+                          <p className="text-xs text-blue-500 flex items-center gap-1 font-medium">
                             <ActivityLogIcon className="w-3 h-3" />
                             3 new this week
                           </p>
                         </div>
-                        <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-                          <BarChartIcon className="w-6 h-6 text-purple-600" />
+                        <div className="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center">
+                          <BarChartIcon className="w-6 h-6 text-purple-400" />
                         </div>
                       </div>
                     </CardContent>
                   </Card>
                 </AnimatedCard>
 
+                {/* Tertiary - Threat Level */}
                 <AnimatedCard>
-                  <Card className="border border-border">
+                  <Card className="border border-border/30 bg-muted/20">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium text-muted-foreground">Threat Level</p>
-                          <p className="text-2xl font-bold text-foreground">Low</p>
-                          <p className="text-xs text-green-600 dark:text-green-500 flex items-center gap-1 font-medium">
+                          <p className="text-sm font-medium text-muted-foreground/70">Threat Level</p>
+                          <p className="text-2xl font-bold text-foreground/80">Low</p>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
                             <LockClosedIcon className="w-3 h-3" />
                             No alerts
                           </p>
                         </div>
-                        <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                          <LockClosedIcon className="w-6 h-6 text-green-600" />
+                        <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
+                          <LockClosedIcon className="w-6 h-6 text-green-500/70" />
                         </div>
                       </div>
                     </CardContent>
@@ -246,56 +277,92 @@ export default function Page() {
                   <InfluencerTracker />
                 </div>
 
-                {/* Right Column - Trending Topics (moved to top) */}
+                {/* Right Column - Trending Topics with HIGH CONTRAST */}
                 <div className="space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                  <Card className="border-2 border-orange-500/30 bg-gradient-to-br from-orange-950/20 to-orange-900/10">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="flex items-center gap-2 text-orange-300">
                         <TrendingUp className="w-5 h-5" />
-                        Trending Topics
+                        🔥 Trending Topics
                       </CardTitle>
-                      <CardDescription>Most discussed topics today</CardDescription>
+                      <CardDescription className="text-orange-200/80">Most discussed topics today</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-4">
-                        {trendingTopics.map((topic, index) => (
-                          <div 
-                            key={index} 
-                            className="flex items-center justify-between cursor-pointer hover:bg-accent/20 p-2 rounded-lg transition-colors"
-                            onClick={() => {
-                              // Navigate to topic details
-                              window.location.href = `/social-feed?filter=all-posts&search=${encodeURIComponent(topic.topic)}`
-                            }}
-                          >
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-foreground hover:text-blue-400 transition-colors">{topic.topic}</p>
-                              <p className="text-xs text-muted-foreground">{topic.mentions} mentions</p>
+                      <div className="space-y-3">
+                        {trendingTopics.map((topic, index) => {
+                          const isHighVolume = topic.mentions > 1500
+                          const isNegative = topic.sentiment === 'negative'
+                          return (
+                            <div 
+                              key={index} 
+                              className={`flex items-center justify-between cursor-pointer p-3 rounded-lg transition-all duration-200 ${
+                                isHighVolume 
+                                  ? 'bg-orange-500/10 border border-orange-400/30 hover:bg-orange-500/20' 
+                                  : 'bg-muted/30 hover:bg-muted/50'
+                              } ${isNegative ? 'ring-1 ring-red-500/30' : ''}`}
+                              onClick={() => {
+                                window.location.href = `/social-feed?filter=all-posts&search=${encodeURIComponent(topic.topic)}`
+                              }}
+                            >
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className={`font-semibold ${isHighVolume ? 'text-white' : 'text-foreground'} ${isNegative ? 'text-red-400' : ''}`}>
+                                    {topic.topic}
+                                  </p>
+                                  {isHighVolume && <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full font-bold">HOT</span>}
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  <span className="font-bold text-orange-400">{topic.mentions}</span> mentions
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge className={`text-xs font-bold ${
+                                  topic.sentiment === 'positive' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                                  topic.sentiment === 'negative' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
+                                  'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+                                }`}>
+                                  {topic.sentiment}
+                                </Badge>
+                                <span className={`text-xs font-black ${
+                                  topic.change.startsWith('+') 
+                                    ? 'text-green-400' 
+                                    : 'text-red-400'
+                                }`}>
+                                  {topic.change}
+                                </span>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Badge className={`text-xs ${getSentimentColor(topic.sentiment)}`}>
-                                {topic.sentiment}
-                              </Badge>
-                              <span className={`text-xs font-semibold ${
-                                topic.change.startsWith('+') ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'
-                              }`}>
-                                {topic.change}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
+                          )
+                        })}
+                      </div>
+                      
+                      {/* Quick Summary */}
+                      <div className="mt-4 p-3 bg-muted/20 rounded-lg border border-border/50">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Avg Sentiment:</span>
+                          <span className="font-bold text-green-400">68%</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs mt-1">
+                          <span className="text-muted-foreground">Total Mentions:</span>
+                          <span className="font-bold text-orange-400">5,800</span>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
                 </div>
               </div>
 
-              {/* Bottom Row */}
+              {/* Bottom Row - Lower Priority with Subtle Contrast */}
               <AnimatedGrid stagger={0.1} className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 <AnimatedCard>
-                  <OpponentNarrativeWatch />
+                  <div className="opacity-90">
+                    <OpponentNarrativeWatch />
+                  </div>
                 </AnimatedCard>
                 <AnimatedCard>
-                  <SupportBaseEnergy />
+                  <div className="opacity-90">
+                    <SupportBaseEnergy />
+                  </div>
                 </AnimatedCard>
               </AnimatedGrid>
             </AnimatedPage>
