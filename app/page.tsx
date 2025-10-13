@@ -14,7 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { useState, useMemo } from 'react'
 import { SegmentedControl } from '@/components/ui/segmented-control'
-import { TrendingUp, TrendingDown } from 'lucide-react'
+import { TrendingUp, TrendingDown, Hash } from 'lucide-react'
 import {
   ChatBubbleIcon,
   HeartIcon,
@@ -25,7 +25,6 @@ import {
   EyeOpenIcon,
   ClockIcon,
   PinIcon,
-  HashIcon,
   BarChartIcon,
   GlobeIcon,
   LightningBoltIcon,
@@ -416,7 +415,7 @@ export default function Page() {
                         <div className="p-4 border border-border rounded-lg">
                           <div className="flex items-center gap-3 mb-2">
                             <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                              <HashIcon className="w-4 h-4 text-blue-600" />
+                              <Hash className="w-4 h-4 text-blue-600" />
                             </div>
                             <div>
                               <p className="text-sm font-medium">Traffic Management</p>
