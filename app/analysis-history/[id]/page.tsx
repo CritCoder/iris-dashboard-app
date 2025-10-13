@@ -1,9 +1,17 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { PageLayout } from '@/components/layout/page-layout'
-import { PageHeader } from '@/components/layout/page-header'
 import { Download, Play, Square, RefreshCw, ChevronDown, ExternalLink, Heart, MessageCircle, Share2, Eye, Bell, BarChart3 } from 'lucide-react'
+import {
+  ChatBubbleLeftRightIcon, UserGroupIcon, CubeIcon, MapPinIcon, BellIcon,
+  GlobeAltIcon, SparklesIcon, FireIcon, ShieldExclamationIcon, ChartBarIcon,
+  EyeIcon, ArrowTrendingUpIcon, NewspaperIcon, VideoCameraIcon, FaceSmileIcon,
+  MinusCircleIcon, FaceFrownIcon, ChevronRightIcon, ChevronDownIcon,
+  UsersIcon, ChatBubbleBottomCenterTextIcon, HandThumbUpIcon, UserIcon,
+  BuildingOfficeIcon, ExclamationTriangleIcon, MagnifyingGlassIcon,
+  FlagIcon, BuildingLibraryIcon
+} from '@heroicons/react/24/outline'
+import { FaTwitter, FaFacebook, FaInstagram, FaYoutube, FaReddit } from 'react-icons/fa'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { FacebookIcon, InstagramIcon, TwitterIcon } from '@/components/ui/platform-icons'
@@ -12,20 +20,13 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 import { CampaignNotificationSettings } from '@/components/notifications/campaign-notification-settings'
+import { PostList } from '@/components/posts/post-list'
+import { PostRows } from '@/components/posts/post-rows'
+import { TrendsWidget } from '@/components/trends/trends-widget'
+import { Post } from '@/components/posts/post-card'
 import { useParams } from 'next/navigation'
-
-interface Post {
-  id: string
-  author: string
-  platform: 'facebook' | 'twitter' | 'instagram'
-  content: string
-  timestamp: string
-  likes: number
-  comments: number
-  shares: number
-  views: number
-  sentiment: 'positive' | 'negative' | 'neutral'
-}
+import { useCampaigns } from '@/hooks/use-campaigns'
+import { usePosts, convertToPostCardFormat } from '@/hooks/use-posts'
 
 const samplePosts: Post[] = [
   {
@@ -102,76 +103,246 @@ const samplePosts: Post[] = [
   }
 ]
 
-function PostCard({ post }: { post: Post }) {
-  const platformIcons = {
-    facebook: FacebookIcon,
-    twitter: TwitterIcon,
-    instagram: InstagramIcon
-  }
-
-  const sentimentColors = {
-    positive: 'border-green-500/30 bg-green-500/5',
-    negative: 'border-red-500/30 bg-red-500/5',
-    neutral: 'border-yellow-500/30 bg-yellow-500/5'
-  }
-
-  const IconComponent = platformIcons[post.platform]
-
-  return (
-    <Link href={`/analysis-history/1/post/${post.id}`}>
-      <div className={`bg-card border rounded-lg p-4 hover:bg-accent/20 transition-colors cursor-pointer ${sentimentColors[post.sentiment]}`}>
-        <div className="flex items-start gap-3 mb-3">
-          <div className="w-6 h-6 flex items-center justify-center">
-            <IconComponent className="w-5 h-5 text-muted-foreground" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-foreground font-medium text-sm mb-1">{post.author}</div>
-            <div className="text-muted-foreground text-xs mb-2">
-              {post.platform} - {post.timestamp}
-            </div>
-          </div>
-        </div>
-
-        <p className="text-foreground/90 text-sm mb-4 leading-relaxed">{post.content}</p>
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Heart className="w-3 h-3" /> {post.likes}
-            </span>
-            <span className="flex items-center gap-1">
-              <MessageCircle className="w-3 h-3" /> {post.comments}
-            </span>
-            <span className="flex items-center gap-1">
-              <Share2 className="w-3 h-3" /> {post.shares}
-            </span>
-          </div>
-          <div className="flex items-center gap-1 text-xs text-primary">
-            <Eye className="w-3 h-3" />
-            <span>View</span>
-            <ExternalLink className="w-3 h-3" />
-          </div>
-        </div>
-      </div>
-    </Link>
-  )
-}
-
 export default function CampaignDetailPage() {
   const params = useParams()
   const campaignId = params.id as string
+  const { data: campaigns, loading: campaignsLoading, error: campaignsError } = useCampaigns({ enabled: true })
+
+  // Initialize state variables first
   const [selectedSentiment, setSelectedSentiment] = useState('all')
   const [selectedPlatform, setSelectedPlatform] = useState('all')
+
+  // State for API-based filtering
+  const [currentFilters, setCurrentFilters] = useState<{
+    minLikesCount?: number
+    minSharesCount?: number
+    minCommentsCount?: number
+    sentiment?: string
+    platform?: string
+  }>({})
+
+  // Fetch posts for the current campaign
+  const {
+    data: postsData,
+    pagination,
+    loading: postsLoading,
+    error: postsError
+  } = usePosts({
+    campaignId: campaignId,
+    page: 1,
+    limit: 50,
+    platform: currentFilters.platform || (selectedPlatform === 'all' ? undefined : selectedPlatform),
+    sentiment: currentFilters.sentiment || (selectedSentiment === 'all' ? undefined : selectedSentiment),
+    minLikesCount: currentFilters.minLikesCount,
+    minSharesCount: currentFilters.minSharesCount,
+    minCommentsCount: currentFilters.minCommentsCount,
+    enabled: true
+  })
   const [isMonitoring, setIsMonitoring] = useState(true)
   const [isExporting, setIsExporting] = useState(false)
-  const [activeTab, setActiveTab] = useState<'analytics' | 'notifications'>('analytics')
+  const [activeAnalysisTab, setActiveAnalysisTab] = useState<'social-feed' | 'profiles' | 'entities' | 'locations' | 'notifications'>('social-feed')
+  const [expandedTabs, setExpandedTabs] = useState<Set<string>>(new Set())
+  const [selectedNavItem, setSelectedNavItem] = useState<string | null>(null)
   const contentRef = useRef<HTMLDivElement>(null)
 
-  const filteredPosts = samplePosts.filter(post => {
+  // Find the current campaign from the campaigns list
+  const currentCampaign = campaigns?.find(campaign => campaign.id === campaignId)
+
+  // Convert API posts to PostCard format and apply filters
+  const allPosts = postsData ? postsData.map(convertToPostCardFormat) : []
+
+  const filteredPosts = allPosts.filter(post => {
     const matchesSentiment = selectedSentiment === 'all' || post.sentiment === selectedSentiment
     const matchesPlatform = selectedPlatform === 'all' || post.platform === selectedPlatform
     return matchesSentiment && matchesPlatform
   })
+
+  // Handle category-based filtering for navigation
+  const handleCategorySelect = (categoryName: string) => {
+    setSelectedNavItem(categoryName)
+
+    // Apply specific filters based on category
+    switch (categoryName) {
+      case 'High Impact':
+        setCurrentFilters({ minLikesCount: 1000, minSharesCount: 500 })
+        break
+      case 'Viral Negative':
+        setCurrentFilters({ sentiment: 'NEGATIVE', minSharesCount: 50 })
+        break
+      case 'Trending Discussions':
+        setCurrentFilters({ minCommentsCount: 10 })
+        break
+      case 'Positive Sentiment':
+        setCurrentFilters({ sentiment: 'POSITIVE' })
+        break
+      case 'Twitter':
+        setCurrentFilters({ platform: 'twitter' })
+        break
+      case 'Facebook':
+        setCurrentFilters({ platform: 'facebook' })
+        break
+      case 'Instagram':
+        setCurrentFilters({ platform: 'instagram' })
+        break
+      default:
+        setCurrentFilters({}) // Clear filters for "All Posts"
+        break
+    }
+  }
+
+  const menuItems = [
+    {
+      id: 'social-feed',
+      title: 'Social Feed',
+      description: 'What is happening',
+      icon: ChatBubbleLeftRightIcon,
+      subItems: [
+        {
+          title: 'Discover',
+          items: [
+            { name: 'All Posts', icon: GlobeAltIcon, params: { sortBy: 'postedAt', sortOrder: 'desc'} },
+            { name: 'Latest Posts', icon: SparklesIcon, params: { timeRange: '24h', sortBy: 'postedAt', sortOrder: 'desc' } },
+          ],
+        },
+        {
+          title: 'Content & Engagement',
+          items: [
+            { name: 'High Impact', icon: FireIcon, params: { min_likesCount: '1000', min_sharesCount: '500' } },
+            { name: 'Viral Negative', icon: ShieldExclamationIcon, params: { sentiment: 'NEGATIVE', min_sharesCount: '1000' } },
+            { name: 'Trending Discussions', icon: ChatBubbleLeftRightIcon, params: { timeRange: '24h', sortBy: 'commentsCount' } },
+            { name: 'High Engagement', icon: ChartBarIcon, params: { min_likesCount: '100', min_commentsCount: '50' } },
+            { name: 'High Reach, Low Engagement', icon: EyeIcon, params: { min_viewsCount: '10000', max_likesCount: '50' } },
+            { name: 'Viral Potential', icon: ArrowTrendingUpIcon, params: { timeRange: '6h', sortBy: 'sharesCount' } },
+          ],
+        },
+        {
+          title: 'Browse by Platform',
+          items: [
+            { name: 'News', icon: NewspaperIcon, params: { contentType: 'news' } },
+            { name: 'Videos', icon: VideoCameraIcon, params: { hasVideos: 'true' } },
+            { name: 'Twitter', icon: FaTwitter, params: { platform: 'twitter' } },
+            { name: 'Facebook', icon: FaFacebook, params: { platform: 'facebook' } },
+            { name: 'Instagram', icon: FaInstagram, params: { platform: 'instagram' } },
+            { name: 'YouTube', icon: FaYoutube, params: { platform: 'youtube' } },
+            { name: 'Reddit', icon: FaReddit, params: { platform: 'reddit' } },
+          ],
+        },
+        {
+          title: 'Monitor Sentiment',
+          items: [
+            { name: 'Positive Posts', icon: FaceSmileIcon, params: { sentiment: 'POSITIVE' } },
+            { name: 'Neutral Posts', icon: MinusCircleIcon, params: { sentiment: 'NEUTRAL' } },
+            { name: 'Negative Posts', icon: FaceFrownIcon, params: { sentiment: 'NEGATIVE' } },
+          ],
+        },
+      ]
+    },
+    {
+      id: 'profiles',
+      title: 'Profiles',
+      description: 'Who is talking',
+      icon: UserGroupIcon,
+      subItems: [
+        {
+          title: 'Primary',
+          items: [{ name: 'All Authors', icon: UsersIcon, params: {} }],
+        },
+        {
+          title: 'Engagement & Impact',
+          items: [
+            { name: 'High Impact Authors', icon: FireIcon, params: { minFollowers: '500000' } },
+            { name: 'High Reach Authors', icon: EyeIcon, params: { minFollowers: '100000' } },
+            { name: 'Frequent Posters', icon: ChatBubbleBottomCenterTextIcon, params: { minPosts: '1000' } },
+          ],
+        },
+        {
+          title: 'Sentiment Based',
+          items: [
+            { name: 'Negative Influencers', icon: FaceFrownIcon, params: { personStatus: 'SUSPICIOUS' } },
+            { name: 'Positive Influencers', icon: HandThumbUpIcon, params: { personStatus: 'WHOLESOME' } },
+          ],
+        },
+        {
+          title: 'Platforms',
+          items: [
+            { name: 'Twitter Influencers', icon: FaTwitter, params: { platform: 'twitter' } },
+            { name: 'Facebook Pages', icon: FaFacebook, params: { platform: 'facebook' } },
+            { name: 'Instagram Influencers', icon: FaInstagram, params: { platform: 'instagram' } },
+          ],
+        },
+      ]
+    },
+    {
+      id: 'entities',
+      title: 'Entities',
+      description: 'What is being talked about',
+      icon: CubeIcon,
+      subItems: [
+        {
+          title: 'Primary',
+          items: [
+            { name: 'All Entities', icon: GlobeAltIcon, params: {} },
+            { name: 'All Topics', icon: ChatBubbleLeftRightIcon, params: { type: 'TOPIC' } },
+            { name: 'All People', icon: UserIcon, params: { type: 'PERSON' } },
+            { name: 'All Organizations', icon: BuildingOfficeIcon, params: { type: 'ORGANIZATION' } },
+          ],
+        },
+        {
+          title: 'Engagement & Impact',
+          items: [
+            { name: 'High Impact Entities', icon: FireIcon, params: { minMentions: '100' } },
+            { name: 'Trending Topics', icon: ArrowTrendingUpIcon, params: { type: 'TOPIC', timeRange: '24h' } },
+            { name: 'Frequently Mentioned', icon: ChartBarIcon, params: { sortBy: 'totalMentions' } },
+          ],
+        },
+        {
+          title: 'Sentiment Based',
+          items: [
+            { name: 'Negative Entities', icon: FaceFrownIcon, params: { sentiment: 'NEGATIVE' } },
+            { name: 'Positive Entities', icon: FaceSmileIcon, params: { sentiment: 'POSITIVE' } },
+            { name: 'Controversial', icon: ExclamationTriangleIcon, params: { sentiment: 'MIXED' } },
+          ],
+        },
+        {
+          title: 'Entity Types',
+          items: [
+            { name: 'Topics', icon: ChatBubbleLeftRightIcon, params: { type: 'TOPIC' } },
+            { name: 'People', icon: UserIcon, params: { type: 'PERSON' } },
+            { name: 'Organizations', icon: BuildingOfficeIcon, params: { type: 'ORGANIZATION' } },
+            { name: 'Locations', icon: MapPinIcon, params: { type: 'LOCATION' } },
+            { name: 'Threats', icon: ShieldExclamationIcon, params: { type: 'THREAT' } },
+            { name: 'Keywords', icon: MagnifyingGlassIcon, params: { type: 'KEYWORD' } },
+          ],
+        },
+        {
+          title: 'Categories',
+          items: [
+            { name: 'Political Parties', icon: FlagIcon, params: { category: 'POLITICAL_PARTY' } },
+            { name: 'Politicians', icon: UserGroupIcon, params: { category: 'POLITICIAN' } },
+            { name: 'News Outlets', icon: NewspaperIcon, params: { category: 'NEWS_OUTLET' } },
+            { name: 'Government Agencies', icon: BuildingLibraryIcon, params: { category: 'GOVERNMENT_AGENCY' } },
+          ],
+        },
+      ]
+    },
+    {
+      id: 'locations',
+      title: 'Locations',
+      description: 'Where is the action happening',
+      icon: MapPinIcon,
+      subItems: []
+    }
+  ]
+
+  const toggleTabExpansion = (tabId: string) => {
+    const newExpanded = new Set(expandedTabs)
+    if (newExpanded.has(tabId)) {
+      newExpanded.delete(tabId)
+    } else {
+      newExpanded.add(tabId)
+    }
+    setExpandedTabs(newExpanded)
+  }
 
   const handleExportPDF = async () => {
     if (!contentRef.current) return
@@ -220,7 +391,8 @@ export default function CampaignDetailPage() {
 
       // Save the PDF
       const date = new Date().toISOString().split('T')[0]
-      pdf.save(`bengaluru-police-campaign-${date}.pdf`)
+      const campaignName = currentCampaign?.name.toLowerCase().replace(/\s+/g, '-') || 'campaign'
+      pdf.save(`${campaignName}-${date}.pdf`)
 
     } catch (error) {
       console.error('Error generating PDF:', error)
@@ -231,125 +403,85 @@ export default function CampaignDetailPage() {
   }
 
   return (
-    <PageLayout>
-      <div className="h-screen flex flex-col overflow-hidden">
-        <PageHeader
-          title={
-            <div className="flex items-center gap-3">
-              <span>Bengaluru Police</span>
-              {isMonitoring && (
-                <div className="relative flex items-center justify-center">
-                  <div className="absolute w-3 h-3 bg-green-500 rounded-full animate-ping opacity-75"></div>
-                  <div className="relative w-2 h-2 bg-green-500 rounded-full"></div>
-                </div>
-              )}
-            </div>
-          }
-          actions={
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2"
-                onClick={handleExportPDF}
-                disabled={isExporting}
-              >
-                <Download className="w-4 h-4" />
-                {isExporting ? 'Generating...' : 'Export PDF'}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2 bg-yellow-900/20 border-yellow-800 text-yellow-400 hover:bg-yellow-900/30"
-                onClick={() => setIsMonitoring(!isMonitoring)}
-              >
-                {isMonitoring ? (
+    <div className="h-screen w-screen flex flex-col overflow-hidden bg-background">
+        {/* Combined Header and Stats */}
+        <div className="border-b border-border bg-background px-4 sm:px-6 py-3 flex-shrink-0">
+          <div className="flex items-center justify-between gap-4">
+            {/* Left: Title, Live Status, and Stats */}
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-3">
+                <h1 className="text-lg font-bold text-foreground">
+                  {campaignsLoading ? (
+                    <div className="h-5 w-32 bg-muted animate-pulse rounded"></div>
+                  ) : campaignsError ? (
+                    'Campaign Error'
+                  ) : (
+                    currentCampaign?.name || 'Campaign Not Found'
+                  )}
+                </h1>
+                {isMonitoring && (
+                  <div className="flex items-center gap-1.5 px-2 py-1 bg-green-500/10 border border-green-500/20 rounded-md">
+                    <div className="relative flex items-center justify-center">
+                      <div className="absolute w-1.5 h-1.5 bg-green-500 rounded-full animate-ping opacity-75"></div>
+                      <div className="relative w-1 h-1 bg-green-500 rounded-full"></div>
+                    </div>
+                    <span className="text-xs text-green-400 font-medium">Live</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center gap-4">
+                {campaignsLoading ? (
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="text-center">
+                      <div className="h-5 w-8 bg-muted animate-pulse rounded mb-1"></div>
+                      <div className="h-3 w-12 bg-muted animate-pulse rounded"></div>
+                    </div>
+                  ))
+                ) : currentCampaign ? (
                   <>
-                    <Square className="w-4 h-4" />
-                    Pause Monitoring
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-purple-500 dark:text-purple-400">
+                        {currentCampaign.metrics.totalPosts.toLocaleString()}
+                      </div>
+                      <div className="text-xs text-muted-foreground">POSTS</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                        {currentCampaign.metrics.totalEngagement > 1000
+                          ? `${(currentCampaign.metrics.totalEngagement / 1000).toFixed(1)}K`
+                          : currentCampaign.metrics.totalEngagement.toLocaleString()}
+                      </div>
+                      <div className="text-xs text-muted-foreground">ENGAGE</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-pink-600 dark:text-pink-400">
+                        {currentCampaign.metrics.totalLikes > 1000
+                          ? `${(currentCampaign.metrics.totalLikes / 1000).toFixed(1)}K`
+                          : currentCampaign.metrics.totalLikes.toLocaleString()}
+                      </div>
+                      <div className="text-xs text-muted-foreground">LIKES</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-slate-900 dark:text-white">
+                        {currentCampaign.metrics.totalShares.toLocaleString()}
+                      </div>
+                      <div className="text-xs text-muted-foreground">SHARES</div>
+                    </div>
                   </>
                 ) : (
-                  <>
-                    <Play className="w-4 h-4" />
-                    Resume Monitoring
-                  </>
+                  <div className="text-center text-muted-foreground text-sm">
+                    Campaign data not available
+                  </div>
                 )}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2 bg-red-900/20 border-red-800 text-red-400 hover:bg-red-900/30"
-                onClick={() => setIsMonitoring(false)}
-              >
-                <Square className="w-4 h-4" />
-                Stop
-              </Button>
-              <Link href="/analysis-history">
-                <Button variant="outline" size="sm">
-                  Back
-                </Button>
-              </Link>
-            </div>
-          }
-        />
-
-        {/* Tabs */}
-        <div className="border-b border-border bg-background">
-          <div className="flex items-center gap-2 px-4 sm:px-6">
-            <Button
-              variant="ghost"
-              onClick={() => setActiveTab('analytics')}
-              className={`gap-2 rounded-none border-b-2 ${
-                activeTab === 'analytics'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <BarChart3 className="w-4 h-4" />
-              Analytics
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => setActiveTab('notifications')}
-              className={`gap-2 rounded-none border-b-2 ${
-                activeTab === 'notifications'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <Bell className="w-4 h-4" />
-              Notifications
-            </Button>
-          </div>
-        </div>
-
-        {/* Stats Bar */}
-        {activeTab === 'analytics' && (
-          <div className="border-b border-border bg-background px-4 sm:px-6 py-4">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-400">129</div>
-                <div className="text-xs text-muted-foreground">POSTS</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-400">9.8K</div>
-                <div className="text-xs text-muted-foreground">ENGAGE</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-pink-400">9.2K</div>
-                <div className="text-xs text-muted-foreground">LIKES</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-white">653</div>
-                <div className="text-xs text-muted-foreground">SHARES</div>
               </div>
             </div>
-            
-            <div className="flex flex-col sm:flex-row items-center gap-3">
+
+            {/* Center: Platform Filters */}
+            <div className="flex items-center gap-2">
               <Select value={selectedSentiment} onValueChange={setSelectedSentiment}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Sentiment: All Sentiments" />
+                <SelectTrigger className="w-[140px] h-8">
+                  <SelectValue placeholder="All Sentiments" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Sentiments</SelectItem>
@@ -358,187 +490,352 @@ export default function CampaignDetailPage() {
                   <SelectItem value="neutral">Neutral</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               <div className="flex gap-1">
                 <Button
                   variant={selectedPlatform === 'all' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setSelectedPlatform('all')}
-                  className="text-xs"
+                  className="text-xs h-8 px-2"
                 >
-                  All Platforms (129)
-                </Button>
-                <Button
-                  variant={selectedPlatform === 'facebook' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedPlatform('facebook')}
-                  className="text-xs gap-2"
-                >
-                  <FacebookIcon className="w-3 h-3" />
-                  Facebook (0)
+                  All ({currentCampaign?.metrics.totalPosts || 0})
                 </Button>
                 <Button
                   variant={selectedPlatform === 'twitter' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setSelectedPlatform('twitter')}
-                  className="text-xs gap-2"
+                  className="text-xs h-8 px-2 gap-1"
                 >
                   <TwitterIcon className="w-3 h-3" />
-                  Twitter (129)
+                  {currentCampaign?.metrics.platformDistribution?.twitter || 0}
+                </Button>
+                <Button
+                  variant={selectedPlatform === 'facebook' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedPlatform('facebook')}
+                  className="text-xs h-8 px-2 gap-1"
+                >
+                  <FacebookIcon className="w-3 h-3" />
+                  {currentCampaign?.metrics.platformDistribution?.facebook || 0}
                 </Button>
                 <Button
                   variant={selectedPlatform === 'instagram' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setSelectedPlatform('instagram')}
-                  className="text-xs gap-2"
+                  className="text-xs h-8 px-2 gap-1"
                 >
                   <InstagramIcon className="w-3 h-3" />
-                  Instagram (0)
+                  {currentCampaign?.metrics.platformDistribution?.instagram || 0}
                 </Button>
               </div>
             </div>
+
+            {/* Right: Action Buttons */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 h-8 px-3"
+                onClick={handleExportPDF}
+                disabled={isExporting}
+              >
+                <Download className="w-3 h-3" />
+                {isExporting ? 'Generating...' : 'Export'}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 bg-yellow-900/20 border-yellow-800 text-yellow-400 hover:bg-yellow-900/30 h-8 px-3"
+                onClick={() => setIsMonitoring(!isMonitoring)}
+              >
+                {isMonitoring ? (
+                  <>
+                    <Square className="w-3 h-3" />
+                    Pause
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-3 h-3" />
+                    Resume
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 bg-red-900/20 border-red-800 text-red-400 hover:bg-red-900/30 h-8 px-3"
+                onClick={() => setIsMonitoring(false)}
+              >
+                <Square className="w-3 h-3" />
+                Stop
+              </Button>
+              <Link href="/analysis-history">
+                <Button variant="outline" size="sm" className="h-8 px-3">
+                  Back
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
-        )}
 
-        {/* Main Content */}
-        {activeTab === 'analytics' ? (
-          <div ref={contentRef} className="flex-1 flex overflow-hidden">
-          {/* Left Column - Analytics */}
-          <div className="w-full lg:w-1/2 border-r border-border bg-background p-4 sm:p-6 overflow-y-auto">
-            <div className="space-y-6">
-              {/* Posts Timeline */}
-              <div className="bg-card border border-border rounded-lg p-6">
-                <h3 className="text-foreground font-semibold mb-4">Posts timeline (21 data points)</h3>
-                <div className="h-48 bg-muted/20 rounded-lg flex items-center justify-center">
-                  <div className="text-center text-muted-foreground">
-                    <div className="text-2xl mb-2">📈</div>
-                    <p>Timeline chart would be displayed here</p>
-                    <p className="text-xs">Y-axis: 0-15 posts, X-axis: Time range</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Sentiment Distribution */}
-              <div className="bg-card border border-border rounded-lg p-6">
-                <h3 className="text-foreground font-semibold mb-4">SENTIMENT DISTRIBUTION</h3>
+        {/* Main Content - Full Screen Desktop Layout */}
+        <div ref={contentRef} className="flex-1 flex overflow-hidden min-h-0">
+          {/* Left Sidebar - Compact Vertical Tabs (Toolbar Style) */}
+          <div className="w-16 border-r border-border bg-card/50 backdrop-blur-sm flex flex-col h-[calc(100vh-16rem)] shadow-sm">
+            {/* Main Analysis Tabs */}
+            <div className="p-2 space-y-2">
+              {menuItems.map((item) => {
+                const isActive = activeAnalysisTab === item.id
+                const IconComponent = item.icon
                 
-                <div className="flex gap-6">
-                  {/* Chart */}
-                  <div className="flex-1 bg-muted/30 rounded-lg p-4">
-                    <ResponsiveContainer width="100%" height={200}>
-                      <BarChart 
-                        data={[
-                          { sentiment: 'Neutral', value: 73, color: '#8b8b8b' },
-                          { sentiment: 'Negative', value: 18, color: '#ef4444' },
-                          { sentiment: 'Positive', value: 9, color: '#22c55e' },
-                        ]} 
-                        margin={{ top: 20, right: 30, left: 80, bottom: 20 }}
-                        layout="vertical"
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                        <XAxis 
-                          type="number"
-                          domain={[0, 100]}
-                          tick={{ fill: '#9ca3af', fontSize: 12 }}
-                          axisLine={{ stroke: '#4b5563' }}
-                        />
-                        <YAxis 
-                          dataKey="sentiment" 
-                          type="category"
-                          tick={{ fill: '#9ca3af', fontSize: 12 }}
-                          axisLine={{ stroke: '#4b5563' }}
-                        />
-                        <Tooltip 
-                          content={({ active, payload }) => {
-                            if (active && payload && payload.length) {
-                              return (
-                                <div className="bg-background px-3 py-2 rounded-lg shadow-lg border border-border">
-                                  <p className="font-semibold text-foreground">{payload[0].payload.sentiment}</p>
-                                  <p className="text-lg font-bold" style={{ color: payload[0].color }}>
-                                    {payload[0].value}%
-                                  </p>
-                                </div>
-                              );
-                            }
-                            return null;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setActiveAnalysisTab(item.id as any)
+                      if (item.subItems.length > 0) {
+                        // Always expand the tab when clicked if it has sub-items
+                        const newExpanded = new Set(expandedTabs)
+                        newExpanded.add(item.id)
+                        setExpandedTabs(newExpanded)
+                      }
+                    }}
+                    className={`w-12 h-12 flex flex-col items-center justify-center gap-1 rounded-xl transition-all duration-200 group relative border ${
+                      isActive
+                        ? 'bg-primary text-primary-foreground shadow-lg border-primary/20 scale-105'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/60 border-transparent hover:border-border/50 hover:shadow-sm'
+                    }`}
+                    title={`${item.title} - ${item.description}`}
+                  >
+                    <IconComponent className="w-5 h-5" />
+                    
+                    {/* Tooltip */}
+                    <div className="absolute left-14 top-1/2 -translate-y-1/2 bg-background border border-border rounded-lg px-3 py-2 text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 shadow-lg">
+                      <div className="font-semibold">{item.title}</div>
+                      <div className="text-muted-foreground">{item.description}</div>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+            
+            {/* Divider */}
+            <div className="flex-1 flex items-center justify-center">
+              <div className="w-6 h-px bg-border/60"></div>
+            </div>
+            
+            {/* Notifications at Bottom */}
+            <div className="p-2">
+              <button
+                onClick={() => setActiveAnalysisTab('notifications')}
+                className={`w-12 h-12 flex flex-col items-center justify-center gap-1 rounded-xl transition-all duration-200 group relative border ${
+                  activeAnalysisTab === 'notifications'
+                    ? 'bg-primary text-primary-foreground shadow-lg border-primary/20 scale-105'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent/60 border-transparent hover:border-border/50 hover:shadow-sm'
+                }`}
+                title="Notifications - Manage alerts & settings"
+              >
+                <BellIcon className="w-5 h-5" />
+                
+                {/* Tooltip */}
+                <div className="absolute left-14 top-1/2 -translate-y-1/2 bg-background border border-border rounded-lg px-3 py-2 text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 shadow-lg">
+                  <div className="font-semibold">Notifications</div>
+                  <div className="text-muted-foreground">Manage alerts & settings</div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Sub-Sidebar - Shows when a tab with sub-items is expanded */}
+          {expandedTabs.size > 0 && (() => {
+            const activeMenuItem = menuItems.find(item => expandedTabs.has(item.id) && item.id === activeAnalysisTab)
+            if (!activeMenuItem || activeMenuItem.subItems.length === 0) return null
+            
+            return (
+              <div className="w-56 border-r border-border bg-background flex flex-col h-[calc(100vh-16rem)]">
+                <div className="p-3 border-b border-border">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-semibold text-foreground">
+                      {activeMenuItem.description}
+                    </h3>
+                    <button
+                      onClick={() => toggleTabExpansion(activeMenuItem.id)}
+                      className="p-1 hover:bg-accent rounded-md transition-colors"
+                      title="Hide sidebar"
+                    >
+                      <ChevronRightIcon className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-3 space-y-4">
+                  {activeMenuItem.subItems.map((category, categoryIndex) => (
+                    <div key={categoryIndex} className="space-y-2">
+                      <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide border-b border-border/30 pb-1">
+                        {category.title}
+                      </h4>
+                      <div className="space-y-0.5">
+                        {category.items.map((subItem, subIndex) => {
+                          const SubIcon = subItem.icon
+                          return (
+                            <button
+                              key={subIndex}
+                              className="w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors text-muted-foreground hover:text-foreground hover:bg-accent/50 border border-transparent hover:border-border/50"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setSelectedNavItem(subItem.name)
+
+                                // Apply API filters based on navigation item
+                                let newFilters = {}
+
+                                if (subItem.params?.sentiment) {
+                                  newFilters = { sentiment: subItem.params.sentiment }
+                                } else if (subItem.name === 'High Impact') {
+                                  newFilters = { minLikesCount: 1000, minSharesCount: 500 }
+                                } else if (subItem.name === 'Viral Negative') {
+                                  newFilters = { sentiment: 'NEGATIVE', minSharesCount: 50 }
+                                } else if (subItem.name === 'Popular Content') {
+                                  newFilters = { minLikesCount: 500 }
+                                } else if (subItem.name === 'Trending Discussions') {
+                                  newFilters = { minCommentsCount: 10 }
+                                } else if (subItem.name === 'Breaking News') {
+                                  newFilters = { minSharesCount: 100 }
+                                } else if (subItem.name === 'Latest Posts') {
+                                  newFilters = {}
+                                }
+
+                                setCurrentFilters(newFilters)
+                              }}
+                            >
+                              <SubIcon className="w-3 h-3 flex-shrink-0" />
+                              <span className="text-left truncate">{subItem.name}</span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
+          {/* Main Feed Area */}
+          <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+            <div className="flex-1 overflow-y-auto p-6 min-h-0">
+              {activeAnalysisTab === 'social-feed' && (
+                selectedNavItem ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-xl font-semibold text-foreground">{selectedNavItem}</h2>
+                        <button
+                          onClick={() => {
+                            setSelectedNavItem(null)
+                            setCurrentFilters({}) // Clear all filters when going back to main view
                           }}
-                        />
-                        <Bar dataKey="value" radius={[0, 8, 8, 0]}>
-                          {[
-                            { sentiment: 'Neutral', value: 73, color: '#8b8b8b' },
-                            { sentiment: 'Negative', value: 18, color: '#ef4444' },
-                            { sentiment: 'Positive', value: 9, color: '#22c55e' },
-                          ].map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-
-                  {/* Stats Panel */}
-                  <div className="w-48 flex flex-col justify-center gap-4">
-                    {[
-                      { sentiment: 'Neutral', value: 73, color: '#8b8b8b' },
-                      { sentiment: 'Negative', value: 18, color: '#ef4444' },
-                      { sentiment: 'Positive', value: 9, color: '#22c55e' },
-                    ].map((item) => (
-                      <div key={item.sentiment}>
-                        <div className="flex items-center gap-3 mb-2">
-                          <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: item.color }}
-                          />
-                          <p className="text-sm font-medium text-muted-foreground">{item.sentiment}</p>
-                        </div>
-                        <p className="text-3xl font-bold text-foreground">{item.value}%</p>
+                          className="text-sm text-primary hover:text-primary/80 transition-colors mt-1"
+                        >
+                          ← Back to All Posts
+                        </button>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Platforms */}
-              <div className="bg-card border border-border rounded-lg p-6">
-                <h3 className="text-foreground font-semibold mb-4">Platforms</h3>
-                <div className="flex items-center justify-center h-48">
-                  <div className="text-center">
-                    <div className="w-32 h-32 rounded-full bg-blue-500 flex items-center justify-center mb-4">
-                      <span className="text-white font-bold text-2xl">100%</span>
                     </div>
-                    <div className="text-sm">
-                      <div className="flex items-center gap-2 justify-center">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                        <span>Twitter 129</span>
+                    <PostList
+                      posts={filteredPosts}
+                      campaignId={campaignId}
+                      defaultView="grid"
+                    />
+                  </div>
+                ) : postsLoading ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="text-center text-muted-foreground">
+                      <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                      <p className="text-sm">Loading posts...</p>
+                    </div>
+                  </div>
+                ) : postsError ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="text-center text-muted-foreground">
+                      <p className="text-sm text-red-500 mb-2">Failed to load posts</p>
+                      <p className="text-xs">{postsError}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <PostRows
+                    posts={filteredPosts}
+                    campaignId={campaignId}
+                    onCategorySelect={handleCategorySelect}
+                  />
+                )
+              )}
+
+              {activeAnalysisTab === 'profiles' && (
+                <div className="space-y-6">
+                  <div className="bg-card border border-border rounded-lg p-6">
+                    <h3 className="text-foreground font-semibold mb-4">Profiles - Who is talking</h3>
+                    <div className="h-64 bg-muted/20 rounded-lg flex items-center justify-center">
+                      <div className="text-center text-muted-foreground">
+                        <UserGroupIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p>Profile analysis content will be displayed here</p>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
+
+              {activeAnalysisTab === 'entities' && (
+                <div className="space-y-6">
+                  <div className="bg-card border border-border rounded-lg p-6">
+                    <h3 className="text-foreground font-semibold mb-4">Entities - What is being talked about</h3>
+                    <div className="h-64 bg-muted/20 rounded-lg flex items-center justify-center">
+                      <div className="text-center text-muted-foreground">
+                        <CubeIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p>Entity analysis content will be displayed here</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeAnalysisTab === 'locations' && (
+                <div className="space-y-6">
+                  <div className="bg-card border border-border rounded-lg p-6">
+                    <h3 className="text-foreground font-semibold mb-4">Locations - Where is the action happening</h3>
+                    <div className="h-64 bg-muted/20 rounded-lg flex items-center justify-center">
+                      <div className="text-center text-muted-foreground">
+                        <MapPinIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p>Location analysis content will be displayed here</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeAnalysisTab === 'notifications' && (
+                <div className="max-w-4xl mx-auto">
+                  <CampaignNotificationSettings
+                    campaignId={campaignId}
+                    campaignName={currentCampaign?.name || 'Campaign'}
+                  />
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Right Column - Posts Grid */}
-          <div className="w-full lg:w-1/2 bg-background p-4 sm:p-6 overflow-y-auto">
-            <div className="grid gap-4">
-              {filteredPosts.map((post) => (
-                <PostCard key={post.id} post={post} />
-              ))}
+          {/* Right Sidebar - Live Analytics */}
+          <div className="w-80 border-l border-border bg-background flex flex-col h-[calc(100vh-16rem)] min-h-0">
+            <div className="p-4 border-b border-border flex-shrink-0">
+              <h3 className="text-sm font-semibold text-foreground mb-3">Live Analytics</h3>
             </div>
-          </div>
-        </div>
-        ) : (
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-            <div className="max-w-4xl mx-auto">
-              <CampaignNotificationSettings
+            <div className="flex-1 overflow-y-auto p-4 min-h-0">
+              <TrendsWidget
                 campaignId={campaignId}
-                campaignName="Bengaluru Police"
+                timeRange="24h"
+                granularity="hour"
               />
             </div>
           </div>
-        )}
-      </div>
-    </PageLayout>
+        </div>
+    </div>
   )
 }

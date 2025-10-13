@@ -6,6 +6,7 @@ import { AuthProvider } from '@/contexts/auth-context'
 import { ToastProvider } from '@/components/ui/toast-provider'
 import { RouteProgress } from '@/components/layout/route-progress'
 import { PageTransition } from '@/components/layout/page-transition'
+import { HeaderNav } from '@/components/layout/header-nav'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -30,6 +31,7 @@ export default function RootLayout({
           <AuthProvider>
             <ToastProvider />
             <RouteProgress />
+            <HeaderNav />
             <PageTransition>
               {children}
             </PageTransition>

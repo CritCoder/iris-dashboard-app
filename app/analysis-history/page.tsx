@@ -4,123 +4,53 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
-import { Search, Eye, Pause, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, Eye, Pause, Trash2, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { AnimatedPage, AnimatedList, AnimatedItem } from '@/components/ui/animated'
+import { useCampaigns } from '@/hooks/use-campaigns'
 
 interface Campaign {
   id: string
   name: string
-  date: string
-  posts: string
-  engage: string
-  likes: string
-  shares: string
-  sentiment: number
-  status: 'active' | 'inactive'
+  status: 'ACTIVE' | 'INACTIVE' | 'COMPLETED'
+  startDate: string
+  endDate: string
+  metrics: {
+    totalPosts: number
+    totalEngagement: number
+    totalLikes: number
+    totalShares: number
+    sentimentDistribution: {
+      NEUTRAL: number
+      NEGATIVE: number
+      POSITIVE: number
+      MIXED?: number
+    }
+  }
+  sentiment: string
+  createdAt: string
+  updatedAt: string
 }
 
-const campaigns: Campaign[] = [
-  {
-    id: '1',
-    name: 'women safety blr',
-    date: 'Sep 29, 2025',
-    posts: '163',
-    engage: '15.6K',
-    likes: '12.5K',
-    shares: '624',
-    sentiment: 8,
-    status: 'active'
-  },
-  {
-    id: '2',
-    name: 'kanakpura taluk',
-    date: 'Sep 29, 2025',
-    posts: '117',
-    engage: '16K',
-    likes: '15K',
-    shares: '653',
-    sentiment: 76,
-    status: 'active'
-  },
-  {
-    id: '3',
-    name: 'whitefield bengaluru',
-    date: 'Sep 29, 2025',
-    posts: '236',
-    engage: '2.6K',
-    likes: '1.8K',
-    shares: '162',
-    sentiment: 72,
-    status: 'active'
-  },
-  {
-    id: '4',
-    name: 'whitefield',
-    date: 'Sep 29, 2025',
-    posts: '204',
-    engage: '1.7K',
-    likes: '1.2K',
-    shares: '104',
-    sentiment: 69,
-    status: 'active'
-  },
-  {
-    id: '5',
-    name: 'bellandur',
-    date: 'Sep 29, 2025',
-    posts: '4.4K',
-    engage: '15.9K',
-    likes: '12.5K',
-    shares: '1.1K',
-    sentiment: 11,
-    status: 'active'
-  },
-  {
-    id: '6',
-    name: 'bengaluru police',
-    date: 'Sep 29, 2025',
-    posts: '444',
-    engage: '258.7K',
-    likes: '223.6K',
-    shares: '23.2K',
-    sentiment: 85,
-    status: 'active'
-  },
-  {
-    id: '7',
-    name: 'dharmasthala',
-    date: 'Sep 27, 2025',
-    posts: '429',
-    engage: '18.6K',
-    likes: '14.8K',
-    shares: '1.9K',
-    sentiment: 15,
-    status: 'active'
-  },
-  {
-    id: '8',
-    name: 'mysore palace',
-    date: 'Sep 25, 2025',
-    posts: '156',
-    engage: '8.2K',
-    likes: '6.1K',
-    shares: '342',
-    sentiment: 68,
-    status: 'inactive'
-  },
-  {
-    id: '9',
-    name: 'coorg tourism',
-    date: 'Sep 23, 2025',
-    posts: '89',
-    engage: '4.1K',
-    likes: '3.2K',
-    shares: '198',
-    sentiment: 82,
-    status: 'inactive'
+// Helper functions to format numbers
+function formatNumber(num: number): string {
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1) + 'M'
   }
-]
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'K'
+  }
+  return num.toString()
+}
+
+function calculateSentimentScore(sentiments: Campaign['metrics']['sentimentDistribution']): number {
+  const total = sentiments.POSITIVE + sentiments.NEGATIVE + sentiments.NEUTRAL + (sentiments.MIXED || 0)
+  if (total === 0) return 0
+
+  // Weight positive sentiment more heavily for scoring
+  const score = (sentiments.POSITIVE * 1 + (sentiments.MIXED || 0) * 0.5) / total * 100
+  return Math.round(score)
+}
 
 function CampaignRow({ campaign }: { campaign: Campaign }) {
   const router = useRouter()
@@ -131,6 +61,15 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
     if (sentiment >= 40) return 'bg-yellow-600 text-white'
     return 'bg-red-600 text-white'
   }
+
+  // Calculate display values
+  const sentimentScore = calculateSentimentScore(campaign.metrics.sentimentDistribution)
+  const displayDate = new Date(campaign.updatedAt).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  })
+  const displayStatus = campaign.status.toLowerCase() as 'active' | 'inactive' | 'completed'
 
   const handleRowClick = () => {
     router.push(`/analysis-history/${campaign.id}`)
@@ -145,33 +84,33 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
         <h3 className="text-foreground font-medium mb-1 hover:text-blue-400 transition-colors">
           {campaign.name}
         </h3>
-        <p className="text-sm text-muted-foreground">{campaign.date}</p>
+        <p className="text-sm text-muted-foreground">{displayDate}</p>
       </div>
 
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-6">
         <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-2 sm:pb-0">
           <div className="bg-blue-900/20 border border-blue-800/30 rounded-lg px-3 sm:px-4 py-2 text-center min-w-[70px] sm:min-w-[80px] flex-shrink-0">
-            <div className="text-blue-300 font-bold text-base sm:text-lg">{campaign.posts}</div>
+            <div className="text-blue-300 font-bold text-base sm:text-lg">{formatNumber(campaign.metrics.totalPosts)}</div>
             <div className="text-xs text-blue-400">POSTS</div>
           </div>
           <div className="bg-cyan-900/20 border border-cyan-800/30 rounded-lg px-3 sm:px-4 py-2 text-center min-w-[70px] sm:min-w-[80px] flex-shrink-0">
-            <div className="text-cyan-300 font-bold text-base sm:text-lg">{campaign.engage}</div>
+            <div className="text-cyan-300 font-bold text-base sm:text-lg">{formatNumber(campaign.metrics.totalEngagement)}</div>
             <div className="text-xs text-cyan-400">ENGAGE</div>
           </div>
           <div className="bg-green-900/20 border border-green-800/30 rounded-lg px-3 sm:px-4 py-2 text-center min-w-[70px] sm:min-w-[80px] flex-shrink-0">
-            <div className="text-green-300 font-bold text-base sm:text-lg">{campaign.likes}</div>
+            <div className="text-green-300 font-bold text-base sm:text-lg">{formatNumber(campaign.metrics.totalLikes)}</div>
             <div className="text-xs text-green-400">LIKES</div>
           </div>
           <div className="bg-purple-900/20 border border-purple-800/30 rounded-lg px-3 sm:px-4 py-2 text-center min-w-[70px] sm:min-w-[80px] flex-shrink-0">
-            <div className="text-purple-300 font-bold text-base sm:text-lg">{campaign.shares}</div>
+            <div className="text-purple-300 font-bold text-base sm:text-lg">{formatNumber(campaign.metrics.totalShares)}</div>
             <div className="text-xs text-purple-400">SHARES</div>
           </div>
         </div>
 
         <div className="flex items-center justify-between sm:justify-start gap-4">
           <div className="text-left sm:text-right">
-            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg ${getSentimentColor(campaign.sentiment)}`}>
-              <div className="text-xl sm:text-2xl font-bold">{campaign.sentiment}</div>
+            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg ${getSentimentColor(sentimentScore)}`}>
+              <div className="text-xl sm:text-2xl font-bold">{sentimentScore}</div>
             </div>
             <div className="text-xs text-muted-foreground mt-1">SENTIMENT</div>
           </div>
@@ -183,13 +122,13 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
             </button>
             <button
               className={`px-3 py-2 rounded-lg transition-colors flex items-center gap-2 ${
-                campaign.status === 'active'
+                displayStatus === 'active'
                   ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
                   : 'bg-gray-500/20 text-gray-400 hover:bg-gray-500/30'
               }`}
-              title={campaign.status === 'active' ? 'Active - Click to pause' : 'Paused - Click to activate'}
+              title={displayStatus === 'active' ? 'Active - Click to pause' : 'Paused - Click to activate'}
             >
-              {campaign.status === 'active' ? (
+              {displayStatus === 'active' ? (
                 <>
                   <Pause className="w-4 sm:w-5 h-4 sm:h-5" />
                   <span className="text-sm font-medium">Pause</span>
@@ -219,10 +158,14 @@ export default function AnalysisHistoryPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const totalPages = 3
 
+  // Fetch campaigns data
+  const { data: campaigns, loading, error } = useCampaigns({ page: currentPage, limit: 10 })
+
   // Filter campaigns based on active tab and search query
-  const filteredCampaigns = campaigns.filter((campaign) => {
-    const matchesTab = activeTab === 'all' || campaign.status === activeTab
-    const matchesSearch = searchQuery === '' || 
+  const filteredCampaigns = (campaigns || []).filter((campaign) => {
+    const displayStatus = campaign.status.toLowerCase()
+    const matchesTab = activeTab === 'all' || displayStatus === activeTab
+    const matchesSearch = searchQuery === '' ||
       campaign.name.toLowerCase().includes(searchQuery.toLowerCase())
     return matchesTab && matchesSearch
   })
@@ -287,24 +230,40 @@ export default function AnalysisHistoryPage() {
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          <AnimatedList stagger={0.03} className="divide-y divide-border list-animate-in">
-            {filteredCampaigns.length > 0 ? (
-              filteredCampaigns.map((campaign) => (
-                <AnimatedItem key={campaign.id}>
-                  <CampaignRow campaign={campaign} />
-                </AnimatedItem>
-              ))
-            ) : (
-              <div className="p-8 text-center text-muted-foreground">
-                <p>No campaigns found matching your criteria.</p>
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center text-muted-foreground">
+                <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                <p className="text-sm">Loading campaigns...</p>
               </div>
-            )}
-          </AnimatedList>
+            </div>
+          ) : error ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center text-muted-foreground">
+                <p className="text-sm text-red-500 mb-2">Failed to load campaigns</p>
+                <p className="text-xs">{error}</p>
+              </div>
+            </div>
+          ) : (
+            <AnimatedList stagger={0.03} className="divide-y divide-border list-animate-in">
+              {filteredCampaigns.length > 0 ? (
+                filteredCampaigns.map((campaign) => (
+                  <AnimatedItem key={campaign.id}>
+                    <CampaignRow campaign={campaign} />
+                  </AnimatedItem>
+                ))
+              ) : (
+                <div className="p-8 text-center text-muted-foreground">
+                  <p>No campaigns found matching your criteria.</p>
+                </div>
+              )}
+            </AnimatedList>
+          )}
         </div>
 
         <div className="border-t border-border bg-background px-3 sm:px-4 h-16 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-sm text-muted-foreground">
-            Showing {filteredCampaigns.length} of {campaigns.length} campaigns
+            Showing {filteredCampaigns.length} of {campaigns?.length || 0} campaigns
           </p>
           <div className="flex items-center gap-2">
             <button
