@@ -301,8 +301,32 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
           <div className="border-t border-border p-3 space-y-3 flex-shrink-0">
             <ThemeToggle />
             <div className="px-3 py-2.5 bg-muted/50 border border-border rounded-lg hover:border-blue-500/40 transition-all duration-300">
-              <div className="text-xs text-foreground font-medium truncate">suumit@mydukaan.io</div>
-              <button className="text-xs text-muted-foreground hover:text-blue-500 transition-colors mt-1 font-medium">Logout</button>
+              <div className="flex items-center gap-3">
+                {/* User Avatar */}
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                  <img 
+                    src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face&auto=format&q=80" 
+                    alt="User Profile" 
+                    className="w-8 h-8 rounded-full object-cover"
+                    onError={(e) => {
+                      // Fallback to initials if image fails to load
+                      const target = e.target as HTMLImageElement
+                      target.style.display = 'none'
+                      const fallback = target.nextElementSibling as HTMLElement
+                      if (fallback) fallback.style.display = 'flex'
+                    }}
+                  />
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-semibold hidden">
+                    SU
+                  </div>
+                </div>
+                
+                {/* User Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs text-foreground font-medium truncate">suumit@mydukaan.io</div>
+                  <button className="text-xs text-muted-foreground hover:text-blue-500 transition-colors font-medium">Logout</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
