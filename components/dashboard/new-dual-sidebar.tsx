@@ -40,6 +40,7 @@ interface NavItemData {
   icon: React.ElementType
   href: string
   submenu?: string
+  description?: string
 }
 
 interface SubmenuItemData {
@@ -66,11 +67,10 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
   }, [expandedSubMenu, setExpandedSubMenu])
 
   const exploreItems = useMemo<NavItemData[]>(() => [
-    { id: 'social-feed', label: 'Social Feed', icon: Globe, href: '/social-feed', submenu: undefined },
-    { id: 'profiles', label: 'Profiles', icon: Users, href: '/profiles', submenu: 'profiles' },
-    { id: 'entities', label: 'Entities', icon: Hash, href: '/entities', submenu: undefined },
-    { id: 'locations', label: 'Locations', icon: MapPin, href: '/locations', submenu: undefined },
-    { id: 'groups', label: 'Groups & Organizations', icon: Building2, href: '/groups-organizations', submenu: undefined },
+    { id: 'social-feed', label: 'Social Feed', icon: Globe, href: '/social-feed', submenu: undefined, description: 'whats happening (feed)' },
+    { id: 'profiles', label: 'Profiles', icon: Users, href: '/profiles', submenu: 'profiles', description: 'who is talking' },
+    { id: 'entities', label: 'Entities', icon: Hash, href: '/entities', submenu: undefined, description: 'what is being talked about' },
+    { id: 'locations', label: 'Locations', icon: MapPin, href: '/locations', submenu: undefined, description: 'where things are happening' },
   ], [])
 
   const profilesSubmenu = useMemo(() => [
@@ -134,7 +134,12 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
             <div className={`transition-all duration-300 ${isActive ? 'text-blue-500' : 'text-muted-foreground group-hover:text-blue-500'}`}>
               <item.icon size={18} strokeWidth={1.5} />
             </div>
-            <span className="text-sm font-medium">{item.label}</span>
+            <div className="flex flex-col">
+              <span className="text-sm font-medium">{item.label}</span>
+              {item.description && (
+                <span className="text-xs text-muted-foreground/70">{item.description}</span>
+              )}
+            </div>
           </div>
           {hasSubmenu && (
             <ChevronRight size={16} className={`transition-all duration-300 relative z-10 ${
@@ -228,7 +233,7 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
             </div>
             <div className="min-w-0">
               <div className="font-bold text-foreground text-sm truncate">IRIS</div>
-              <div className="text-xs text-muted-foreground truncate">Intelligence Platform</div>
+              <div className="text-xs text-muted-foreground truncate">AI Social Media Intelligence</div>
             </div>
           </div>
 
@@ -286,11 +291,6 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
                 <NavItem
                   item={{ id: 'entity-search', label: 'Entity Search', icon: Search, href: '/entity-search' }}
                   isActive={pathname === '/entity-search'}
-                  hasSubmenu={false}
-                />
-                <NavItem
-                  item={{ id: 'osint-tools', label: 'OSINT Tools', icon: Shield, href: '/osint-tools' }}
-                  isActive={pathname === '/osint-tools'}
                   hasSubmenu={false}
                 />
               </div>
