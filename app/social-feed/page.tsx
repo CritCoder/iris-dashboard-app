@@ -421,7 +421,7 @@ function SocialFeedContent() {
         />
 
         {/* Filters Section - Below Header */}
-        <div className="border-b border-border bg-background/50 backdrop-blur-sm">
+        <div className="border-b border-border bg-background">
           <div className="p-4 sm:p-6">
             {/* Search Bar */}
             <div className="relative w-full mb-4">
