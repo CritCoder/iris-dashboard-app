@@ -9,8 +9,10 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { FacebookIcon, InstagramIcon, TwitterIcon, NewsIcon } from '@/components/ui/platform-icons'
 import { useToast } from '@/hooks/use-toast'
-import { Loader2, Search, Zap } from 'lucide-react'
+import { Loader2, Search, Zap, Calendar } from 'lucide-react'
 import { AnimatedPage, FadeIn, SlideUp } from '@/components/ui/animated'
+import { DateRangePicker } from '@/components/ui/date-range-picker'
+import { DateRange } from 'react-day-picker'
 
 export default function StartAnalysisPage() {
   const router = useRouter()
@@ -19,6 +21,7 @@ export default function StartAnalysisPage() {
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['facebook', 'instagram', 'twitter', 'india-news'])
   const [searchQuery, setSearchQuery] = useState('')
   const [timeRange, setTimeRange] = useState('any')
+  const [dateRange, setDateRange] = useState<DateRange | undefined>()
   const [isAnalyzing, setIsAnalyzing] = useState(false)
 
   const platforms = [
@@ -47,9 +50,24 @@ export default function StartAnalysisPage() {
       return
     }
 
+    if (timeRange === 'custom' && (!dateRange?.from || !dateRange?.to)) {
+      error('Please select a custom date range')
+      return
+    }
+
     setIsAnalyzing(true)
 
     try {
+      // Prepare time range data
+      let timeRangeData = timeRange
+      if (timeRange === 'custom' && dateRange?.from && dateRange?.to) {
+        timeRangeData = {
+          type: 'custom',
+          startDate: dateRange.from.toISOString(),
+          endDate: dateRange.to.toISOString()
+        }
+      }
+
       // Create a new campaign for analysis
       const response = await fetch('https://irisnet.wiredleap.com/api/campaigns', {
         method: 'POST',
@@ -62,7 +80,7 @@ export default function StartAnalysisPage() {
           description: `Analysis of ${searchQuery} across ${selectedPlatforms.join(', ')} platforms`,
           keywords: searchQuery.split(',').map(k => k.trim()).filter(k => k.length > 0),
           platforms: selectedPlatforms,
-          timeRange: timeRange
+          timeRange: timeRangeData
         })
       })
 
@@ -205,20 +223,57 @@ export default function StartAnalysisPage() {
             {/* Time Range */}
             <SlideUp>
               <h3 className="text-foreground font-semibold mb-4">Time Range</h3>
-              <select
-                value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value)}
-                className="appearance-none w-full bg-background border border-border text-foreground rounded-lg px-4 py-3 cursor-pointer hover:bg-accent transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30"
-              >
-                <option value="any">Any time</option>
-                <option value="24h">Last 24 hours</option>
-                <option value="7d">Last 7 days</option>
-                <option value="30d">Last 30 days</option>
-                <option value="3m">Last 3 months</option>
-                <option value="6m">Last 6 months</option>
-                <option value="1y">Last year</option>
-                <option value="custom">Custom range</option>
-              </select>
+              
+              {/* Preset Options */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+                {[
+                  { value: 'any', label: 'Any time' },
+                  { value: '24h', label: '24 hours' },
+                  { value: '7d', label: '7 days' },
+                  { value: '30d', label: '30 days' },
+                  { value: '3m', label: '3 months' },
+                  { value: '6m', label: '6 months' },
+                  { value: '1y', label: '1 year' },
+                  { value: 'custom', label: 'Custom' }
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => {
+                      setTimeRange(option.value)
+                      if (option.value !== 'custom') {
+                        setDateRange(undefined)
+                      }
+                    }}
+                    className={`px-3 py-2 text-sm rounded-lg border transition-all ${
+                      timeRange === option.value
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-background border-border text-foreground hover:bg-accent hover:text-accent-foreground'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Custom Date Range Picker */}
+              {timeRange === 'custom' && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">
+                    Select Custom Date Range
+                  </label>
+                  <DateRangePicker
+                    date={dateRange}
+                    onDateChange={setDateRange}
+                    placeholder="Choose start and end dates"
+                    className="w-full"
+                  />
+                  {dateRange?.from && dateRange?.to && (
+                    <p className="text-xs text-muted-foreground">
+                      Selected: {dateRange.from.toLocaleDateString()} - {dateRange.to.toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+              )}
             </SlideUp>
           </AnimatedPage>
         </div>
