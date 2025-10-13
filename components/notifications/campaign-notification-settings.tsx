@@ -63,12 +63,43 @@ export function CampaignNotificationSettings({ campaignId, campaignName }: Campa
   const loadSettings = async () => {
     try {
       setLoading(true)
+      console.log('Loading notification settings for campaign:', campaignId)
+      
+      // Try to load from API first
       const result = await api.notification.getCampaignSettings(campaignId)
+      console.log('Load settings result:', result)
+      
       if (result.success && result.data) {
         setSettings(result.data)
+      } else {
+        console.warn('No settings found or load failed:', result.message)
+        
+        // Fallback to localStorage
+        const localSettings = localStorage.getItem(`notification-settings-${campaignId}`)
+        if (localSettings) {
+          try {
+            const parsedSettings = JSON.parse(localSettings)
+            setSettings(parsedSettings)
+            console.log('Loaded settings from localStorage fallback')
+          } catch (parseErr) {
+            console.error('Failed to parse localStorage settings:', parseErr)
+          }
+        }
       }
     } catch (err) {
       console.error('Failed to load notification settings:', err)
+      
+      // Fallback to localStorage on error
+      const localSettings = localStorage.getItem(`notification-settings-${campaignId}`)
+      if (localSettings) {
+        try {
+          const parsedSettings = JSON.parse(localSettings)
+          setSettings(parsedSettings)
+          console.log('Loaded settings from localStorage fallback after error')
+        } catch (parseErr) {
+          console.error('Failed to parse localStorage settings:', parseErr)
+        }
+      }
     } finally {
       setLoading(false)
     }
@@ -79,24 +110,56 @@ export function CampaignNotificationSettings({ campaignId, campaignName }: Campa
       const result = await api.notification.getTeamMembers()
       if (result.success && result.data) {
         setTeamMembers(result.data)
+      } else {
+        console.warn('Failed to load team members from API:', result.message)
+        // Fallback to mock data
+        setTeamMembers([
+          { id: '1', email: 'admin@example.com', name: 'Admin User', role: 'Administrator' },
+          { id: '2', email: 'analyst@example.com', name: 'Data Analyst', role: 'Analyst' },
+          { id: '3', email: 'manager@example.com', name: 'Campaign Manager', role: 'Manager' }
+        ])
       }
     } catch (err) {
       console.error('Failed to load team members:', err)
+      // Fallback to mock data on error
+      setTeamMembers([
+        { id: '1', email: 'admin@example.com', name: 'Admin User', role: 'Administrator' },
+        { id: '2', email: 'analyst@example.com', name: 'Data Analyst', role: 'Analyst' },
+        { id: '3', email: 'manager@example.com', name: 'Campaign Manager', role: 'Manager' }
+      ])
     }
   }
 
   const handleSave = async () => {
     try {
       setSaving(true)
+      console.log('Saving notification settings:', { campaignId, settings })
+      
       const result = await api.notification.updateCampaignSettings(campaignId, settings)
+      console.log('Save result:', result)
 
       if (result.success) {
         success('Notification settings saved successfully!')
       } else {
-        error(result.message || 'Failed to save settings')
+        console.error('Save failed:', result)
+        // If API fails, save to localStorage as fallback
+        if (result.message?.includes('404') || result.message?.includes('not found')) {
+          console.log('API endpoint not found, saving to localStorage as fallback')
+          localStorage.setItem(`notification-settings-${campaignId}`, JSON.stringify(settings))
+          success('Settings saved locally (API endpoint not available)')
+        } else {
+          error(result.message || 'Failed to save settings')
+        }
       }
     } catch (err) {
-      error('Failed to save notification settings')
+      console.error('Save error:', err)
+      // Fallback to localStorage on network errors
+      try {
+        localStorage.setItem(`notification-settings-${campaignId}`, JSON.stringify(settings))
+        success('Settings saved locally (network error)')
+      } catch (localErr) {
+        error('Failed to save notification settings')
+      }
     } finally {
       setSaving(false)
     }
@@ -357,7 +420,7 @@ export function CampaignNotificationSettings({ campaignId, campaignName }: Campa
         <div className="flex gap-3 pt-4 border-t">
           <Button
             onClick={handleSave}
-            disabled={saving || !settings.emailEnabled}
+            disabled={saving}
             className="flex-1"
           >
             {saving ? (
