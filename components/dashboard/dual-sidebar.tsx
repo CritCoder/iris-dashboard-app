@@ -441,7 +441,7 @@ export function MobileMenuProvider({ children }: { children: React.ReactNode }) 
   )
 }
 
-export function DualSidebar() {
+function DualSidebarWrapper() {
   const { isOpen: mobileOpen, setIsOpen: setMobileOpen } = useMobileMenu()
   const [activeNavItem, setActiveNavItem] = useState('home')
   const [expandedSubMenu, setExpandedSubMenu] = useState<string | null>(null)
@@ -473,4 +473,8 @@ export function DualSidebar() {
       </Sheet>
     </>
   )
+}
+
+export function DualSidebar() {
+  return <DualSidebarWrapper />
 }
