@@ -374,9 +374,7 @@ function DualSidebarWrapper() {
     if (pathname.startsWith('/profiles')) return 'profiles'
     if (pathname === '/entities') return 'entities'
     if (pathname === '/locations') return 'locations'
-    if (pathname === '/groups-organizations') return 'groups'
     if (pathname === '/entity-search') return 'entity-search'
-    if (pathname === '/osint-tools') return 'osint-tools'
     return 'home'
   })
 
