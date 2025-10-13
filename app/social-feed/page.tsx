@@ -420,28 +420,28 @@ function SocialFeedContent() {
           description={`${filteredPosts.length} posts loaded`}
         />
 
-        {/* Filters Section - Below Header */}
+        {/* Filters Section - Compact Layout */}
         <div className="border-b border-border bg-background">
-          <div className="p-4 sm:p-6">
+          <div className="p-3">
             {/* Search Bar */}
-            <div className="relative w-full mb-4">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <div className="relative w-full mb-3">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="text"
                 placeholder="Search posts..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-11 pr-4 h-11 w-full text-sm bg-background/80"
+                className="pl-10 pr-4 h-9 w-full text-sm bg-background/80"
               />
             </div>
 
             {/* Quick Filter Buttons */}
-            <div className="flex flex-wrap items-center gap-2 mb-4">
+            <div className="flex flex-wrap items-center gap-1.5 mb-3">
               <Button
                 variant={activeFilter === 'latest-posts' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => handleFilterChange('latest-posts')}
-                className="h-9 px-4 rounded-full"
+                className="h-8 px-3 rounded-full text-xs"
               >
                 Latest
               </Button>
@@ -449,7 +449,7 @@ function SocialFeedContent() {
                 variant={activeFilter === 'high-impact' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => handleFilterChange('high-impact')}
-                className="h-9 px-4 rounded-full"
+                className="h-8 px-3 rounded-full text-xs"
               >
                 Top Posts
               </Button>
@@ -457,7 +457,7 @@ function SocialFeedContent() {
                 variant={activeFilter === 'positive' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => handleFilterChange('positive')}
-                className="h-9 px-4 rounded-full"
+                className="h-8 px-3 rounded-full text-xs"
               >
                 Positive
               </Button>
@@ -465,19 +465,19 @@ function SocialFeedContent() {
                 variant={activeFilter === 'negative' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => handleFilterChange('negative')}
-                className="h-9 px-4 rounded-full"
+                className="h-8 px-3 rounded-full text-xs"
               >
                 Negative
               </Button>
             </div>
 
-            {/* Advanced Filters */}
-            <div className="flex flex-wrap items-center gap-3">
-              <select className="appearance-none bg-background border border-border text-foreground text-sm rounded-lg px-4 py-2 h-10 cursor-pointer hover:bg-accent/20 transition-colors min-w-[140px]">
+            {/* Advanced Filters - Compact Row */}
+            <div className="flex flex-wrap items-center gap-2">
+              <select className="appearance-none bg-background border border-border text-foreground text-xs rounded-md px-3 py-1.5 h-8 cursor-pointer hover:bg-accent/20 transition-colors min-w-[120px]">
                 <option>All Campaigns</option>
               </select>
 
-              <select className="appearance-none bg-background border border-border text-foreground text-sm rounded-lg px-4 py-2 h-10 cursor-pointer hover:bg-accent/20 transition-colors min-w-[140px]">
+              <select className="appearance-none bg-background border border-border text-foreground text-xs rounded-md px-3 py-1.5 h-8 cursor-pointer hover:bg-accent/20 transition-colors min-w-[120px]">
                 <option>All Platforms</option>
                 <option>Facebook</option>
                 <option>Twitter</option>
@@ -485,14 +485,14 @@ function SocialFeedContent() {
                 <option>News</option>
               </select>
 
-              <select className="appearance-none bg-background border border-border text-foreground text-sm rounded-lg px-4 py-2 h-10 cursor-pointer hover:bg-accent/20 transition-colors min-w-[130px]">
+              <select className="appearance-none bg-background border border-border text-foreground text-xs rounded-md px-3 py-1.5 h-8 cursor-pointer hover:bg-accent/20 transition-colors min-w-[110px]">
                 <option>All Media</option>
                 <option>With Images</option>
                 <option>With Videos</option>
                 <option>Text Only</option>
               </select>
 
-              <select className="appearance-none bg-background border border-border text-foreground text-sm rounded-lg px-4 py-2 h-10 cursor-pointer hover:bg-accent/20 transition-colors min-w-[130px]">
+              <select className="appearance-none bg-background border border-border text-foreground text-xs rounded-md px-3 py-1.5 h-8 cursor-pointer hover:bg-accent/20 transition-colors min-w-[110px]">
                 <option>All Time</option>
                 <option>Last Hour</option>
                 <option>Last 24 Hours</option>
@@ -500,8 +500,8 @@ function SocialFeedContent() {
                 <option>Last 30 Days</option>
               </select>
 
-              <Button variant="outline" size="sm" className="gap-2 h-10 ml-auto">
-                <Download className="w-4 h-4" />
+              <Button variant="outline" size="sm" className="gap-1.5 h-8 ml-auto text-xs px-3">
+                <Download className="w-3 h-3" />
                 <span className="hidden sm:inline">Export</span>
               </Button>
             </div>
@@ -510,9 +510,9 @@ function SocialFeedContent() {
 
         {/* Posts Grid */}
         <div className="flex-1 overflow-y-auto">
-          <AnimatedPage className="p-4 sm:p-6">
+          <AnimatedPage className="p-3">
             {(filteredPosts || []).length > 0 ? (
-              <AnimatedGrid stagger={0.03} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+              <AnimatedGrid stagger={0.03} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
                 {(filteredPosts || []).map((post) => (
                   <AnimatedCard key={post.id}>
                     <PostCard post={post} />
