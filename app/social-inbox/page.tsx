@@ -452,17 +452,19 @@ export default function SocialInboxPage() {
                   />
                 ))
               ) : (
-                <Empty>
-                  <EmptyHeader>
-                    <EmptyMedia variant="icon">
-                      <MessageCircle className="w-12 h-12 text-muted-foreground" />
-                    </EmptyMedia>
-                    <EmptyTitle>All Caught Up</EmptyTitle>
-                    <EmptyDescription>
-                      No posts requiring attention at the moment.
-                    </EmptyDescription>
-                  </EmptyHeader>
-                </Empty>
+                <div className="flex items-center justify-center h-full p-8">
+                  <Empty>
+                    <EmptyHeader>
+                      <EmptyMedia variant="icon">
+                        <MessageCircle className="w-12 h-12 text-muted-foreground" />
+                      </EmptyMedia>
+                      <EmptyTitle>All Caught Up</EmptyTitle>
+                      <EmptyDescription>
+                        No posts requiring attention at the moment.
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                </div>
               )}
             </div>
           </div>
@@ -649,12 +651,18 @@ export default function SocialInboxPage() {
                 </div>
               </AnimatedPage>
             ) : (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center text-muted-foreground">
-                  <div className="text-6xl mb-4">📧</div>
-                  <h3 className="text-xl font-semibold mb-2">Select a post from the inbox</h3>
-                  <p>Choose a post from the left sidebar to view detailed information and analytics.</p>
-                </div>
+              <div className="flex items-center justify-center h-full p-8">
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <MessageCircle className="w-12 h-12 text-muted-foreground" />
+                    </EmptyMedia>
+                    <EmptyTitle>Select a Post</EmptyTitle>
+                    <EmptyDescription>
+                      Choose a post from the left sidebar to view detailed information and analytics.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               </div>
             )}
           </div>
@@ -706,8 +714,18 @@ export default function SocialInboxPage() {
                 </div>
               </div>
             ) : (
-              <div className="flex items-center justify-center h-full text-center text-muted-foreground">
-                <p>Select a post to view details.</p>
+              <div className="flex items-center justify-center h-full p-4">
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <MessageCircle className="w-10 h-10 text-muted-foreground" />
+                    </EmptyMedia>
+                    <EmptyTitle>No Post Selected</EmptyTitle>
+                    <EmptyDescription>
+                      Select a post to view its details and analytics.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               </div>
             )}
           </div>
