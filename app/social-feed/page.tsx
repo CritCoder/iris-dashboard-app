@@ -465,11 +465,11 @@ function SocialFeedContent() {
 
             {/* Advanced Filters */}
             <div className="flex flex-wrap items-center gap-3">
-              <select className="bg-background border border-border text-foreground text-sm rounded-lg px-4 py-2 h-10 cursor-pointer hover:bg-accent/20 transition-colors min-w-[140px]">
+              <select className="appearance-none bg-background border border-border text-foreground text-sm rounded-lg px-4 py-2 h-10 cursor-pointer hover:bg-accent/20 transition-colors min-w-[140px]">
                 <option>All Campaigns</option>
               </select>
 
-              <select className="bg-background border border-border text-foreground text-sm rounded-lg px-4 py-2 h-10 cursor-pointer hover:bg-accent/20 transition-colors min-w-[140px]">
+              <select className="appearance-none bg-background border border-border text-foreground text-sm rounded-lg px-4 py-2 h-10 cursor-pointer hover:bg-accent/20 transition-colors min-w-[140px]">
                 <option>All Platforms</option>
                 <option>Facebook</option>
                 <option>Twitter</option>
@@ -477,14 +477,14 @@ function SocialFeedContent() {
                 <option>News</option>
               </select>
 
-              <select className="bg-background border border-border text-foreground text-sm rounded-lg px-4 py-2 h-10 cursor-pointer hover:bg-accent/20 transition-colors min-w-[130px]">
+              <select className="appearance-none bg-background border border-border text-foreground text-sm rounded-lg px-4 py-2 h-10 cursor-pointer hover:bg-accent/20 transition-colors min-w-[130px]">
                 <option>All Media</option>
                 <option>With Images</option>
                 <option>With Videos</option>
                 <option>Text Only</option>
               </select>
 
-              <select className="bg-background border border-border text-foreground text-sm rounded-lg px-4 py-2 h-10 cursor-pointer hover:bg-accent/20 transition-colors min-w-[130px]">
+              <select className="appearance-none bg-background border border-border text-foreground text-sm rounded-lg px-4 py-2 h-10 cursor-pointer hover:bg-accent/20 transition-colors min-w-[130px]">
                 <option>All Time</option>
                 <option>Last Hour</option>
                 <option>Last 24 Hours</option>

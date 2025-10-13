@@ -381,7 +381,7 @@ export default function ProfilesPage() {
               <select
                 value={activeFilter}
                 onChange={(e) => setActiveFilter(e.target.value)}
-                className="bg-background border border-border text-foreground text-sm rounded-lg px-3 py-2 cursor-pointer hover:bg-accent/20 transition-colors"
+                className="appearance-none bg-background border border-border text-foreground text-sm rounded-lg px-3 py-2 cursor-pointer hover:bg-accent/20 transition-colors"
               >
                 {(filterOptions || []).map(option => (
                   <option key={option.id} value={option.id}>
@@ -392,7 +392,7 @@ export default function ProfilesPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="bg-background border border-border text-foreground text-sm rounded-lg px-3 py-2 cursor-pointer hover:bg-accent/20 transition-colors"
+                className="appearance-none bg-background border border-border text-foreground text-sm rounded-lg px-3 py-2 cursor-pointer hover:bg-accent/20 transition-colors"
               >
                 <option value="followers">Sort by Followers</option>
                 <option value="posts">Sort by Posts</option>

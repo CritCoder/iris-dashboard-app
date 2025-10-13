@@ -33,12 +33,12 @@ export function SegmentedControl({ options, value, onChange, className }: Segmen
     <div
       role="tablist"
       aria-orientation="horizontal"
-      className={`relative bg-muted/50 backdrop-blur-sm border border-border rounded-lg p-1 flex items-center gap-0.5 ${className ?? ''}`}
+      className={`relative bg-muted/50 backdrop-blur-sm border border-border rounded-lg py-1 px-1.5 flex items-center gap-0.5 ${className ?? ''}`}
     >
       {/* Glider */}
       <div
         aria-hidden
-        className="absolute top-1 bottom-1 rounded-md bg-background shadow-md border border-border transition-all duration-300"
+        className="absolute top-1 bottom-1 left-1.5 rounded-md bg-background shadow-md border border-border transition-all duration-300"
         style={gliderStyle}
       />
 

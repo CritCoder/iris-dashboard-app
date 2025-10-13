@@ -14,24 +14,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { useState, useMemo } from 'react'
 import { SegmentedControl } from '@/components/ui/segmented-control'
+import { TrendingUp, TrendingDown } from 'lucide-react'
 import {
-  TrendingUp,
-  TrendingDown,
-  Activity,
-  AlertTriangle,
-  Users,
-  MessageSquare,
-  Heart,
-  Share2,
-  Eye,
-  Clock,
-  MapPin,
-  Hash,
-  BarChart3,
-  Globe,
-  Shield,
-  Zap
-} from 'lucide-react'
+  ChatBubbleIcon,
+  HeartIcon,
+  ActivityLogIcon,
+  ShieldIcon,
+  PersonIcon,
+  Share2Icon,
+  EyeOpenIcon,
+  ClockIcon,
+  PinIcon,
+  HashIcon,
+  BarChartIcon,
+  GlobeIcon,
+  LightningBoltIcon,
+  ExclamationTriangleIcon
+} from '@radix-ui/react-icons'
 import { AnimatedPage, AnimatedGrid, AnimatedCard } from '@/components/ui/animated'
 
 export default function Page() {
@@ -73,10 +72,10 @@ export default function Page() {
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case 'mention': return MessageSquare
+      case 'mention': return ChatBubbleIcon
       case 'trend': return TrendingUp
-      case 'alert': return AlertTriangle
-      default: return Activity
+      case 'alert': return ExclamationTriangleIcon
+      default: return ActivityLogIcon
     }
   }
 
@@ -171,7 +170,7 @@ export default function Page() {
                           </p>
                         </div>
                         <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                          <MessageSquare className="w-6 h-6 text-blue-600" />
+                          <ChatBubbleIcon className="w-6 h-6 text-blue-600" />
                         </div>
                       </div>
                     </CardContent>
@@ -191,7 +190,7 @@ export default function Page() {
                           </p>
                         </div>
                         <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                          <Heart className="w-6 h-6 text-green-600" />
+                          <HeartIcon className="w-6 h-6 text-green-600" />
                         </div>
                       </div>
                     </CardContent>
@@ -206,12 +205,12 @@ export default function Page() {
                           <p className="text-sm font-medium text-muted-foreground">Active Campaigns</p>
                           <p className="text-2xl font-bold text-foreground">8</p>
                           <p className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1 font-medium">
-                            <Activity className="w-3 h-3" />
+                            <ActivityLogIcon className="w-3 h-3" />
                             3 new this week
                           </p>
                         </div>
                         <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-                          <BarChart3 className="w-6 h-6 text-purple-600" />
+                          <BarChartIcon className="w-6 h-6 text-purple-600" />
                         </div>
                       </div>
                     </CardContent>
@@ -226,12 +225,12 @@ export default function Page() {
                           <p className="text-sm font-medium text-muted-foreground">Threat Level</p>
                           <p className="text-2xl font-bold text-foreground">Low</p>
                           <p className="text-xs text-green-600 dark:text-green-500 flex items-center gap-1 font-medium">
-                            <Shield className="w-3 h-3" />
+                            <ShieldIcon className="w-3 h-3" />
                             No alerts
                           </p>
                         </div>
                         <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                          <Shield className="w-6 h-6 text-green-600" />
+                          <ShieldIcon className="w-6 h-6 text-green-600" />
                         </div>
                       </div>
                     </CardContent>
@@ -337,7 +336,7 @@ export default function Page() {
                         <div className="p-4 border border-border rounded-lg">
                           <div className="flex items-center gap-3 mb-2">
                             <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                              <Zap className="w-4 h-4 text-green-600" />
+                              <LightningBoltIcon className="w-4 h-4 text-green-600" />
                             </div>
                             <div>
                               <p className="text-sm font-medium">Bengaluru Police</p>
@@ -350,7 +349,7 @@ export default function Page() {
                         <div className="p-4 border border-border rounded-lg">
                           <div className="flex items-center gap-3 mb-2">
                             <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                              <Hash className="w-4 h-4 text-blue-600" />
+                              <HashIcon className="w-4 h-4 text-blue-600" />
                             </div>
                             <div>
                               <p className="text-sm font-medium">Traffic Management</p>
@@ -363,7 +362,7 @@ export default function Page() {
                         <div className="p-4 border border-border rounded-lg">
                           <div className="flex items-center gap-3 mb-2">
                             <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
-                              <Users className="w-4 h-4 text-purple-600" />
+                              <PersonIcon className="w-4 h-4 text-purple-600" />
                             </div>
                             <div>
                               <p className="text-sm font-medium">Key Influencers</p>
@@ -382,7 +381,7 @@ export default function Page() {
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <Activity className="w-5 h-5" />
+                        <ActivityLogIcon className="w-5 h-5" />
                         Recent Activity
                       </CardTitle>
                       <CardDescription>Live updates from your monitoring</CardDescription>
@@ -403,7 +402,7 @@ export default function Page() {
                                     {activity.sentiment}
                                   </Badge>
                                   <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                    <Clock className="w-3 h-3" />
+                                    <ClockIcon className="w-3 h-3" />
                                     {activity.time}
                                   </span>
                                 </div>

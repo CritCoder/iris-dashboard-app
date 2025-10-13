@@ -205,10 +205,10 @@ export default function StartAnalysisPage() {
             {/* Time Range */}
             <SlideUp>
               <h3 className="text-foreground font-semibold mb-4">Time Range</h3>
-              <select 
+              <select
                 value={timeRange}
                 onChange={(e) => setTimeRange(e.target.value)}
-                className="w-full bg-background border border-border text-foreground rounded-lg px-4 py-3 cursor-pointer hover:bg-accent transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30"
+                className="appearance-none w-full bg-background border border-border text-foreground rounded-lg px-4 py-3 cursor-pointer hover:bg-accent transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30"
               >
                 <option value="any">Any time</option>
                 <option value="24h">Last 24 hours</option>

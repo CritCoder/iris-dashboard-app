@@ -10,7 +10,7 @@ interface PageLayoutProps {
 export function PageLayout({ children }: PageLayoutProps) {
   return (
     <MobileMenuProvider>
-      <div className="min-h-screen bg-background text-foreground flex overflow-hidden w-full">
+      <div className="h-screen bg-background text-foreground flex overflow-hidden w-full">
         <NewDualSidebar />
         <div className="flex-1 flex flex-col overflow-hidden w-full">
           {children}
