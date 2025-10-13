@@ -19,7 +19,7 @@ import {
   ChatBubbleIcon,
   HeartIcon,
   ActivityLogIcon,
-  ShieldIcon,
+  LockClosedIcon,
   PersonIcon,
   Share2Icon,
   EyeOpenIcon,
@@ -225,12 +225,12 @@ export default function Page() {
                           <p className="text-sm font-medium text-muted-foreground">Threat Level</p>
                           <p className="text-2xl font-bold text-foreground">Low</p>
                           <p className="text-xs text-green-600 dark:text-green-500 flex items-center gap-1 font-medium">
-                            <ShieldIcon className="w-3 h-3" />
+                            <LockClosedIcon className="w-3 h-3" />
                             No alerts
                           </p>
                         </div>
                         <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                          <ShieldIcon className="w-6 h-6 text-green-600" />
+                          <LockClosedIcon className="w-6 h-6 text-green-600" />
                         </div>
                       </div>
                     </CardContent>

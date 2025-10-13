@@ -216,29 +216,6 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
         .sidebar-enter {
           animation: slideInInertia 0.6s cubic-bezier(0.23, 1, 0.320, 1) forwards;
         }
-
-        .scrollbar-thin {
-          scrollbar-width: thin;
-          scrollbar-color: rgba(107, 114, 128, 0.3) transparent;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar {
-          width: 6px;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar-track {
-          background: transparent;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar-thumb {
-          background: rgba(107, 114, 128, 0.3);
-          border-radius: 3px;
-          transition: background 0.3s;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-          background: rgba(107, 114, 128, 0.6);
-        }
       `}</style>
 
       <div className="flex h-full">
@@ -256,7 +233,7 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
           </div>
 
           {/* Navigation Content */}
-          <div className="flex-1 overflow-y-auto scrollbar-thin">
+          <div className="flex-1 overflow-hidden">
             <div className="px-3 py-4 space-y-1.5">
               <NavItem
                 item={{ id: 'home', label: 'Home', icon: Home, href: '/' }}
@@ -350,7 +327,7 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
             </div>
 
             {/* Submenu Content */}
-            <div className="flex-1 overflow-y-auto scrollbar-thin">
+            <div className="flex-1 overflow-hidden">
               <ProfilesSubmenuContent />
             </div>
           </div>
