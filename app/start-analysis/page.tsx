@@ -40,8 +40,8 @@ export default function StartAnalysisPage() {
   }
 
   const handleAnalyze = async () => {
-    if (!searchQuery.trim()) {
-      error('Please enter a search query')
+    if (!searchQuery.trim() || searchQuery.trim().length < 3) {
+      error('Please enter at least 3 characters')
       return
     }
 
@@ -170,7 +170,7 @@ export default function StartAnalysisPage() {
             <SlideUp className="mb-8">
               <Button 
                 onClick={handleAnalyze}
-                disabled={isAnalyzing}
+                disabled={isAnalyzing || searchQuery.trim().length < 3}
                 className="w-full py-6 text-base font-medium"
               >
                 {isAnalyzing ? (
@@ -185,6 +185,11 @@ export default function StartAnalysisPage() {
                   </>
                 )}
               </Button>
+              {searchQuery.trim().length > 0 && searchQuery.trim().length < 3 && (
+                <p className="text-xs text-muted-foreground mt-2 text-center">
+                  Enter at least 3 characters to start analysis
+                </p>
+              )}
             </SlideUp>
 
             {/* Select Platforms */}
