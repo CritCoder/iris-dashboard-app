@@ -177,7 +177,7 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
           </div>
 
           <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-            <button className="px-3 py-2 hover:bg-accent/30 rounded-lg transition-colors text-muted-foreground hover:text-blue-400 flex items-center gap-2">
+            <button className="px-3 py-2 hover:bg-accent/30 rounded-lg transition-colors text-foreground/70 hover:text-blue-500 flex items-center gap-2">
               <Eye className="w-4 sm:w-5 h-4 sm:h-5" />
               <span className="text-sm font-medium">View</span>
             </button>
@@ -203,7 +203,7 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
                 </>
               )}
             </button>
-            <button className="p-2 hover:bg-accent/30 rounded-lg transition-colors text-muted-foreground hover:text-red-400">
+            <button className="p-2 hover:bg-accent/30 rounded-lg transition-colors text-foreground/70 hover:text-red-500">
               <Trash2 className="w-4 sm:w-5 h-4 sm:h-5" />
             </button>
           </div>
@@ -310,7 +310,7 @@ export default function AnalysisHistoryPage() {
             <button
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
-              className="p-2 hover:bg-accent/30 rounded-lg transition-colors text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 hover:bg-accent/30 rounded-lg transition-colors text-foreground/70 hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="w-5 h-5" />
               <span className="sr-only">Previous</span>
@@ -322,7 +322,7 @@ export default function AnalysisHistoryPage() {
                 className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg text-sm font-medium transition-colors ${
                   currentPage === page
                     ? 'bg-primary text-primary-foreground'
-                    : 'bg-secondary text-muted-foreground hover:bg-accent/30'
+                    : 'bg-secondary text-foreground/70 hover:bg-accent/30 hover:text-foreground'
                 }`}
               >
                 {page}
@@ -331,7 +331,7 @@ export default function AnalysisHistoryPage() {
             <button
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
-              className="px-3 sm:px-4 py-2 bg-secondary hover:bg-accent/30 rounded-lg transition-colors text-foreground text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-3 sm:px-4 py-2 bg-secondary hover:bg-accent/30 rounded-lg transition-colors text-foreground/70 hover:text-foreground text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               <span className="hidden sm:inline">Next</span>
               <ChevronRight className="w-4 h-4" />

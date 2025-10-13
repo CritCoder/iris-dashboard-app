@@ -4,12 +4,13 @@ import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
-import { Search, MapPin, TrendingUp, ChevronRight, X, Download, Eye } from 'lucide-react'
+import { Search, MapPin, TrendingUp, ChevronRight, X, Download, Eye, Users, MessageSquare, AlertTriangle, Calendar, TrendingDown, BarChart3, Map, Grid3X3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
 import { useLocationAnalytics, useTopLocations } from '@/hooks/use-api'
-import { AnimatedPage, AnimatedGrid, AnimatedCard } from '@/components/ui/animated'
+// import { AnimatedPage, div, Card } from '@/components/ui/animated'
 
 interface Location {
   id: string
@@ -17,67 +18,154 @@ interface Location {
   type: 'LOCATION'
   mentions: number
   lastSeen: string
+  sentiment?: 'positive' | 'negative' | 'neutral'
+  trend?: 'up' | 'down' | 'stable'
+  incidents?: number
+  engagement?: number
+  riskLevel?: 'low' | 'medium' | 'high'
 }
 
 // Sample data for when API fails
 const sampleLocations: Location[] = [
-  { id: '1', name: 'Bengaluru', type: 'LOCATION', mentions: 387, lastSeen: '10/10/2025' },
-  { id: '2', name: 'Bellandur', type: 'LOCATION', mentions: 359, lastSeen: '10/10/2025' },
-  { id: '3', name: 'Bangalore', type: 'LOCATION', mentions: 176, lastSeen: '10/11/2025' },
-  { id: '4', name: 'Karnataka', type: 'LOCATION', mentions: 161, lastSeen: '10/10/2025' },
-  { id: '5', name: 'India', type: 'LOCATION', mentions: 86, lastSeen: '10/10/2025' },
-  { id: '6', name: 'Marathahalli', type: 'LOCATION', mentions: 83, lastSeen: '10/7/2025' },
-  { id: '7', name: 'BTM', type: 'LOCATION', mentions: 69, lastSeen: '10/8/2025' },
-  { id: '8', name: 'HSR', type: 'LOCATION', mentions: 63, lastSeen: '10/7/2025' },
-  { id: '9', name: 'Kadubeesanahalli', type: 'LOCATION', mentions: 61, lastSeen: '10/8/2025' },
-  { id: '10', name: 'HSR Layout', type: 'LOCATION', mentions: 59, lastSeen: '10/10/2025' },
-  { id: '11', name: 'Chintamani', type: 'LOCATION', mentions: 52, lastSeen: '10/6/2025' },
-  { id: '12', name: 'Sarjapur Road', type: 'LOCATION', mentions: 49, lastSeen: '10/10/2025' },
-  { id: '13', name: 'Koramangala', type: 'LOCATION', mentions: 49, lastSeen: '10/7/2025' },
-  { id: '14', name: 'Whitefield', type: 'LOCATION', mentions: 48, lastSeen: '10/9/2025' },
-  { id: '15', name: 'Sarjapur', type: 'LOCATION', mentions: 44, lastSeen: '10/9/2025' },
-  { id: '16', name: 'Yelahanka', type: 'LOCATION', mentions: 44, lastSeen: '10/7/2025' },
-  { id: '17', name: 'Green Glen Layout', type: 'LOCATION', mentions: 44, lastSeen: '10/9/2025' },
-  { id: '18', name: 'Mysuru', type: 'LOCATION', mentions: 44, lastSeen: '10/8/2025' },
-  { id: '19', name: 'Udupi', type: 'LOCATION', mentions: 43, lastSeen: '10/9/2025' },
-  { id: '20', name: 'Hebbal', type: 'LOCATION', mentions: 43, lastSeen: '10/8/2025' }
+  { id: '1', name: 'Bengaluru', type: 'LOCATION', mentions: 387, lastSeen: '10/10/2025', sentiment: 'negative', trend: 'up', incidents: 12, engagement: 89, riskLevel: 'high' },
+  { id: '2', name: 'Bellandur', type: 'LOCATION', mentions: 359, lastSeen: '10/10/2025', sentiment: 'negative', trend: 'up', incidents: 8, engagement: 76, riskLevel: 'medium' },
+  { id: '3', name: 'Bangalore', type: 'LOCATION', mentions: 176, lastSeen: '10/11/2025', sentiment: 'neutral', trend: 'stable', incidents: 3, engagement: 45, riskLevel: 'low' },
+  { id: '4', name: 'Karnataka', type: 'LOCATION', mentions: 161, lastSeen: '10/10/2025', sentiment: 'neutral', trend: 'down', incidents: 2, engagement: 52, riskLevel: 'low' },
+  { id: '5', name: 'India', type: 'LOCATION', mentions: 86, lastSeen: '10/10/2025', sentiment: 'positive', trend: 'stable', incidents: 1, engagement: 34, riskLevel: 'low' },
+  { id: '6', name: 'Marathahalli', type: 'LOCATION', mentions: 83, lastSeen: '10/7/2025', sentiment: 'negative', trend: 'up', incidents: 6, engagement: 67, riskLevel: 'medium' },
+  { id: '7', name: 'BTM', type: 'LOCATION', mentions: 69, lastSeen: '10/8/2025', sentiment: 'negative', trend: 'up', incidents: 5, engagement: 58, riskLevel: 'medium' },
+  { id: '8', name: 'HSR', type: 'LOCATION', mentions: 63, lastSeen: '10/7/2025', sentiment: 'neutral', trend: 'stable', incidents: 2, engagement: 42, riskLevel: 'low' },
+  { id: '9', name: 'Kadubeesanahalli', type: 'LOCATION', mentions: 61, lastSeen: '10/8/2025', sentiment: 'negative', trend: 'up', incidents: 4, engagement: 51, riskLevel: 'medium' },
+  { id: '10', name: 'HSR Layout', type: 'LOCATION', mentions: 59, lastSeen: '10/10/2025', sentiment: 'neutral', trend: 'down', incidents: 1, engagement: 38, riskLevel: 'low' },
+  { id: '11', name: 'Chintamani', type: 'LOCATION', mentions: 52, lastSeen: '10/6/2025', sentiment: 'positive', trend: 'stable', incidents: 0, engagement: 29, riskLevel: 'low' },
+  { id: '12', name: 'Sarjapur Road', type: 'LOCATION', mentions: 49, lastSeen: '10/10/2025', sentiment: 'negative', trend: 'up', incidents: 3, engagement: 44, riskLevel: 'medium' },
+  { id: '13', name: 'Koramangala', type: 'LOCATION', mentions: 49, lastSeen: '10/7/2025', sentiment: 'neutral', trend: 'stable', incidents: 2, engagement: 36, riskLevel: 'low' },
+  { id: '14', name: 'Whitefield', type: 'LOCATION', mentions: 48, lastSeen: '10/9/2025', sentiment: 'negative', trend: 'up', incidents: 4, engagement: 43, riskLevel: 'medium' },
+  { id: '15', name: 'Sarjapur', type: 'LOCATION', mentions: 44, lastSeen: '10/9/2025', sentiment: 'neutral', trend: 'down', incidents: 1, engagement: 31, riskLevel: 'low' },
+  { id: '16', name: 'Yelahanka', type: 'LOCATION', mentions: 44, lastSeen: '10/7/2025', sentiment: 'positive', trend: 'stable', incidents: 0, engagement: 28, riskLevel: 'low' },
+  { id: '17', name: 'Green Glen Layout', type: 'LOCATION', mentions: 44, lastSeen: '10/9/2025', sentiment: 'neutral', trend: 'stable', incidents: 1, engagement: 32, riskLevel: 'low' },
+  { id: '18', name: 'Mysuru', type: 'LOCATION', mentions: 44, lastSeen: '10/8/2025', sentiment: 'positive', trend: 'down', incidents: 0, engagement: 26, riskLevel: 'low' },
+  { id: '19', name: 'Udupi', type: 'LOCATION', mentions: 43, lastSeen: '10/9/2025', sentiment: 'positive', trend: 'stable', incidents: 0, engagement: 24, riskLevel: 'low' },
+  { id: '20', name: 'Hebbal', type: 'LOCATION', mentions: 43, lastSeen: '10/8/2025', sentiment: 'neutral', trend: 'up', incidents: 2, engagement: 35, riskLevel: 'low' }
 ]
 
 function LocationCard({ location, onClick }: { location: Location; onClick: () => void }) {
+  const getSentimentColor = (sentiment?: string) => {
+    switch (sentiment) {
+      case 'positive': return 'text-green-600 bg-green-50 dark:bg-green-950/20'
+      case 'negative': return 'text-red-600 bg-red-50 dark:bg-red-950/20'
+      default: return 'text-gray-600 bg-gray-50 dark:bg-gray-950/20'
+    }
+  }
+
+  const getTrendIcon = (trend?: string) => {
+    switch (trend) {
+      case 'up': return <TrendingUp className="w-3 h-3 text-red-500" />
+      case 'down': return <TrendingDown className="w-3 h-3 text-green-500" />
+      default: return <BarChart3 className="w-3 h-3 text-gray-500" />
+    }
+  }
+
+  const getRiskColor = (riskLevel?: string) => {
+    switch (riskLevel) {
+      case 'high': return 'text-red-600 bg-red-50 dark:bg-red-950/20'
+      case 'medium': return 'text-orange-600 bg-orange-50 dark:bg-orange-950/20'
+      default: return 'text-green-600 bg-green-50 dark:bg-green-950/20'
+    }
+  }
+
   return (
     <div 
       onClick={onClick}
-      className="bg-card border border-border rounded-lg p-4 hover:border-muted-foreground/50 transition-colors cursor-pointer hover:bg-accent/5"
+      className="bg-card border border-border rounded-lg p-4 hover:border-muted-foreground/50 transition-all cursor-pointer hover:bg-accent/5 hover:shadow-md"
     >
-      <div className="flex items-start gap-3 mb-3">
-        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
-          <MapPin className="w-4 h-4 text-white" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-foreground mb-1">{location.name}</h3>
-          <div className="text-xs text-muted-foreground mb-2">LOCATION</div>
-        </div>
-      </div>
-      
-      <div className="mb-3">
-        <div className="text-sm text-muted-foreground">
-          {location.mentions} mentions
-        </div>
-        <div className="text-sm text-muted-foreground">
-          Last seen: {location.lastSeen}
+      {/* Header */}
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-start gap-3 flex-1">
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+            location.riskLevel === 'high' ? 'bg-red-500' : 
+            location.riskLevel === 'medium' ? 'bg-orange-500' : 'bg-blue-500'
+          }`}>
+            <MapPin className="w-4 h-4 text-white" />
           </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-foreground mb-1 truncate">{location.name}</h3>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">LOCATION</span>
+              {location.riskLevel && (
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getRiskColor(location.riskLevel)}`}>
+                  {location.riskLevel.toUpperCase()} RISK
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-1">
+          {getTrendIcon(location.trend)}
+          <span className="text-xs text-muted-foreground">
+            {location.mentions} mentions
+          </span>
+        </div>
       </div>
       
-      <div className="mb-3">
-        <div className="text-sm text-blue-600 hover:text-blue-500 transition-colors">
-          Click to explore posts
-      </div>
+      {/* Key Metrics */}
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="bg-muted/30 rounded-lg p-2">
+          <div className="flex items-center gap-1 mb-1">
+            <AlertTriangle className="w-3 h-3 text-orange-500" />
+            <span className="text-xs font-medium text-muted-foreground">INCIDENTS</span>
+          </div>
+          <div className="text-lg font-semibold text-foreground">
+            {location.incidents || 0}
+          </div>
         </div>
+        
+        <div className="bg-muted/30 rounded-lg p-2">
+          <div className="flex items-center gap-1 mb-1">
+            <MessageSquare className="w-3 h-3 text-blue-500" />
+            <span className="text-xs font-medium text-muted-foreground">ENGAGEMENT</span>
+          </div>
+          <div className="text-lg font-semibold text-foreground">
+            {location.engagement || 0}%
+          </div>
+        </div>
+      </div>
 
-      <div className="flex items-center justify-end">
-        <Button variant="ghost" size="sm" className="h-8 px-2">
+      {/* Sentiment & Trend */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          {location.sentiment && (
+            <span className={`text-xs px-2 py-1 rounded-full font-medium ${getSentimentColor(location.sentiment)}`}>
+              {location.sentiment.toUpperCase()}
+            </span>
+          )}
+          {location.trend && (
+            <span className="text-xs text-muted-foreground">
+              {location.trend === 'up' ? '↗ Trending Up' : 
+               location.trend === 'down' ? '↘ Declining' : '→ Stable'}
+            </span>
+          )}
+        </div>
+        <div className="text-xs text-muted-foreground">
+          {location.lastSeen}
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
+            <Users className="w-3 h-3 mr-1" />
+            Profiles
+          </Button>
+          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
+            <MessageSquare className="w-3 h-3 mr-1" />
+            Posts
+          </Button>
+        </div>
+        <Button variant="outline" size="sm" className="h-7 px-2 text-xs">
           <Eye className="w-3 h-3 mr-1" />
-          View
+          Analyze
         </Button>
       </div>
     </div>
@@ -225,91 +313,7 @@ export default function LocationsPage() {
         }
       />
 
-        <div className="flex-1 flex overflow-hidden">
-          {/* Left Sidebar - Filters */}
-          <div className="hidden lg:block lg:w-80 border-r border-border bg-muted/30 overflow-y-auto">
-            <div className="p-4 sm:p-6">
-              <h2 className="text-lg font-semibold text-foreground mb-6">Locations</h2>
-              
-              <FilterSection title="PRIMARY">
-                <FilterItem 
-                  label="All Locations" 
-                  isActive={activeFilter === 'all-locations'}
-                  onClick={() => setActiveFilter('all-locations')}
-                  count={locationsForCounts.length}
-                />
-                <FilterItem 
-                  label="High Impact Locations"
-                  onClick={() => setActiveFilter('high-impact')}
-                  count={locationsForCounts.filter(l => l.mentions > 100).length}
-                />
-                <FilterItem 
-                  label="Trending Locations"
-                  onClick={() => setActiveFilter('trending')}
-                  count={locationsForCounts.filter(l => l.lastSeen === '10/10/2025').length}
-                />
-                <FilterItem 
-                  label="Frequently Mentioned"
-                  onClick={() => setActiveFilter('frequent')}
-                  count={locationsForCounts.filter(l => l.mentions > 50).length}
-                />
-              </FilterSection>
-
-              <FilterSection title="SENTIMENT BASED">
-                <FilterItem 
-                  label="Negative Locations"
-                  onClick={() => setActiveFilter('negative')}
-                  count={0}
-                />
-                <FilterItem 
-                  label="Positive Locations"
-                  onClick={() => setActiveFilter('positive')}
-                  count={0}
-                />
-                <FilterItem 
-                  label="Controversial"
-                  onClick={() => setActiveFilter('controversial')}
-                  count={0}
-                />
-              </FilterSection>
-
-              <FilterSection title="POLICE DIVISIONS">
-                <FilterItem 
-                  label="Whitefield Division"
-                  hasSubmenu
-                  onClick={() => setActiveFilter('whitefield')}
-                />
-                <FilterItem 
-                  label="South East Division"
-                  hasSubmenu
-                  onClick={() => setActiveFilter('south-east')}
-                />
-                <FilterItem 
-                  label="Central Division"
-                  hasSubmenu
-                  onClick={() => setActiveFilter('central')}
-                />
-                <FilterItem 
-                  label="Northeast Division"
-                  hasSubmenu
-                  onClick={() => setActiveFilter('northeast')}
-                />
-                <FilterItem 
-                  label="East Division"
-                  hasSubmenu
-                  onClick={() => setActiveFilter('east')}
-                />
-                <FilterItem 
-                  label="North Division"
-                  hasSubmenu
-                  onClick={() => setActiveFilter('north')}
-                />
-              </FilterSection>
-            </div>
-          </div>
-
-          {/* Main Content */}
-          <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden">
             <div className="p-3 sm:p-4 border-b border-border">
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -332,18 +336,17 @@ export default function LocationsPage() {
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-              <AnimatedGrid stagger={0.03} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+              <div stagger={0.03} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
                 {(filteredLocations || []).map((location) => (
-                  <AnimatedCard key={location.id}>
+                  <Card key={location.id}>
                     <LocationCard
                       location={location}
                       onClick={() => handleLocationClick(location)}
                     />
-                  </AnimatedCard>
+                  </Card>
                 ))}
-              </AnimatedGrid>
+              </div>
             </div>
-          </div>
         </div>
       </div>
     </PageLayout>

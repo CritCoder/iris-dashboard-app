@@ -675,6 +675,24 @@ export const notificationApi = {
     apiClient.get('/api/notifications/team-members'),
 }
 
+// Communities API
+const communitiesApi = {
+  getCommunities: (params?: any) =>
+    apiClient.get('/api/communities', params),
+  
+  getCommunity: (id: string) =>
+    apiClient.get(`/api/communities/${id}`),
+}
+
+// Groups API
+const groupsApi = {
+  getGroups: (params?: any) =>
+    apiClient.get('/api/groups', params),
+  
+  getGroup: (id: string) =>
+    apiClient.get(`/api/groups/${id}`),
+}
+
 // Export all APIs
 export const api = {
   auth: authApi,
@@ -693,6 +711,8 @@ export const api = {
   incident: incidentApi,
   report: reportApi,
   notification: notificationApi,
+  communities: communitiesApi,
+  groups: groupsApi,
 }
 
 export default api

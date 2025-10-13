@@ -381,3 +381,11 @@ export function useIncidents(params?: any) {
 export function useIncident(id: string) {
   return useApi(() => api.incident.getById(id), [id])
 }
+
+export function useCommunities(params?: any) {
+  return usePaginatedApi(() => api.communities.getCommunities(params), [params])
+}
+
+export function useGroups(params?: any) {
+  return usePaginatedApi(() => api.groups.getGroups(params), [params])
+}

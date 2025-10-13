@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import {
   Home, Mail, Play, BarChart3, Globe, Users, Hash, MapPin, Building2,
   Search, Shield, ChevronRight, X,
-  TrendingUp, Eye, MessageSquare, ThumbsDown, ThumbsUp, Twitter, Facebook, Instagram
+  TrendingUp, TrendingDown as TrendingDownIcon, Eye, MessageSquare, ThumbsDown, ThumbsUp, Twitter, Facebook, Instagram
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
@@ -71,6 +71,8 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
     { id: 'profiles', label: 'Profiles', icon: Users, href: '/profiles', submenu: 'profiles', description: 'who is talking' },
     { id: 'entities', label: 'Entities', icon: Hash, href: '/entities', submenu: undefined, description: 'what is being talked about' },
     { id: 'locations', label: 'Locations', icon: MapPin, href: '/locations', submenu: undefined, description: 'where things are happening' },
+    { id: 'communities', label: 'Communities', icon: Building2, href: '/communities', submenu: 'communities', description: 'groups and communities' },
+    { id: 'groups', label: 'Groups', icon: Users, href: '/groups', submenu: 'groups', description: 'user groups and organizations' },
   ], [])
 
   const profilesSubmenu = useMemo(() => [
@@ -105,6 +107,107 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
     }
   ], [])
 
+  const communitiesSubmenu = useMemo(() => [
+    {
+      category: 'PRIMARY',
+      items: [
+        { id: 'all-communities', label: 'All Communities', icon: Building2, href: '/communities' },
+      ]
+    },
+    {
+      category: 'COMMUNITY TYPE',
+      items: [
+        { id: 'political', label: 'Political Communities', icon: Building2, href: '/communities?type=political' },
+        { id: 'social', label: 'Social Communities', icon: Users, href: '/communities?type=social' },
+        { id: 'professional', label: 'Professional Groups', icon: Building2, href: '/communities?type=professional' },
+      ]
+    },
+    {
+      category: 'ACTIVITY LEVEL',
+      items: [
+        { id: 'high-activity', label: 'High Activity', icon: TrendingUp, href: '/communities?activity=high' },
+        { id: 'moderate-activity', label: 'Moderate Activity', icon: BarChart3, href: '/communities?activity=moderate' },
+        { id: 'low-activity', label: 'Low Activity', icon: TrendingDownIcon, href: '/communities?activity=low' },
+      ]
+    }
+  ], [])
+
+  const groupsSubmenu = useMemo(() => [
+    {
+      category: 'PRIMARY',
+      items: [
+        { id: 'all-groups', label: 'All Groups', icon: Users, href: '/groups' },
+      ]
+    },
+    {
+      category: 'GROUP TYPE',
+      items: [
+        { id: 'public-groups', label: 'Public Groups', icon: Globe, href: '/groups?type=public' },
+        { id: 'private-groups', label: 'Private Groups', icon: Shield, href: '/groups?type=private' },
+        { id: 'closed-groups', label: 'Closed Groups', icon: Building2, href: '/groups?type=closed' },
+      ]
+    },
+    {
+      category: 'SIZE',
+      items: [
+        { id: 'large-groups', label: 'Large Groups (10k+)', icon: TrendingUp, href: '/groups?size=large' },
+        { id: 'medium-groups', label: 'Medium Groups (1k-10k)', icon: BarChart3, href: '/groups?size=medium' },
+        { id: 'small-groups', label: 'Small Groups (<1k)', icon: Users, href: '/groups?size=small' },
+      ]
+    }
+  ], [])
+
+  const entitiesSubmenu = useMemo(() => [
+    {
+      category: 'PRIMARY',
+      items: [
+        { id: 'all-entities', label: 'All Entities', icon: Hash, href: '/entities' },
+      ]
+    },
+    {
+      category: 'ENTITY TYPE',
+      items: [
+        { id: 'topics', label: 'Topics', icon: Hash, href: '/entities?type=topic' },
+        { id: 'organizations', label: 'Organizations', icon: Building2, href: '/entities?type=organization' },
+        { id: 'people', label: 'People', icon: Users, href: '/entities?type=person' },
+        { id: 'locations', label: 'Locations', icon: MapPin, href: '/entities?type=location' },
+      ]
+    },
+    {
+      category: 'ACTIVITY',
+      items: [
+        { id: 'trending-entities', label: 'Trending', icon: TrendingUp, href: '/entities?activity=trending' },
+        { id: 'active-entities', label: 'Active', icon: BarChart3, href: '/entities?activity=active' },
+        { id: 'inactive-entities', label: 'Inactive', icon: TrendingDownIcon, href: '/entities?activity=inactive' },
+      ]
+    }
+  ], [])
+
+  const locationsSubmenu = useMemo(() => [
+    {
+      category: 'PRIMARY',
+      items: [
+        { id: 'all-locations', label: 'All Locations', icon: MapPin, href: '/locations' },
+      ]
+    },
+    {
+      category: 'REGION',
+      items: [
+        { id: 'karnataka', label: 'Karnataka', icon: MapPin, href: '/locations?region=karnataka' },
+        { id: 'bangalore', label: 'Bangalore', icon: MapPin, href: '/locations?region=bangalore' },
+        { id: 'other-states', label: 'Other States', icon: MapPin, href: '/locations?region=other' },
+      ]
+    },
+    {
+      category: 'ACTIVITY',
+      items: [
+        { id: 'high-activity-locations', label: 'High Activity', icon: TrendingUp, href: '/locations?activity=high' },
+        { id: 'medium-activity-locations', label: 'Medium Activity', icon: BarChart3, href: '/locations?activity=medium' },
+        { id: 'low-activity-locations', label: 'Low Activity', icon: TrendingDownIcon, href: '/locations?activity=low' },
+      ]
+    }
+  ], [])
+
   const NavItem = ({ item, isActive, hasSubmenu }: { item: NavItemData; isActive: boolean; hasSubmenu: boolean }) => {
     const handleClick = () => {
       setActiveNavItem(item.id)
@@ -121,29 +224,29 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
         <button
           onMouseEnter={() => setHoveredNav(item.id)}
           onMouseLeave={() => setHoveredNav(null)}
-          className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg transition-all duration-300 group relative overflow-hidden ${
+          className={`w-full flex items-center justify-start px-3.5 py-2.5 rounded-lg transition-all duration-300 group relative overflow-hidden ${
             isActive
               ? 'bg-gradient-to-r from-blue-500/20 to-blue-500/10 text-foreground border border-blue-500/30'
-              : 'text-muted-foreground hover:text-foreground'
+              : 'text-foreground/80 hover:text-foreground hover:bg-muted/50'
           }`}
         >
           {!isActive && (
             <div className="absolute inset-0 bg-gradient-to-r from-muted/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           )}
-          <div className="flex items-center gap-3 relative z-10">
-            <div className={`transition-all duration-300 ${isActive ? 'text-blue-500' : 'text-muted-foreground group-hover:text-blue-500'}`}>
+          <div className="flex items-start gap-3 relative z-10 flex-1">
+            <div className={`transition-all duration-300 ${isActive ? 'text-blue-500' : 'text-foreground/70 group-hover:text-blue-500'}`}>
               <item.icon size={18} strokeWidth={1.5} />
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col items-start text-left">
               <span className="text-sm font-medium">{item.label}</span>
               {item.description && (
-                <span className="text-xs text-muted-foreground/70">{item.description}</span>
+                <span className="text-xs text-foreground/60 whitespace-nowrap">{item.description}</span>
               )}
             </div>
           </div>
           {hasSubmenu && (
-            <ChevronRight size={16} className={`transition-all duration-300 relative z-10 ${
-              expandedSubMenu === item.submenu ? 'rotate-90 text-blue-500' : 'group-hover:translate-x-1 text-muted-foreground'
+            <ChevronRight size={16} className={`transition-all duration-300 relative z-10 flex-shrink-0 ${
+              expandedSubMenu === item.submenu ? 'rotate-90 text-blue-500' : 'group-hover:translate-x-1 text-foreground/50'
             }`} />
           )}
         </button>
@@ -156,28 +259,28 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
       <button
         onMouseEnter={() => setHoveredNav(item.id)}
         onMouseLeave={() => setHoveredNav(null)}
-        className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-sm rounded-lg transition-all duration-300 group relative overflow-hidden ${
+        className={`w-full flex items-center justify-start gap-3 px-3.5 py-2.5 text-sm rounded-lg transition-all duration-300 group relative overflow-hidden ${
           isActive
             ? 'bg-gradient-to-r from-blue-500/20 to-blue-500/10 text-foreground border border-blue-500/30'
-            : 'text-muted-foreground hover:text-foreground'
+            : 'text-foreground/80 hover:text-foreground hover:bg-muted/50'
         }`}
       >
         {!isActive && (
           <div className="absolute inset-0 bg-gradient-to-r from-muted/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         )}
         <div className={`transition-all duration-300 relative z-10 ${
-          isActive ? 'text-blue-500' : 'text-muted-foreground group-hover:text-blue-500'
+          isActive ? 'text-blue-500' : 'text-foreground/70 group-hover:text-blue-500'
         }`}>
           <item.icon size={16} strokeWidth={1.5} />
         </div>
-        <span className="relative z-10">{item.label}</span>
+        <span className="relative z-10 text-left">{item.label}</span>
       </button>
     </Link>
   )
 
   const SectionLabel = ({ label }: { label: string }) => (
-    <div className="px-4 py-4 text-xs font-bold text-blue-500/60 tracking-widest uppercase flex items-center gap-2">
-      <div className="w-1 h-1 rounded-full bg-blue-500/60" />
+    <div className="px-4 py-4 text-xs font-bold text-blue-600 dark:text-blue-400 tracking-widest uppercase flex items-center gap-2">
+      <div className="w-1 h-1 rounded-full bg-blue-600 dark:bg-blue-400" />
       {label}
     </div>
   )
@@ -185,6 +288,94 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
   const ProfilesSubmenuContent = () => (
     <div className="space-y-6 py-6 px-4">
       {profilesSubmenu.map((section) => (
+        <div key={section.category}>
+          <div className="px-0 py-2.5 text-xs font-bold text-muted-foreground/60 tracking-widest uppercase flex items-center gap-2">
+            <div className="w-0.5 h-3 bg-gradient-to-b from-blue-500/60 to-transparent rounded-full" />
+            {section.category}
+          </div>
+          <div className="space-y-1.5 mt-4">
+            {section.items.map((item) => (
+              <SubmenuNavItem
+                key={item.id}
+                item={item}
+                isActive={pathname === item.href}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+
+  const CommunitiesSubmenuContent = () => (
+    <div className="space-y-6 py-6 px-4">
+      {communitiesSubmenu.map((section) => (
+        <div key={section.category}>
+          <div className="px-0 py-2.5 text-xs font-bold text-muted-foreground/60 tracking-widest uppercase flex items-center gap-2">
+            <div className="w-0.5 h-3 bg-gradient-to-b from-blue-500/60 to-transparent rounded-full" />
+            {section.category}
+          </div>
+          <div className="space-y-1.5 mt-4">
+            {section.items.map((item) => (
+              <SubmenuNavItem
+                key={item.id}
+                item={item}
+                isActive={pathname === item.href}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+
+  const GroupsSubmenuContent = () => (
+    <div className="space-y-6 py-6 px-4">
+      {groupsSubmenu.map((section) => (
+        <div key={section.category}>
+          <div className="px-0 py-2.5 text-xs font-bold text-muted-foreground/60 tracking-widest uppercase flex items-center gap-2">
+            <div className="w-0.5 h-3 bg-gradient-to-b from-blue-500/60 to-transparent rounded-full" />
+            {section.category}
+          </div>
+          <div className="space-y-1.5 mt-4">
+            {section.items.map((item) => (
+              <SubmenuNavItem
+                key={item.id}
+                item={item}
+                isActive={pathname === item.href}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+
+  const EntitiesSubmenuContent = () => (
+    <div className="space-y-6 py-6 px-4">
+      {entitiesSubmenu.map((section) => (
+        <div key={section.category}>
+          <div className="px-0 py-2.5 text-xs font-bold text-muted-foreground/60 tracking-widest uppercase flex items-center gap-2">
+            <div className="w-0.5 h-3 bg-gradient-to-b from-blue-500/60 to-transparent rounded-full" />
+            {section.category}
+          </div>
+          <div className="space-y-1.5 mt-4">
+            {section.items.map((item) => (
+              <SubmenuNavItem
+                key={item.id}
+                item={item}
+                isActive={pathname === item.href}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+
+  const LocationsSubmenuContent = () => (
+    <div className="space-y-6 py-6 px-4">
+      {locationsSubmenu.map((section) => (
         <div key={section.category}>
           <div className="px-0 py-2.5 text-xs font-bold text-muted-foreground/60 tracking-widest uppercase flex items-center gap-2">
             <div className="w-0.5 h-3 bg-gradient-to-b from-blue-500/60 to-transparent rounded-full" />
@@ -224,8 +415,8 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
       `}</style>
 
       <div className="flex h-full">
-        {/* Main Sidebar - 64 units wide */}
-        <div className="w-64 bg-background border-r border-border flex flex-col h-full overflow-hidden">
+        {/* Main Sidebar - 80 units wide */}
+        <div className="w-80 bg-background border-r border-border flex flex-col h-full overflow-hidden">
           {/* Header */}
           <div className="h-[72px] sm:h-[84px] border-b border-border px-4 flex items-center gap-3 flex-shrink-0">
             <div className="w-9 h-9 bg-blue-500/10 rounded-md flex items-center justify-center flex-shrink-0 border border-blue-500/20">
@@ -356,6 +547,106 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
             </div>
           </div>
         )}
+
+        {expandedSubMenu === 'communities' && (
+          <div className="w-72 bg-background border-r border-border flex flex-col h-full overflow-hidden sidebar-enter">
+            {/* Submenu Header */}
+            <div className="h-[72px] sm:h-[84px] border-b border-border px-4 flex items-center justify-between flex-shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                  <Building2 size={16} className="text-blue-500" />
+                </div>
+                <span className="text-sm font-bold text-foreground">Communities</span>
+              </div>
+              <button
+                onClick={() => toggleSubMenu('communities')}
+                className="p-1 hover:bg-muted rounded transition-all duration-300 group"
+              >
+                <X size={18} className="text-muted-foreground group-hover:text-blue-500 transition-colors" />
+              </button>
+            </div>
+
+            {/* Submenu Content */}
+            <div className="flex-1 overflow-hidden">
+              <CommunitiesSubmenuContent />
+            </div>
+          </div>
+        )}
+
+        {expandedSubMenu === 'groups' && (
+          <div className="w-72 bg-background border-r border-border flex flex-col h-full overflow-hidden sidebar-enter">
+            {/* Submenu Header */}
+            <div className="h-[72px] sm:h-[84px] border-b border-border px-4 flex items-center justify-between flex-shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                  <Users size={16} className="text-blue-500" />
+                </div>
+                <span className="text-sm font-bold text-foreground">Groups</span>
+              </div>
+              <button
+                onClick={() => toggleSubMenu('groups')}
+                className="p-1 hover:bg-muted rounded transition-all duration-300 group"
+              >
+                <X size={18} className="text-muted-foreground group-hover:text-blue-500 transition-colors" />
+              </button>
+            </div>
+
+            {/* Submenu Content */}
+            <div className="flex-1 overflow-hidden">
+              <GroupsSubmenuContent />
+            </div>
+          </div>
+        )}
+
+        {expandedSubMenu === 'entities' && (
+          <div className="w-72 bg-background border-r border-border flex flex-col h-full overflow-hidden sidebar-enter">
+            {/* Submenu Header */}
+            <div className="h-[72px] sm:h-[84px] border-b border-border px-4 flex items-center justify-between flex-shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                  <Hash size={16} className="text-blue-500" />
+                </div>
+                <span className="text-sm font-bold text-foreground">Entities</span>
+              </div>
+              <button
+                onClick={() => toggleSubMenu('entities')}
+                className="p-1 hover:bg-muted rounded transition-all duration-300 group"
+              >
+                <X size={18} className="text-muted-foreground group-hover:text-blue-500 transition-colors" />
+              </button>
+            </div>
+
+            {/* Submenu Content */}
+            <div className="flex-1 overflow-hidden">
+              <EntitiesSubmenuContent />
+            </div>
+          </div>
+        )}
+
+        {expandedSubMenu === 'locations' && (
+          <div className="w-72 bg-background border-r border-border flex flex-col h-full overflow-hidden sidebar-enter">
+            {/* Submenu Header */}
+            <div className="h-[72px] sm:h-[84px] border-b border-border px-4 flex items-center justify-between flex-shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                  <MapPin size={16} className="text-blue-500" />
+                </div>
+                <span className="text-sm font-bold text-foreground">Locations</span>
+              </div>
+              <button
+                onClick={() => toggleSubMenu('locations')}
+                className="p-1 hover:bg-muted rounded transition-all duration-300 group"
+              >
+                <X size={18} className="text-muted-foreground group-hover:text-blue-500 transition-colors" />
+              </button>
+            </div>
+
+            {/* Submenu Content */}
+            <div className="flex-1 overflow-hidden">
+              <LocationsSubmenuContent />
+            </div>
+          </div>
+        )}
       </div>
     </>
   )
@@ -379,6 +670,25 @@ function DualSidebarWrapper() {
   })
 
   const [expandedSubMenu, setExpandedSubMenu] = useState<string | null>(null)
+
+  // Auto-expand submenu based on current path
+  React.useEffect(() => {
+    if (pathname === '/profiles') {
+      setExpandedSubMenu('profiles')
+    } else if (pathname === '/entities') {
+      setExpandedSubMenu('entities')
+    } else if (pathname === '/locations') {
+      setExpandedSubMenu('locations')
+    } else if (pathname === '/social-feed') {
+      setExpandedSubMenu('social-feed')
+    } else if (pathname === '/communities') {
+      setExpandedSubMenu('communities')
+    } else if (pathname === '/groups') {
+      setExpandedSubMenu('groups')
+    } else {
+      setExpandedSubMenu(null)
+    }
+  }, [pathname])
 
   return (
     <>

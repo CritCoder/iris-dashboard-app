@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
-import { Search, User, MapPin, CreditCard, Car, FileText, Phone, Loader2, CheckCircle2, XCircle, AlertCircle, Building2, Hash, Users2, MessageSquare } from 'lucide-react'
+import { Search, User, MapPin, CreditCard, Car, FileText, Phone, Loader2, CheckCircle2, XCircle, AlertCircle, Building2, Hash, Users2, MessageSquare, FileCheck, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -115,12 +115,6 @@ const searchOptions: SearchOption[] = [
     description: 'Search mobile number on TrueCaller'
   },
   {
-    id: 'mobile-unified',
-    label: 'Unified Mobile Search',
-    icon: Search,
-    description: 'Search all mobile-related data at once'
-  },
-  {
     id: 'vehicle-rc',
     label: 'Vehicle RC Details',
     icon: Car,
@@ -133,18 +127,143 @@ const searchOptions: SearchOption[] = [
     description: 'Find mobile linked to vehicle'
   },
   {
-    id: 'vehicle-unified',
-    label: 'Unified Vehicle Search',
-    icon: Car,
-    description: 'Search all vehicle-related data'
+    id: 'puc-checking',
+    label: 'PUC Checking Record',
+    icon: FileCheck,
+    description: 'Check Pollution Under Control certificate details'
   }
 ]
 
-function ResultCard({ result }: { result: SearchResult }) {
+function PUCCard({ pucData }: { pucData: any }) {
+  if (!pucData) {
+    return (
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <FileCheck className="w-12 h-12 text-muted-foreground" />
+          </EmptyMedia>
+          <EmptyTitle>No PUC Records Found</EmptyTitle>
+          <EmptyDescription>
+            No PUC certificates found for this vehicle number.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 mb-4">
+        <FileCheck className="w-5 h-5 text-green-500" />
+        <h3 className="font-semibold">PUC Certificate Details</h3>
+        <Badge variant="default">Certificate Found</Badge>
+      </div>
+      
+      <Card className="border-l-4 border-l-green-500">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileCheck className="w-4 h-4 text-green-500" />
+              <CardTitle className="text-sm">PUC Certificate: {pucData.puccNumber}</CardTitle>
+            </div>
+            <Badge variant="default">Valid</Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="font-medium">Vehicle Number:</span>
+              <p className="text-muted-foreground">{pucData.vehicleNumber}</p>
+            </div>
+            <div>
+              <span className="font-medium">Customer Name:</span>
+              <p className="text-muted-foreground">{pucData.customerName || 'N/A'}</p>
+            </div>
+            <div>
+              <span className="font-medium">Make & Model:</span>
+              <p className="text-muted-foreground">{pucData.make} {pucData.model}</p>
+            </div>
+            <div>
+              <span className="font-medium">Fuel Type:</span>
+              <p className="text-muted-foreground">{pucData.fuel}</p>
+            </div>
+            <div>
+              <span className="font-medium">Test Date:</span>
+              <p className="text-muted-foreground">{pucData.testDate}</p>
+            </div>
+            <div>
+              <span className="font-medium">Valid Until:</span>
+              <p className="text-muted-foreground">{pucData.validDate}</p>
+            </div>
+          </div>
+          
+          {pucData.testResults && (
+            <div className="mt-4 p-3 bg-muted rounded-lg">
+              <h4 className="font-medium text-sm mb-2">Emission Test Results</h4>
+              <div className="grid grid-cols-2 gap-4 text-xs">
+                <div>
+                  <span className="font-medium">CO (Carbon Monoxide):</span>
+                  <p className="text-muted-foreground">
+                    {pucData.testResults.petrol?.co?.measured || pucData.testResults.diesel?.co?.measured || 'N/A'} 
+                    {pucData.testResults.petrol?.co?.presStd && ` (Limit: ${pucData.testResults.petrol.co.presStd})`}
+                  </p>
+                </div>
+                <div>
+                  <span className="font-medium">HC (Hydrocarbons):</span>
+                  <p className="text-muted-foreground">
+                    {pucData.testResults.petrol?.hc?.measured || pucData.testResults.diesel?.hc?.measured || 'N/A'}
+                    {pucData.testResults.petrol?.hc?.presStd && ` (Limit: ${pucData.testResults.petrol.hc.presStd})`}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {pucData.imageUrl && (
+            <div className="mt-3 p-3 bg-muted rounded-lg">
+              <h4 className="font-medium text-sm mb-2">Certificate Image</h4>
+              <a 
+                href={pucData.imageUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 text-sm underline"
+              >
+                View Certificate Image
+              </a>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+function ResultCard({ result, onRetry, searchQuery }: { result: SearchResult; onRetry?: (optionId: string, query: string) => void; searchQuery?: string }) {
   const Icon = result.loading ? Loader2 : result.found ? CheckCircle2 : result.error ? AlertCircle : XCircle
   
-  // Check if error is a "heavy load" message
+  // Check if error is a "heavy load" message or retryable error
   const isHeavyLoadError = result.error?.includes('heavy load') || result.error?.includes('temporarily unavailable')
+  const isRetryableError = isHeavyLoadError || result.error?.includes('connect') || result.error?.includes('timeout') || result.error?.includes('network')
+
+  // Special handling for PUC results
+  if (result.type === 'puc-checking' && result.found && result.data) {
+    return (
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-green-500" />
+              <CardTitle className="text-base">{result.title}</CardTitle>
+            </div>
+            <Badge variant="default">Found</Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <PUCCard pucData={result.data.data || result.data} />
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Card className="overflow-hidden">
@@ -176,19 +295,34 @@ function ResultCard({ result }: { result: SearchResult }) {
             </div>
           </div>
         ) : result.error ? (
-          <Alert variant={isHeavyLoadError ? 'default' : 'destructive'} className={isHeavyLoadError ? 'bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-900' : ''}>
-            <AlertCircle className={`h-4 w-4 ${isHeavyLoadError ? 'text-orange-600 dark:text-orange-400' : ''}`} />
-            <AlertDescription className={isHeavyLoadError ? 'text-orange-800 dark:text-orange-300' : ''}>
-              {isHeavyLoadError ? (
-                <div>
-                  <p className="font-semibold mb-1">🔄 System Under Heavy Load</p>
-                  <p className="text-sm">{result.error}</p>
-                </div>
-              ) : (
-                result.error
-              )}
-            </AlertDescription>
-          </Alert>
+          <div className="space-y-3">
+            <Alert variant={isHeavyLoadError ? 'default' : 'destructive'} className={isHeavyLoadError ? 'bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-900' : ''}>
+              <AlertCircle className={`h-4 w-4 ${isHeavyLoadError ? 'text-orange-600 dark:text-orange-400' : ''}`} />
+              <AlertDescription className={isHeavyLoadError ? 'text-orange-800 dark:text-orange-300' : ''}>
+                {isHeavyLoadError ? (
+                  <div>
+                    <p className="font-semibold mb-1">🔄 System Under Heavy Load</p>
+                    <p className="text-sm">{result.error}</p>
+                  </div>
+                ) : (
+                  result.error
+                )}
+              </AlertDescription>
+            </Alert>
+            {isRetryableError && onRetry && (
+              <div className="flex justify-end">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => onRetry(result.type, searchQuery)}
+                  className="text-xs"
+                >
+                  <RefreshCw className="w-3 h-3 mr-1" />
+                  Retry
+                </Button>
+              </div>
+            )}
+          </div>
         ) : result.found && result.data ? (
           <div className="space-y-2">
             <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-xs">
@@ -222,6 +356,8 @@ export default function EntitySearchPage() {
   const [isSearching, setIsSearching] = useState(false)
   const [formError, setFormError] = useState('')
   const [searchType, setSearchType] = useState<'general' | 'mobile' | 'vehicle'>('general')
+  const [vehicleType, setVehicleType] = useState<'P' | 'D'>('P')
+  const [hasSearched, setHasSearched] = useState(false)
 
   // Filter options based on search type
   const filteredOptions = searchOptions.filter(opt => {
@@ -230,7 +366,7 @@ export default function EntitySearchPage() {
     } else if (searchType === 'mobile') {
       return opt.id.startsWith('mobile-') || opt.id === 'truecaller'
     } else {
-      return opt.id.startsWith('vehicle-')
+      return opt.id.startsWith('vehicle-') || opt.id === 'puc-checking'
     }
   })
 
@@ -256,6 +392,63 @@ export default function EntitySearchPage() {
   const clearAllOptions = () => {
     setSelectedOptions([])
   }
+
+  const handleRetry = async (optionId: string, originalQuery: string) => {
+    // Find the original query from the search input
+    const query = searchQuery || originalQuery
+    if (!query) return
+
+    // Remove the failed result
+    setResults(prev => prev.filter(r => !(r.type === optionId && r.error)))
+    
+    // Retry the search
+    try {
+      const result = await makeApiCall(optionId, query, station, firNumber)
+      setResults(prev => [result, ...prev])
+    } catch (error) {
+      console.error('Retry failed:', error)
+    }
+  }
+
+  const checkPUCStatus = async (vehicleNumber: string, vehicleType: 'P' | 'D', retryCount = 0) => {
+    const maxRetries = 3
+    
+    try {
+      const fuelType = vehicleType === 'P' ? 'petrol' : 'diesel'
+      const response = await fetch(`https://pucc.deno.dev/api/pucc?vehicleNumber=${vehicleNumber}&fuelType=${fuelType}`)
+      
+      if (!response.ok) {
+        if (retryCount < maxRetries) {
+          console.log(`Retrying PUC check (attempt ${retryCount + 1}/${maxRetries})...`)
+          await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)))
+          return checkPUCStatus(vehicleNumber, vehicleType, retryCount + 1)
+        }
+        throw new Error('Failed to fetch PUC data from Karnataka transport department')
+      }
+      
+      const result = await response.json()
+      
+      if (!result.success) {
+        throw new Error(result.error || 'No PUC records found for this vehicle number')
+      }
+      
+      return {
+        success: true,
+        data: result.data
+      }
+    } catch (error) {
+      console.error('PUC check error:', error)
+      
+      if (retryCount < maxRetries && (error instanceof TypeError || error.message.includes('fetch'))) {
+        console.log(`Network error, retrying PUC check (attempt ${retryCount + 1}/${maxRetries})...`)
+        await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)))
+        return checkPUCStatus(vehicleNumber, vehicleType, retryCount + 1)
+      }
+      
+      throw new Error(error.message || 'Failed to retrieve PUC data from Karnataka transport department')
+    }
+  }
+
 
   const makeApiCall = async (optionId: string, query: string, org: string, firNo: string): Promise<SearchResult> => {
     const option = searchOptions.find(opt => opt.id === optionId)
@@ -299,10 +492,6 @@ export default function EntitySearchPage() {
           if (!isMobileQuery) throw new Error('Invalid mobile number format')
           result = await api.osint.truecallerSearch({ mobile_number: query, org, firNo })
           break
-        case 'mobile-unified':
-          if (!isMobileQuery) throw new Error('Invalid mobile number format')
-          result = await api.osint.mobileUnified({ mobile_number: query, org, firNo })
-          break
         case 'vehicle-rc':
           if (!isVehicleQuery) throw new Error('Invalid vehicle number format')
           result = await api.osint.rcDetails({ rc_number: query, org, firNo })
@@ -311,9 +500,9 @@ export default function EntitySearchPage() {
           if (!isVehicleQuery) throw new Error('Invalid vehicle number format')
           result = await api.osint.rcToMobile({ rc_number: query, org, firNo })
           break
-        case 'vehicle-unified':
+        case 'puc-checking':
           if (!isVehicleQuery) throw new Error('Invalid vehicle number format')
-          result = await api.osint.vehicleUnified({ vehicle_number: query, org, firNo })
+          result = await checkPUCStatus(query, vehicleType)
           break
         default:
           throw new Error('Service temporarily unavailable. Our systems are experiencing heavy load. Please try again in a few moments.')
@@ -327,16 +516,30 @@ export default function EntitySearchPage() {
         error: undefined
       }
     } catch (error: any) {
-      // Show friendly "heavy load" message instead of technical errors
-      const isValidationError = error.message?.includes('Invalid') || error.message?.includes('format')
+      // Provide specific error messages for different types of errors
+      let errorMessage = 'Service temporarily unavailable. Our systems are experiencing heavy load. Please try again in a few moments.'
+      
+      if (error.message?.includes('Invalid')) {
+        errorMessage = error.message
+      } else if (optionId === 'puc-checking') {
+        // PUC-specific error handling
+        if (error.message?.includes('connect') || error.message?.includes('network')) {
+          errorMessage = 'Unable to connect to the transport department. Please check your internet connection and try again.'
+        } else if (error.message?.includes('timeout') || error.message?.includes('temporarily unavailable')) {
+          errorMessage = 'The transport department website is temporarily unavailable. Please try again in a few minutes.'
+        } else if (error.message?.includes('No PUC records found')) {
+          errorMessage = 'No PUC records found for this vehicle number. Please verify the registration number.'
+        } else if (error.message) {
+          errorMessage = error.message
+        }
+      }
+      
       return {
         type: optionId,
         title: option.label,
         found: false,
         data: null,
-        error: isValidationError 
-          ? error.message 
-          : 'Service temporarily unavailable. Our systems are experiencing heavy load. Please try again in a few moments.'
+        error: errorMessage
       }
     }
   }
@@ -366,6 +569,7 @@ export default function EntitySearchPage() {
     }
 
     setIsSearching(true)
+    setHasSearched(true)
     
     // Initialize results with loading state
     const initialResults: SearchResult[] = selectedOptions.map(optionId => {
@@ -404,6 +608,8 @@ export default function EntitySearchPage() {
     setSelectedOptions([])
     setResults([])
     setFormError('')
+    setVehicleType('P')
+    setHasSearched(false)
   }
 
   return (
@@ -517,6 +723,22 @@ export default function EntitySearchPage() {
                   </p>
                 </div>
 
+                {/* Vehicle Type Selection - Only show for vehicle search and when PUC checking is selected */}
+                {searchType === 'vehicle' && selectedOptions.includes('puc-checking') && (
+                  <div className="space-y-2">
+                    <Label htmlFor="vehicle-type">Select Vehicle Type (Petrol/Diesel) *</Label>
+                    <Select value={vehicleType} onValueChange={(value: 'P' | 'D') => setVehicleType(value)} disabled={isSearching}>
+                      <SelectTrigger id="vehicle-type">
+                        <SelectValue placeholder="Select vehicle type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="P">Petrol Vehicle</SelectItem>
+                        <SelectItem value="D">Diesel Vehicle</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 {/* Search Options */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -552,8 +774,6 @@ export default function EntitySearchPage() {
                       const simplifiedLabel = option.label
                         .replace('Mobile to ', '')
                         .replace('Vehicle ', '')
-                        .replace('Unified Mobile Search', 'All Data')
-                        .replace('Unified Vehicle Search', 'All Data')
                       
                       return (
                         <div
@@ -645,23 +865,23 @@ export default function EntitySearchPage() {
                 <AnimatedGrid stagger={0.05} className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {results.map((result, index) => (
                     <AnimatedCard key={`${result.type}-${index}`}>
-                      <ResultCard result={result} />
+                      <ResultCard result={result} onRetry={handleRetry} searchQuery={searchQuery} />
                     </AnimatedCard>
                   ))}
                 </AnimatedGrid>
               </AnimatedPage>
               )}
 
-            {/* Empty State */}
-            {results.length === 0 && !isSearching && (
+            {/* Empty State - Only show after a search has been attempted */}
+            {results.length === 0 && !isSearching && hasSearched && (
               <Empty>
                 <EmptyHeader>
                   <EmptyMedia variant="icon">
                     <Search className="w-12 h-12 text-muted-foreground" />
                   </EmptyMedia>
-                  <EmptyTitle>No Search Results Yet</EmptyTitle>
+                  <EmptyTitle>No Search Results Found</EmptyTitle>
                   <EmptyDescription>
-                    Fill in the search parameters above and click "Start Search" to begin your investigation.
+                    No results were found for your search criteria. Try adjusting your search parameters.
                   </EmptyDescription>
                 </EmptyHeader>
               </Empty>

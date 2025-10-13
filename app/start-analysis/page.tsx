@@ -111,9 +111,9 @@ export default function StartAnalysisPage() {
 
         {/* Main Content */}
         <div className="flex-1 overflow-y-auto">
-          <AnimatedPage className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
             {/* Analysis Type Tabs */}
-            <FadeIn className="flex justify-center mb-8">
+            <div className="flex justify-center mb-8">
               <div className="w-full max-w-2xl">
                 <div className="grid grid-cols-2 gap-3 p-1 bg-muted rounded-lg">
                   <button
@@ -144,10 +144,10 @@ export default function StartAnalysisPage() {
                   </button>
                 </div>
               </div>
-            </FadeIn>
+            </div>
 
             {/* Search Input */}
-            <SlideUp className="mb-8">
+            <div className="mb-8">
               <label className="block text-sm font-medium text-foreground mb-2">
                 {activeTab === 'topic' ? 'Enter Topics, Keywords, or Hashtags' : 'Enter Person Name, Username, or Profile URL'}
               </label>
@@ -164,10 +164,10 @@ export default function StartAnalysisPage() {
                   ? 'Separate multiple topics with commas. You can include hashtags, keywords, or phrases.'
                   : 'Enter the name, username, or social media profile URL of the person you want to analyze.'}
               </p>
-            </SlideUp>
+            </div>
 
             {/* Analyze Button */}
-            <SlideUp className="mb-8">
+            <div className="mb-8">
               <Button 
                 onClick={handleAnalyze}
                 disabled={isAnalyzing || searchQuery.trim().length < 3}
@@ -190,10 +190,10 @@ export default function StartAnalysisPage() {
                   Enter at least 3 characters to start analysis
                 </p>
               )}
-            </SlideUp>
+            </div>
 
             {/* Select Platforms */}
-            <SlideUp className="mb-8">
+            <div className="mb-8">
               <h3 className="text-foreground font-semibold mb-4">Select Platforms</h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {(platforms || []).map((platform) => {
@@ -223,10 +223,10 @@ export default function StartAnalysisPage() {
                   )
                 })}
               </div>
-            </SlideUp>
+            </div>
 
             {/* Time Range */}
-            <SlideUp>
+            <div>
               <h3 className="text-foreground font-semibold mb-4">Time Range</h3>
               
               {/* Preset Options */}
@@ -279,8 +279,8 @@ export default function StartAnalysisPage() {
                   )}
                 </div>
               )}
-            </SlideUp>
-          </AnimatedPage>
+            </div>
+          </div>
         </div>
       </div>
     </PageLayout>

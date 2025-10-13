@@ -29,9 +29,11 @@ export function DateRangePicker({
   placeholder = "Pick a date range",
   disabled = false,
 }: DateRangePickerProps) {
+  const [isOpen, setIsOpen] = React.useState(false)
+  
   return (
     <div className={cn("grid gap-2", className)}>
-      <Popover>
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button
             id="date"
@@ -57,15 +59,44 @@ export function DateRangePicker({
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            initialFocus
-            mode="range"
-            defaultMonth={date?.from}
-            selected={date}
-            onSelect={onDateChange}
-            numberOfMonths={2}
-          />
+        <PopoverContent 
+          className="w-auto p-0" 
+          align="start" 
+          side="bottom"
+          sideOffset={4}
+        >
+          <div className="hidden lg:block">
+            <Calendar
+              initialFocus
+              mode="range"
+              defaultMonth={date?.from}
+              selected={date}
+              onSelect={(newDate) => {
+                onDateChange?.(newDate)
+                if (newDate?.from && newDate?.to) {
+                  setIsOpen(false)
+                }
+              }}
+              numberOfMonths={2}
+              className="rounded-md border shadow-md"
+            />
+          </div>
+          <div className="lg:hidden">
+            <Calendar
+              initialFocus
+              mode="range"
+              defaultMonth={date?.from}
+              selected={date}
+              onSelect={(newDate) => {
+                onDateChange?.(newDate)
+                if (newDate?.from && newDate?.to) {
+                  setIsOpen(false)
+                }
+              }}
+              numberOfMonths={1}
+              className="rounded-md border shadow-md"
+            />
+          </div>
         </PopoverContent>
       </Popover>
     </div>
