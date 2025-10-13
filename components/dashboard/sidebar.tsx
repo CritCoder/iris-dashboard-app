@@ -76,9 +76,9 @@ function NavItem({ icon: Icon, label, href, hasSubmenu = false, submenuContent }
   const buttonContent = (
     <div
       className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-all cursor-pointer ${
-        active 
-          ? 'bg-primary text-primary-foreground shadow-sm border border-primary/20' 
-          : 'text-muted-foreground hover:text-foreground hover:bg-accent hover:border-accent/50 border border-transparent'
+        active
+          ? 'bg-primary text-primary-foreground shadow-sm'
+          : 'text-muted-foreground hover:text-foreground hover:bg-accent'
       }`}
     >
       <div className="flex items-center gap-3">
@@ -133,10 +133,10 @@ function SubNavItem({ icon: Icon, label, href }: SubNavItemProps) {
   return (
     <Link href={href}>
       <div
-        className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all ${
-          active 
-            ? 'bg-primary/10 text-primary border border-primary/20' 
-            : 'text-muted-foreground hover:text-foreground hover:bg-accent hover:border-accent/50 border border-transparent'
+        className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-all ${
+          active
+            ? 'bg-primary/10 text-primary'
+            : 'text-muted-foreground hover:text-foreground hover:bg-accent'
         }`}
       >
         <Icon className="w-4 h-4 flex-shrink-0" />
