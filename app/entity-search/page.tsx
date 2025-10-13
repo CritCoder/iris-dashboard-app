@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
-import { Search, User, MapPin, CreditCard, Car, FileText, Phone, Loader2, CheckCircle2, XCircle, AlertCircle, Building2 } from 'lucide-react'
+import { Search, User, MapPin, CreditCard, Car, FileText, Phone, Loader2, CheckCircle2, XCircle, AlertCircle, Building2, Hash, Users2, MessageSquare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -65,6 +65,18 @@ const policeStations = [
 
 // Available search options
 const searchOptions: SearchOption[] = [
+  {
+    id: 'topic-analysis',
+    label: 'Topic Analysis',
+    icon: Hash,
+    description: 'Search for topics, keywords, hashtags'
+  },
+  {
+    id: 'person-of-interest',
+    label: 'Person of Interest (POI)',
+    icon: Users2,
+    description: 'Search for specific individuals, profiles'
+  },
   {
     id: 'mobile-to-name',
     label: 'Mobile to Name',
@@ -208,11 +220,13 @@ export default function EntitySearchPage() {
   const [results, setResults] = useState<SearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [formError, setFormError] = useState('')
-  const [searchType, setSearchType] = useState<'mobile' | 'vehicle'>('mobile')
+  const [searchType, setSearchType] = useState<'general' | 'mobile' | 'vehicle'>('general')
 
   // Filter options based on search type
   const filteredOptions = searchOptions.filter(opt => {
-    if (searchType === 'mobile') {
+    if (searchType === 'general') {
+      return opt.id === 'topic-analysis' || opt.id === 'person-of-interest'
+    } else if (searchType === 'mobile') {
       return opt.id.startsWith('mobile-') || opt.id === 'truecaller'
     } else {
       return opt.id.startsWith('vehicle-')
@@ -445,7 +459,17 @@ export default function EntitySearchPage() {
                 {/* Search Type Tabs */}
                 <div className="space-y-2">
                   <Label>Search Type *</Label>
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <Button
+                      type="button"
+                      variant={searchType === 'general' ? 'default' : 'outline'}
+                      onClick={() => setSearchType('general')}
+                      disabled={isSearching}
+                      className="flex-1"
+                    >
+                      <Hash className="w-4 h-4 mr-2" />
+                      General
+                    </Button>
                     <Button
                       type="button"
                       variant={searchType === 'mobile' ? 'default' : 'outline'}
@@ -472,11 +496,13 @@ export default function EntitySearchPage() {
                 {/* Search Query */}
                 <div className="space-y-2">
                   <Label htmlFor="search-query">
-                    {searchType === 'mobile' ? 'Mobile Number *' : 'Vehicle Number *'}
+                    {searchType === 'general' ? 'Search Query *' : searchType === 'mobile' ? 'Mobile Number *' : 'Vehicle Number *'}
                   </Label>
                   <Input
                     id="search-query"
-                    placeholder={searchType === 'mobile' 
+                    placeholder={searchType === 'general' 
+                      ? "Enter topic, keyword, hashtag, or person name"
+                      : searchType === 'mobile' 
                       ? "Enter 10-digit mobile number (e.g., 9876543210)" 
                       : "Enter vehicle number (e.g., KA01AB1234 or KA-01-AB-1234)"}
                     value={searchQuery}
