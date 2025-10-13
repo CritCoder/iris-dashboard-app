@@ -33,12 +33,12 @@ export function SegmentedControl({ options, value, onChange, className }: Segmen
     <div
       role="tablist"
       aria-orientation="horizontal"
-      className={`relative bg-zinc-100 dark:bg-zinc-900/50 backdrop-blur-sm border border-zinc-200 dark:border-zinc-800 rounded-xl p-1.5 flex items-center gap-1 ${className ?? ''}`}
+      className={`relative bg-muted/50 backdrop-blur-sm border border-border rounded-lg p-1 flex items-center gap-0.5 ${className ?? ''}`}
     >
       {/* Glider */}
       <div
         aria-hidden
-        className="absolute top-1.5 bottom-1.5 rounded-lg bg-white dark:bg-zinc-800 shadow-md dark:shadow-lg border border-zinc-300 dark:border-zinc-700/50 transition-all duration-300"
+        className="absolute top-1 bottom-1 rounded-md bg-background shadow-md border border-border transition-all duration-300"
         style={gliderStyle}
       />
 
@@ -54,10 +54,10 @@ export function SegmentedControl({ options, value, onChange, className }: Segmen
             aria-selected={selected}
             aria-controls={`segment-${opt.value}`}
             id={`segment-trigger-${opt.value}`}
-            className={`relative z-10 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 ease-out whitespace-nowrap ${
+            className={`relative z-10 px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-300 ease-out whitespace-nowrap ${
               selected
-                ? 'text-zinc-900 dark:text-white'
-                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'
+                ? 'text-foreground'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
             onClick={() => onChange(opt.value)}
           >

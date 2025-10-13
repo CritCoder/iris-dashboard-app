@@ -48,7 +48,7 @@ export function TopicSentimentHeatmap() {
     <div className="bg-card border border-border rounded-lg p-6 list-animate-in">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-lg font-semibold text-foreground mb-1">Topic Sentiment Heatmap</h2>
+          <h2 className="text-2xl font-semibold text-foreground mb-1">Topic Sentiment Heatmap</h2>
           <p className="text-sm text-muted-foreground">Track sentiment across {topics.length} key issues</p>
         </div>
         <div className="text-right">

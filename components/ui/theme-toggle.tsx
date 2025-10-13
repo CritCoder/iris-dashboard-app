@@ -23,7 +23,7 @@ export function ThemeToggle() {
     <div 
       role="tablist" 
       aria-orientation="horizontal" 
-      className="inline-flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 p-1 text-zinc-600 dark:text-zinc-400 h-auto gap-1"
+      className="inline-flex items-center justify-center rounded-lg bg-muted/50 p-1 text-muted-foreground h-auto gap-1"
       tabIndex={0}
       data-orientation="horizontal"
       style={{ outline: 'none' }}
@@ -35,10 +35,10 @@ export function ThemeToggle() {
         aria-controls="theme-content-dark"
         data-state={theme === 'dark' ? 'active' : 'inactive'}
         id="theme-trigger-dark"
-        className={`inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 p-1.5 ${
-          theme === 'dark' 
-            ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm' 
-            : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+        className={`inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 p-1.5 ${
+          theme === 'dark'
+            ? 'bg-background text-foreground shadow-sm border border-border'
+            : 'text-muted-foreground hover:text-foreground'
         }`}
         tabIndex={-1}
         data-orientation="horizontal"
@@ -53,10 +53,10 @@ export function ThemeToggle() {
         aria-controls="theme-content-light"
         data-state={theme === 'light' ? 'active' : 'inactive'}
         id="theme-trigger-light"
-        className={`inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 p-1.5 ${
-          theme === 'light' 
-            ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm' 
-            : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+        className={`inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 p-1.5 ${
+          theme === 'light'
+            ? 'bg-background text-foreground shadow-sm border border-border'
+            : 'text-muted-foreground hover:text-foreground'
         }`}
         tabIndex={-1}
         data-orientation="horizontal"

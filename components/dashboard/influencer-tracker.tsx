@@ -155,10 +155,10 @@ export function InfluencerTracker() {
     <div className="bg-card border border-border rounded-lg p-6 list-animate-in">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-lg font-semibold text-foreground mb-1">Influencer & Entity Tracker</h2>
+          <h2 className="text-2xl font-semibold text-foreground mb-1">Influencer & Entity Tracker</h2>
           <p className="text-sm text-muted-foreground">{summary}</p>
         </div>
-        <Users className="w-5 h-5 text-zinc-600" />
+        <Users className="w-5 h-5 text-muted-foreground" />
       </div>
 
       <div className="space-y-4">

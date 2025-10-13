@@ -64,10 +64,10 @@ export default function Page() {
 
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
-      case 'positive': return 'text-green-600 bg-green-50 border-green-200'
-      case 'negative': return 'text-red-600 bg-red-50 border-red-200'
-      case 'neutral': return 'text-gray-600 bg-gray-50 border-gray-200'
-      default: return 'text-gray-600 bg-gray-50 border-gray-200'
+      case 'positive': return 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-900/50'
+      case 'negative': return 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/50'
+      case 'neutral': return 'text-gray-700 dark:text-gray-400 bg-gray-50 dark:bg-gray-950/30 border-gray-200 dark:border-gray-800'
+      default: return 'text-gray-700 dark:text-gray-400 bg-gray-50 dark:bg-gray-950/30 border-gray-200 dark:border-gray-800'
     }
   }
 
@@ -159,75 +159,83 @@ export default function Page() {
               {/* Key Metrics Row */}
               <AnimatedGrid stagger={0.05} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
                 <AnimatedCard>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Total Mentions</p>
-                        <p className="text-2xl font-bold text-foreground">12,847</p>
-                        <p className="text-xs text-green-600 flex items-center gap-1">
-                          <TrendingUp className="w-3 h-3" />
-                          +12.5% from last week
-                        </p>
+                  <Card className="border border-border">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Total Mentions</p>
+                          <p className="text-2xl font-bold text-foreground">12,847</p>
+                          <p className="text-xs text-green-600 dark:text-green-500 flex items-center gap-1 font-medium">
+                            <TrendingUp className="w-3 h-3" />
+                            +12.5% from last week
+                          </p>
+                        </div>
+                        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                          <MessageSquare className="w-6 h-6 text-blue-600" />
+                        </div>
                       </div>
-                      <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                        <MessageSquare className="w-6 h-6 text-blue-600" />
-                      </div>
-                    </div>
-                  </CardContent>
+                    </CardContent>
+                  </Card>
                 </AnimatedCard>
 
                 <AnimatedCard>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Sentiment Score</p>
-                        <p className="text-2xl font-bold text-foreground">68%</p>
-                        <p className="text-xs text-green-600 flex items-center gap-1">
-                          <TrendingUp className="w-3 h-3" />
-                          +3.2% from last week
-                        </p>
+                  <Card className="border border-border">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Sentiment Score</p>
+                          <p className="text-2xl font-bold text-foreground">68%</p>
+                          <p className="text-xs text-green-600 dark:text-green-500 flex items-center gap-1 font-medium">
+                            <TrendingUp className="w-3 h-3" />
+                            +3.2% from last week
+                          </p>
+                        </div>
+                        <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                          <Heart className="w-6 h-6 text-green-600" />
+                        </div>
                       </div>
-                      <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                        <Heart className="w-6 h-6 text-green-600" />
-                      </div>
-                    </div>
-                  </CardContent>
+                    </CardContent>
+                  </Card>
                 </AnimatedCard>
 
                 <AnimatedCard>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Active Campaigns</p>
-                        <p className="text-2xl font-bold text-foreground">8</p>
-                        <p className="text-xs text-blue-600 flex items-center gap-1">
-                          <Activity className="w-3 h-3" />
-                          3 new this week
-                        </p>
+                  <Card className="border border-border">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Active Campaigns</p>
+                          <p className="text-2xl font-bold text-foreground">8</p>
+                          <p className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1 font-medium">
+                            <Activity className="w-3 h-3" />
+                            3 new this week
+                          </p>
+                        </div>
+                        <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                          <BarChart3 className="w-6 h-6 text-purple-600" />
+                        </div>
                       </div>
-                      <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-                        <BarChart3 className="w-6 h-6 text-purple-600" />
-                      </div>
-                    </div>
-                  </CardContent>
+                    </CardContent>
+                  </Card>
                 </AnimatedCard>
 
                 <AnimatedCard>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Threat Level</p>
-                        <p className="text-2xl font-bold text-foreground">Low</p>
-                        <p className="text-xs text-green-600 flex items-center gap-1">
-                          <Shield className="w-3 h-3" />
-                          No alerts
-                        </p>
+                  <Card className="border border-border">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Threat Level</p>
+                          <p className="text-2xl font-bold text-foreground">Low</p>
+                          <p className="text-xs text-green-600 dark:text-green-500 flex items-center gap-1 font-medium">
+                            <Shield className="w-3 h-3" />
+                            No alerts
+                          </p>
+                        </div>
+                        <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                          <Shield className="w-6 h-6 text-green-600" />
+                        </div>
                       </div>
-                      <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                        <Shield className="w-6 h-6 text-green-600" />
-                      </div>
-                    </div>
-                  </CardContent>
+                    </CardContent>
+                  </Card>
                 </AnimatedCard>
               </AnimatedGrid>
 
@@ -268,8 +276,8 @@ export default function Page() {
                               <Badge className={`text-xs ${getSentimentColor(topic.sentiment)}`}>
                                 {topic.sentiment}
                               </Badge>
-                              <span className={`text-xs font-medium ${
-                                topic.change.startsWith('+') ? 'text-green-600' : 'text-red-600'
+                              <span className={`text-xs font-semibold ${
+                                topic.change.startsWith('+') ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'
                               }`}>
                                 {topic.change}
                               </span>

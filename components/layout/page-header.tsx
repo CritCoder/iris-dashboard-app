@@ -3,7 +3,7 @@
 import { ReactNode } from 'react'
 import { Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useMobileMenu } from '@/components/dashboard/sidebar'
+import { useMobileMenu } from '@/components/dashboard/new-dual-sidebar'
 
 interface PageHeaderProps {
   title: string
