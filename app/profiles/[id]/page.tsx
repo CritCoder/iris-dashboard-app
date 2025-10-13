@@ -6,6 +6,14 @@ import { Heart, MessageCircle, Share2, Eye, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useSocialPosts, useProfileDetails } from '@/hooks/use-api'
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty'
 
 interface Post {
   id: string
@@ -308,8 +316,18 @@ export default function ProfileDetailPage({ params }: { params: { id: string } }
                   <PostCard key={post.id} post={post} />
                 ))
               ) : (
-                <div className="col-span-full text-center text-zinc-500 py-8">
-                  <p>No posts found for this profile.</p>
+                <div className="col-span-full">
+                  <Empty>
+                    <EmptyHeader>
+                      <EmptyMedia variant="icon">
+                        <MessageCircle className="w-12 h-12 text-muted-foreground" />
+                      </EmptyMedia>
+                      <EmptyTitle>No Posts Found</EmptyTitle>
+                      <EmptyDescription>
+                        No posts found for this profile.
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
                 </div>
               )}
             </div>

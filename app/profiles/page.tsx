@@ -12,6 +12,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useProfiles } from '@/hooks/use-api'
 import { AnimatedPage, AnimatedGrid, AnimatedCard } from '@/components/ui/animated'
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty'
 
 interface Profile {
   id: string
@@ -413,13 +421,17 @@ export default function ProfilesPage() {
         </AnimatedGrid>
 
         {filteredProfiles.length === 0 && !loading && (
-          <div className="text-center py-12">
-            <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">No profiles found</h3>
-            <p className="text-muted-foreground">
-              Try adjusting your search criteria or filters
-            </p>
-          </div>
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <Users className="w-12 h-12 text-muted-foreground" />
+              </EmptyMedia>
+              <EmptyTitle>No Profiles Found</EmptyTitle>
+              <EmptyDescription>
+                Try adjusting your search criteria or filters to find more profiles.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         )}
       </div>
     </PageLayout>

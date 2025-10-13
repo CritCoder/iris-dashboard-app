@@ -267,14 +267,14 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
           {/* Results */}
           <div className="max-h-96 overflow-y-auto" ref={resultsRef}>
             {filteredResults.length === 0 && query.trim() ? (
-              <div className="p-12 text-center text-zinc-500">
-                <Search className="w-8 h-8 mx-auto mb-4 text-zinc-600" />
-                <p>No results found for "{query}"</p>
+              <div className="p-8 text-center text-zinc-400">
+                <Search className="w-8 h-8 mx-auto mb-3 text-zinc-500" />
+                <p className="text-sm">No results found for "{query}"</p>
               </div>
             ) : filteredResults.length === 0 ? (
-              <div className="p-12 text-center text-zinc-500">
-                <Clock className="w-8 h-8 mx-auto mb-4 text-zinc-600" />
-                <p>Start typing to search...</p>
+              <div className="p-8 text-center text-zinc-400">
+                <Clock className="w-8 h-8 mx-auto mb-3 text-zinc-500" />
+                <p className="text-sm">Start typing to search...</p>
               </div>
             ) : (
               <div className="p-4">

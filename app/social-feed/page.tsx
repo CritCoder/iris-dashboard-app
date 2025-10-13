@@ -10,6 +10,14 @@ import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 import { useSocialPosts } from '@/hooks/use-api'
 import { AnimatedPage, AnimatedGrid, AnimatedCard } from '@/components/ui/animated'
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty'
 
 export const dynamic = 'force-dynamic'
 
@@ -503,13 +511,27 @@ function SocialFeedContent() {
         {/* Posts Grid */}
         <div className="flex-1 overflow-y-auto">
           <AnimatedPage className="p-4 sm:p-6">
-            <AnimatedGrid stagger={0.03} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-              {(filteredPosts || []).map((post) => (
-                <AnimatedCard key={post.id}>
-                  <PostCard post={post} />
-                </AnimatedCard>
-              ))}
-            </AnimatedGrid>
+            {(filteredPosts || []).length > 0 ? (
+              <AnimatedGrid stagger={0.03} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+                {(filteredPosts || []).map((post) => (
+                  <AnimatedCard key={post.id}>
+                    <PostCard post={post} />
+                  </AnimatedCard>
+                ))}
+              </AnimatedGrid>
+            ) : (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <MessageCircle className="w-12 h-12 text-muted-foreground" />
+                  </EmptyMedia>
+                  <EmptyTitle>No Posts Found</EmptyTitle>
+                  <EmptyDescription>
+                    Try adjusting your filters or search query to find more posts.
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            )}
           </AnimatedPage>
         </div>
       </div>

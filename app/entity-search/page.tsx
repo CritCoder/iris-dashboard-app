@@ -7,7 +7,15 @@ import { Search, User, MapPin, CreditCard, Car, FileText, Phone, Loader2, CheckC
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Combobox } from '@/components/ui/combobox'
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -175,10 +183,17 @@ function ResultCard({ result }: { result: SearchResult }) {
             </pre>
                   </div>
                 ) : (
-          <div className="text-center py-8">
-            <XCircle className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">No data found</p>
-          </div>
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <XCircle className="w-12 h-12 text-muted-foreground" />
+              </EmptyMedia>
+              <EmptyTitle>No Data Found</EmptyTitle>
+              <EmptyDescription>
+                No results found for this search query. Try adjusting your search parameters.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         )}
       </CardContent>
     </Card>
@@ -612,15 +627,17 @@ export default function EntitySearchPage() {
 
             {/* Empty State */}
             {results.length === 0 && !isSearching && (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <Search className="w-16 h-16 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No Search Results Yet</h3>
-                  <p className="text-sm text-muted-foreground text-center max-w-md">
-                    Fill in the search parameters above and click "Start Search" to begin your investigation
-                  </p>
-                </CardContent>
-              </Card>
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <Search className="w-12 h-12 text-muted-foreground" />
+                  </EmptyMedia>
+                  <EmptyTitle>No Search Results Yet</EmptyTitle>
+                  <EmptyDescription>
+                    Fill in the search parameters above and click "Start Search" to begin your investigation.
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
             )}
           </div>
         </div>

@@ -13,6 +13,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { useSocialPosts } from '@/hooks/use-api'
 import { api } from '@/lib/api'
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty'
 
 interface Post {
   id: string
@@ -526,13 +534,17 @@ export default function LocationDetailPage() {
               ))}
               
               {filteredPosts.length === 0 && (
-                <div className="text-center py-12">
-                  <MapPin className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-foreground mb-2">No posts found</h3>
-                  <p className="text-muted-foreground">
-                    Try adjusting your search criteria or filters
-                  </p>
-                </div>
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <MapPin className="w-12 h-12 text-muted-foreground" />
+                    </EmptyMedia>
+                    <EmptyTitle>No Posts Found</EmptyTitle>
+                    <EmptyDescription>
+                      Try adjusting your search criteria or filters to find more posts.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               )}
             </div>
           </div>

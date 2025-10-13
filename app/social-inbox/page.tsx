@@ -10,6 +10,14 @@ import { Textarea } from '@/components/ui/textarea'
 import { FacebookIcon, InstagramIcon, TwitterIcon } from '@/components/ui/platform-icons'
 import { useSocialPosts, useInboxStats } from '@/hooks/use-api'
 import { AnimatedPage, AnimatedList, AnimatedCard, FadeIn } from '@/components/ui/animated'
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty'
 
 interface Post {
   id: string
@@ -444,9 +452,17 @@ export default function SocialInboxPage() {
                   />
                 ))
               ) : (
-                <div className="flex items-center justify-center h-full p-8 text-center text-muted-foreground">
-                  <p>No posts requiring attention at the moment.</p>
-                </div>
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <MessageCircle className="w-12 h-12 text-muted-foreground" />
+                    </EmptyMedia>
+                    <EmptyTitle>All Caught Up</EmptyTitle>
+                    <EmptyDescription>
+                      No posts requiring attention at the moment.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               )}
             </div>
           </div>

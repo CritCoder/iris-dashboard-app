@@ -12,6 +12,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { FacebookIcon, InstagramIcon, TwitterIcon } from '@/components/ui/platform-icons'
 import Link from 'next/link'
 import { organizationsData, type Organization } from '../organizations-data'
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty'
 
 interface Post {
   id: string
@@ -599,13 +607,17 @@ export default function OrganizationDetailPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <MessageCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">No posts found</h3>
-              <p className="text-muted-foreground">
-                Try adjusting your filters to see more posts
-              </p>
-            </div>
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <MessageCircle className="w-12 h-12 text-muted-foreground" />
+                </EmptyMedia>
+                <EmptyTitle>No Posts Found</EmptyTitle>
+                <EmptyDescription>
+                  Try adjusting your filters to see more posts.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           )}
         </div>
       </div>
