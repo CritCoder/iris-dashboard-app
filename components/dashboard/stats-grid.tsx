@@ -1,5 +1,6 @@
 import { TrendingUp, TrendingDown } from 'lucide-react'
 import { usePoliticalStats } from '@/hooks/use-api'
+import { useState, useEffect } from 'react'
 
 // Fallback data for when API calls fail
 const getFallbackData = (dataType: string) => {
@@ -74,10 +75,35 @@ function SentimentBar({ positive }: { positive: number }) {
 export function StatsGrid() {
   const { data: stats, loading, error } = usePoliticalStats({ timeRange: '7d', cached: true })
   
-  // Use fallback data if API fails
-  const safeData = stats || getFallbackData('stats')
+  // Mock data for when API is not available
+  const mockStats = {
+    totalPosts: 14200,
+    totalEngagement: 830400,
+    positiveSentiment: 68,
+    activeCampaigns: 8,
+    postsTrend: 12,
+    engagementTrend: 24,
+    campaignsTrend: 8
+  }
+  
+  // Use mock data if API fails or is loading for too long
+  const displayData = stats || mockStats
 
-  if (loading) {
+  // Show loading for only 2 seconds max, then show mock data
+  const [showLoading, setShowLoading] = useState(true)
+  
+  useEffect(() => {
+    if (loading) {
+      const timer = setTimeout(() => {
+        setShowLoading(false)
+      }, 2000)
+      return () => clearTimeout(timer)
+    } else {
+      setShowLoading(false)
+    }
+  }, [loading])
+
+  if (showLoading && loading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {Array.from({ length: 4 }).map((_, i) => (
@@ -91,36 +117,25 @@ export function StatsGrid() {
     )
   }
 
-  if (error) {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard value="14.2K" label="Total Posts" trend={12} accent />
-        <StatCard value="830.4K" label="Total Engagement" trend={24} accent />
-        <SentimentBar positive={34} />
-        <StatCard value="34" label="Active Campaigns" trend={8} accent />
-      </div>
-    )
-  }
-
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <StatCard 
-        value={stats?.totalPosts ? `${(stats.totalPosts / 1000).toFixed(1)}K` : "14.2K"} 
+        value={`${(displayData.totalPosts / 1000).toFixed(1)}K`}
         label="Total Posts" 
-        trend={stats?.postsTrend || 12} 
+        trend={displayData.postsTrend} 
         accent 
       />
       <StatCard 
-        value={stats?.totalEngagement ? `${(stats.totalEngagement / 1000).toFixed(1)}K` : "830.4K"} 
+        value={`${(displayData.totalEngagement / 1000).toFixed(1)}K`}
         label="Total Engagement" 
-        trend={stats?.engagementTrend || 24} 
+        trend={displayData.engagementTrend} 
         accent 
       />
-      <SentimentBar positive={stats?.positiveSentiment || 34} />
+      <SentimentBar positive={displayData.positiveSentiment} />
       <StatCard 
-        value={stats?.activeCampaigns?.toString() || "34"} 
+        value={displayData.activeCampaigns.toString()}
         label="Active Campaigns" 
-        trend={stats?.campaignsTrend || 8} 
+        trend={displayData.campaignsTrend} 
         accent 
       />
     </div>
