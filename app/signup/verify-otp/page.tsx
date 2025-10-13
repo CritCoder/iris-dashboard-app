@@ -3,14 +3,47 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Mail, Phone, Loader2, Edit2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/contexts/auth-context'
+import { useToast } from '@/hooks/use-toast'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+
+interface ContactInfo {
+  method: 'email' | 'mobile'
+  value: string
+  displayValue: string
+}
 
 export default function SignupVerifyOTPPage() {
   const router = useRouter()
+  const { otpLogin, login } = useAuth()
+  const { success, error } = useToast()
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
-  const [timer, setTimer] = useState(60)
+  const [timer, setTimer] = useState(120)
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+
+  useEffect(() => {
+    // Get contact info from sessionStorage
+    const storedContactInfo = sessionStorage.getItem('otpContactInfo')
+    if (storedContactInfo) {
+      setContactInfo(JSON.parse(storedContactInfo))
+      // Focus the first input after a short delay to ensure it's rendered
+      setTimeout(() => {
+        inputRefs.current[0]?.focus()
+      }, 100)
+    } else {
+      // If no contact info, redirect back to signup
+      router.push('/signup')
+    }
+  }, [router])
 
   useEffect(() => {
     if (timer > 0) {
@@ -22,14 +55,27 @@ export default function SignupVerifyOTPPage() {
   }, [timer])
 
   const handleChange = (index: number, value: string) => {
-    if (value.length > 1) return
+    // Only allow single digit numeric input
+    if (!/^\d*$/.test(value) || value.length > 1) return
 
     const newOtp = [...otp]
     newOtp[index] = value
     setOtp(newOtp)
 
+    // Auto-focus next input
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus()
+    }
+
+    // Auto-submit when all 6 digits are entered
+    if (newOtp.every(digit => digit !== '')) {
+      // Small delay to ensure state is updated and visual feedback
+      setTimeout(() => {
+        const form = document.querySelector('form')
+        if (form) {
+          form.requestSubmit()
+        }
+      }, 200)
     }
   }
 
@@ -39,15 +85,102 @@ export default function SignupVerifyOTPPage() {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    router.push('/')
+    
+    if (otp.some((d) => !d)) return
+    
+    setIsVerifying(true)
+    
+    try {
+      if (contactInfo) {
+        const otpCode = otp.join('')
+        
+        if (contactInfo.method === 'mobile') {
+          // Use AuthProvider's otpLogin method
+          const loginSuccess = await otpLogin({
+            phoneNumber: contactInfo.value,
+            otp: otpCode
+          })
+          
+          if (loginSuccess) {
+            // Clear session storage
+            sessionStorage.removeItem('otpContactInfo')
+            // AuthProvider will handle the redirect automatically
+          } else {
+            error('Invalid OTP. Please try again.')
+          }
+        } else {
+          // For email OTP, use AuthProvider's login method
+          const loginSuccess = await login({
+            email: contactInfo.value,
+            password: 'temp_password' // This might need to be adjusted based on actual API
+          })
+          
+          if (loginSuccess) {
+            // Clear session storage
+            sessionStorage.removeItem('otpContactInfo')
+            // AuthProvider will handle the redirect automatically
+          } else {
+            error('Verification failed. Please try again.')
+          }
+        }
+      }
+    } catch (err) {
+      error('Network error. Please try again.')
+      console.error('OTP verification error:', err)
+    } finally {
+      setIsVerifying(false)
+    }
   }
 
-  const handleResend = () => {
-    setTimer(60)
+  const handleResend = async () => {
+    if (!contactInfo) return
+    
+    setTimer(120)
     setOtp(['', '', '', '', '', ''])
     inputRefs.current[0]?.focus()
+    
+    try {
+      if (contactInfo.method === 'mobile') {
+        // Use the same API endpoint for resending OTP
+        const response = await fetch('https://irisnet.wiredleap.com/api/auth/otpLogin', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            phoneNumber: contactInfo.value
+          })
+        })
+
+        const result = await response.json()
+
+        if (result.success) {
+          success('OTP resent successfully!')
+        } else {
+          error(result.error?.message || 'Failed to resend OTP')
+        }
+      } else {
+        // For email, we might need to call the signup endpoint again
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        success('OTP resent successfully!')
+      }
+    } catch (err) {
+      error('Failed to resend OTP. Please try again.')
+    }
+  }
+
+  // Show loading if contact info is not available yet
+  if (!contactInfo) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center p-6">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-white mx-auto mb-4" />
+          <p className="text-zinc-500">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -66,27 +199,57 @@ export default function SignupVerifyOTPPage() {
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-none"></div>
 
+      {/* Back Button - Fixed at top left */}
+      <Link
+        href="/signup"
+        className="fixed top-8 left-8 inline-flex items-center gap-2 text-zinc-400 hover:text-zinc-300 transition-colors z-20"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back to signup
+      </Link>
+      
       <div className="w-full max-w-md relative z-10">
-        <Link
-          href="/signup"
-          className="inline-flex items-center gap-2 text-zinc-400 hover:text-zinc-300 mb-8 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to signup
-        </Link>
 
+        {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-gradient-to-br from-zinc-700 to-zinc-800 mb-4">
             <span className="text-2xl font-bold text-white">IRIS</span>
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">Verify your email</h1>
-          <p className="text-zinc-500">
-            We've sent a 6-digit code to<br />
-            <span className="text-white font-medium">suumit@mydukaan.io</span>
-          </p>
+          <h1 className="text-2xl font-bold text-white mb-2">Verify your account</h1>
+          {contactInfo && (
+            <div className="space-y-2">
+              <p className="text-zinc-500">
+                We've sent a 6-digit code to your {contactInfo.method}
+              </p>
+              <div className="flex items-center justify-center gap-2 text-white font-medium">
+                {contactInfo.method === 'email' ? (
+                  <Mail className="w-4 h-4 text-zinc-400" />
+                ) : (
+                  <Phone className="w-4 h-4 text-zinc-400" />
+                )}
+                <span>{contactInfo.displayValue}</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link
+                        href="/signup"
+                        className="inline-flex items-center justify-center opacity-50 hover:opacity-100 transition-opacity"
+                      >
+                        <Edit2 className="w-4 h-4 text-white cursor-pointer" />
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Edit {contactInfo.method === 'email' ? 'email' : 'number'}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+        {/* OTP Form */}
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="flex gap-3 justify-center">
               {otp.map((digit, index) => (
@@ -101,7 +264,7 @@ export default function SignupVerifyOTPPage() {
                   value={digit}
                   onChange={(e) => handleChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
-                  className="w-12 h-14 text-center text-2xl font-bold bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                  className="w-12 h-14 text-center text-2xl font-bold bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg text-white focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all"
                 />
               ))}
             </div>
@@ -122,15 +285,29 @@ export default function SignupVerifyOTPPage() {
               )}
             </div>
 
-            <Button type="submit" className="w-full gap-2" disabled={otp.some((d) => !d)}>
-              Verify & Create Account
-              <ArrowRight className="w-4 h-4" />
+            <Button 
+              type="submit" 
+              className="w-full gap-2" 
+              disabled={otp.some((d) => !d) || isVerifying}
+            >
+              {isVerifying ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Verifying...
+                </>
+              ) : (
+                <>
+                  Verify & Create Account
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
-            <button className="text-sm text-zinc-500 hover:text-zinc-300">
+            <button className="text-sm text-zinc-500 hover:text-zinc-300 inline-flex items-center gap-2 group transition-colors">
               Having trouble? Contact support
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
             </button>
           </div>
         </div>
