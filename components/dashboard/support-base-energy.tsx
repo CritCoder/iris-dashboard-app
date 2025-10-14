@@ -1,4 +1,6 @@
-import { Zap, Hash, BarChart3, Users } from 'lucide-react'
+import { Zap, Hash, BarChart3, Users, Loader2, AlertCircle } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 // Static data to prevent flickering
 const staticSupportData = {
@@ -128,24 +130,89 @@ function AmplifierCard({ avatar, name, handle, score, followers, posts, engageme
   )
 }
 
-export function SupportBaseEnergy() {
-  // Use static data to prevent flickering
-  const hashtagsTracked = staticSupportData.hashtagsTracked
-  const amplifiers = staticSupportData.amplifiers
-  const totalMentions = staticSupportData.totalMentions
-  const insights = staticSupportData.insights
+interface SupportBaseEnergyProps {
+  data?: any
+  loading?: boolean
+  error?: string | null
+}
+
+export function SupportBaseEnergy({ data, loading, error }: SupportBaseEnergyProps = {}) {
+  // Transform API data or use static data as fallback
+  const amplifiers = data?.amplifiers ? data.amplifiers.slice(0, 4).map((amp: any) => ({
+    avatar: amp.displayName?.substring(0, 2).toUpperCase() || amp.username?.substring(0, 2).toUpperCase() || '??',
+    name: amp.displayName || amp.username || 'Unknown',
+    handle: `@${amp.username || 'unknown'}`,
+    score: amp.engagement?.amplificationScore || amp.engagement?.totalEngagement || 'N/A',
+    followers: amp.followers || 'N/A',
+    posts: amp.totalPosts || 'N/A',
+    engagement: amp.engagement || 'N/A'
+  })) : staticSupportData.amplifiers
+  
+  const hashtagsTracked = data?.trendingTopics?.length || staticSupportData.hashtagsTracked
+  const totalMentions = data?.totalMentions || staticSupportData.totalMentions
+  
+  // Generate insights from API data
+  const insights = data?.trendingTopics ? [
+    {
+      type: 'hashtag',
+      text: `${data.trendingTopics[0]?.topic || 'Top topic'} trending with ${data.trendingTopics[0]?.engagement?.totalEngagement || 0} mentions`
+    },
+    {
+      type: 'platform',
+      text: `${amplifiers.length} active amplifiers tracked`
+    },
+    {
+      type: 'user',
+      text: `${totalMentions} total mentions across platforms`
+    }
+  ] : staticSupportData.insights
 
   return (
     <div className="bg-card border border-border rounded-lg p-6 list-animate-in">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-lg font-semibold text-foreground mb-1">Support Base Energy</h2>
-          <p className="text-sm text-muted-foreground">{hashtagsTracked} hashtags tracked · {amplifiers.length} amplifiers · {totalMentions} total mentions</p>
+          <p className="text-sm text-muted-foreground">
+            {loading ? 'Loading...' : `${hashtagsTracked} hashtags tracked · ${amplifiers.length} amplifiers · ${totalMentions} total mentions`}
+          </p>
         </div>
-        <Zap className="w-5 h-5 text-muted-foreground" />
+        {loading ? (
+          <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" />
+        ) : (
+          <Zap className="w-5 h-5 text-muted-foreground" />
+        )}
       </div>
 
-      {amplifiers.length > 0 && (
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {loading ? (
+        <div className="mb-4">
+          <Skeleton className="h-4 w-32 mb-3" />
+          <div className="grid grid-cols-2 gap-3">
+            {[1, 2].map((i) => (
+              <div key={i} className="p-4 border border-border rounded-lg space-y-3">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="w-8 h-8 rounded-full" />
+                  <div className="space-y-2 flex-1">
+                    <Skeleton className="h-3 w-24" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <Skeleton className="h-8 w-full" />
+                  <Skeleton className="h-8 w-full" />
+                  <Skeleton className="h-8 w-full" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : amplifiers.length > 0 ? (
         <div className="mb-4">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Top Amplifiers ({amplifiers.length} total)</h3>
           <div className="grid grid-cols-2 gap-3">
@@ -163,11 +230,17 @@ export function SupportBaseEnergy() {
             ))}
           </div>
         </div>
-      )}
+      ) : null}
 
       <div className="pt-4 border-t border-border">
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Insights</h3>
-        {insights.length > 0 ? (
+        {loading ? (
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-5/6" />
+          </div>
+        ) : insights.length > 0 ? (
           <div className="space-y-2 text-xs text-muted-foreground">
             {insights.map((insight: any, index: number) => (
               <div key={index} className="flex items-start gap-2">

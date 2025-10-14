@@ -24,9 +24,24 @@ export interface PaginatedResponse<T = any> {
 // Auth token management
 export class AuthManager {
   private static token: string | null = null
+  private static initialized: boolean = false
+
+  // Initialize token from localStorage on first access
+  private static initialize(): void {
+    if (!this.initialized && typeof window !== 'undefined') {
+      const storedToken = localStorage.getItem('auth_token')
+      if (storedToken) {
+        this.token = storedToken
+        console.log('AuthManager: Token loaded from localStorage')
+      }
+      this.initialized = true
+    }
+  }
 
   static getToken(): string | null {
+    this.initialize()
     if (typeof window !== 'undefined') {
+      // Always check localStorage as source of truth
       return localStorage.getItem('auth_token') || this.token
     }
     return this.token
@@ -36,6 +51,7 @@ export class AuthManager {
     this.token = token
     if (typeof window !== 'undefined') {
       localStorage.setItem('auth_token', token)
+      console.log('AuthManager: Token saved to localStorage')
     }
   }
 
@@ -43,6 +59,7 @@ export class AuthManager {
     this.token = null
     if (typeof window !== 'undefined') {
       localStorage.removeItem('auth_token')
+      console.log('AuthManager: Token cleared from localStorage')
     }
   }
 }
@@ -60,7 +77,20 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`
-    const token = AuthManager.getToken()
+    
+    // ALWAYS get token fresh from localStorage
+    let token: string | null = null
+    if (typeof window !== 'undefined') {
+      token = localStorage.getItem('auth_token')
+    }
+
+    // Debug logging
+    console.log(`API Request: ${endpoint}`, {
+      hasToken: !!token,
+      tokenLength: token?.length || 0,
+      tokenPreview: token ? `${token.substring(0, 20)}...` : 'none',
+      localStorageCheck: typeof window !== 'undefined' ? localStorage.getItem('auth_token')?.substring(0, 20) : 'SSR'
+    })
 
     const config: RequestInit = {
       headers: {
@@ -79,7 +109,12 @@ class ApiClient {
         // Handle authentication errors gracefully
         if (response.status === 401) {
           console.warn(`Authentication required for ${endpoint}`)
-          return { success: false, data: null, message: 'Authentication required' }
+          // Clear invalid token if it exists
+          if (token) {
+            console.warn('Clearing invalid authentication token')
+            AuthManager.clearToken()
+          }
+          return { success: false, data: null, message: 'Authentication required. Please login again.' }
         }
         // Handle route not found errors
         if (response.status === 404) {
@@ -284,6 +319,39 @@ export const socialApi = {
 
   getHourlyPostingData: () => apiClient.get('/api/social/posts/hourly-data'),
 
+  // Entity Analytics Methods
+  getEntityAnalytics: (params?: {
+    type?: string
+    category?: string
+    timeRange?: string
+    sentiment?: string
+    platform?: string
+    socialProfileId?: string
+    campaignId?: string
+    limit?: number
+    minMentions?: number
+    query?: string
+  }) => apiClient.get('/api/social/entities/analytics', params),
+
+  getTopEntities: (type: string, params?: {
+    timeRange?: string
+    limit?: number
+    minMentions?: number
+  }) => apiClient.get(`/api/social/entities/top/${type}`, params),
+
+  searchEntities: (params: {
+    q: string
+    type?: string
+    category?: string
+    limit?: number
+  }) => apiClient.get('/api/social/entities/search', params),
+
+  getEntityDetails: (id: string, params?: {
+    page?: number
+    limit?: number
+    filter?: string
+  }) => apiClient.get(`/api/social/entities/${id}`, params),
+
   getPosts: (params?: {
     page?: number
     limit?: number
@@ -464,7 +532,10 @@ export const locationApi = {
 
 // OSINT External APIs
 export const osintApi = {
-  ironVeilSearch: (data: { query: string; org: string; firNo: string }) =>
+  ironVeilSearch: (data: { entityType?: string; query: string; filters?: any; org: string; firNo: string }) =>
+    apiClient.post('/api/osint/ironveil/search', data),
+
+  ironveilSearch: (data: { entityType?: string; query: string; filters?: any; org: string; firNo: string }) =>
     apiClient.post('/api/osint/ironveil/search', data),
 
   mobileToPAN: (data: { mobile_number: string; org: string; firNo: string }) =>
@@ -492,7 +563,10 @@ export const osintApi = {
     apiClient.post('/api/osint/rc-to-mobile', data),
 
   truecallerSearch: (data: { mobile_number: string; org: string; firNo: string }) =>
-    apiClient.post('/api/osint/truecaller-search', data),
+    apiClient.post('/api/osint/truecaller/search', data),
+
+  upiToBank: (data: { upi_id: string; org: string; firNo: string }) =>
+    apiClient.post('/api/osint/upi-to-bank', data),
 
   vehicleUnified: (data: { vehicle_number: string; org: string; firNo: string }) =>
     apiClient.post('/api/osint/vehicle-unified', data),
