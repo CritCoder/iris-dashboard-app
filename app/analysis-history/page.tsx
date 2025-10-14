@@ -123,14 +123,12 @@ function CampaignRow({
         <h3 className="text-foreground font-medium mb-1 hover:text-blue-400 transition-colors">
           {campaign.name}
         </h3>
-<<<<<<< HEAD
         <p className="text-sm text-muted-foreground">{formatDate(campaign.createdAt)}</p>
       </div>
 
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-6">
         <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-2 sm:pb-0">
           <div className="bg-blue-900/20 border border-blue-800/30 rounded-lg px-3 sm:px-4 py-2 text-center min-w-[70px] sm:min-w-[80px] flex-shrink-0">
-<<<<<<< HEAD
             <div className="text-blue-300 font-bold text-base sm:text-lg">{formatNumber(campaign.metrics?.totalPosts)}</div>
             <div className="text-xs text-blue-400">POSTS</div>
           </div>
