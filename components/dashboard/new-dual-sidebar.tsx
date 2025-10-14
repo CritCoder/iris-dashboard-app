@@ -71,8 +71,7 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
     { id: 'profiles', label: 'Profiles', icon: Users, href: '/profiles', submenu: 'profiles', description: 'who is talking' },
     { id: 'entities', label: 'Entities', icon: Hash, href: '/entities', submenu: undefined, description: 'what is being talked about' },
     { id: 'locations', label: 'Locations', icon: MapPin, href: '/locations', submenu: undefined, description: 'where things are happening' },
-    { id: 'communities', label: 'Communities', icon: Building2, href: '/communities', submenu: 'communities', description: 'groups and communities' },
-    { id: 'groups', label: 'Groups', icon: Users, href: '/groups', submenu: 'groups', description: 'user groups and organizations' },
+    { id: 'communities-groups', label: 'Communities & Groups', icon: Building2, href: '/communities-groups', submenu: 'communities-groups', description: 'social communities and groups' },
   ], [])
 
   const profilesSubmenu = useMemo(() => [
@@ -107,52 +106,37 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
     }
   ], [])
 
-  const communitiesSubmenu = useMemo(() => [
+  const communitiesGroupsSubmenu = useMemo(() => [
     {
       category: 'PRIMARY',
       items: [
-        { id: 'all-communities', label: 'All Communities', icon: Building2, href: '/communities' },
+        { id: 'all-communities-groups', label: 'All Communities & Groups', icon: Building2, href: '/communities-groups' },
+        { id: 'communities-only', label: 'Communities Only', icon: Building2, href: '/communities-groups?view=communities' },
+        { id: 'groups-only', label: 'Groups Only', icon: Users, href: '/communities-groups?view=groups' },
       ]
     },
     {
       category: 'COMMUNITY TYPE',
       items: [
-        { id: 'political', label: 'Political Communities', icon: Building2, href: '/communities?type=political' },
-        { id: 'social', label: 'Social Communities', icon: Users, href: '/communities?type=social' },
-        { id: 'professional', label: 'Professional Groups', icon: Building2, href: '/communities?type=professional' },
-      ]
-    },
-    {
-      category: 'ACTIVITY LEVEL',
-      items: [
-        { id: 'high-activity', label: 'High Activity', icon: TrendingUp, href: '/communities?activity=high' },
-        { id: 'moderate-activity', label: 'Moderate Activity', icon: BarChart3, href: '/communities?activity=moderate' },
-        { id: 'low-activity', label: 'Low Activity', icon: TrendingDownIcon, href: '/communities?activity=low' },
-      ]
-    }
-  ], [])
-
-  const groupsSubmenu = useMemo(() => [
-    {
-      category: 'PRIMARY',
-      items: [
-        { id: 'all-groups', label: 'All Groups', icon: Users, href: '/groups' },
+        { id: 'political', label: 'Political Communities', icon: Building2, href: '/communities-groups?type=political' },
+        { id: 'social', label: 'Social Communities', icon: Users, href: '/communities-groups?type=social' },
+        { id: 'professional', label: 'Professional Groups', icon: Building2, href: '/communities-groups?type=professional' },
       ]
     },
     {
       category: 'GROUP TYPE',
       items: [
-        { id: 'public-groups', label: 'Public Groups', icon: Globe, href: '/groups?type=public' },
-        { id: 'private-groups', label: 'Private Groups', icon: Shield, href: '/groups?type=private' },
-        { id: 'closed-groups', label: 'Closed Groups', icon: Building2, href: '/groups?type=closed' },
+        { id: 'public-groups', label: 'Public Groups', icon: Globe, href: '/communities-groups?type=public' },
+        { id: 'private-groups', label: 'Private Groups', icon: Shield, href: '/communities-groups?type=private' },
+        { id: 'closed-groups', label: 'Closed Groups', icon: Building2, href: '/communities-groups?type=closed' },
       ]
     },
     {
-      category: 'SIZE',
+      category: 'ACTIVITY & SIZE',
       items: [
-        { id: 'large-groups', label: 'Large Groups (10k+)', icon: TrendingUp, href: '/groups?size=large' },
-        { id: 'medium-groups', label: 'Medium Groups (1k-10k)', icon: BarChart3, href: '/groups?size=medium' },
-        { id: 'small-groups', label: 'Small Groups (<1k)', icon: Users, href: '/groups?size=small' },
+        { id: 'high-activity', label: 'High Activity', icon: TrendingUp, href: '/communities-groups?activity=high' },
+        { id: 'large-groups', label: 'Large Groups (10k+)', icon: TrendingUp, href: '/communities-groups?size=large' },
+        { id: 'active', label: 'Recently Active', icon: BarChart3, href: '/communities-groups?status=active' },
       ]
     }
   ], [])
@@ -307,31 +291,9 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
     </div>
   )
 
-  const CommunitiesSubmenuContent = () => (
+  const CommunitiesGroupsSubmenuContent = () => (
     <div className="space-y-6 py-6 px-4">
-      {communitiesSubmenu.map((section) => (
-        <div key={section.category}>
-          <div className="px-0 py-2.5 text-xs font-bold text-muted-foreground/60 tracking-widest uppercase flex items-center gap-2">
-            <div className="w-0.5 h-3 bg-gradient-to-b from-blue-500/60 to-transparent rounded-full" />
-            {section.category}
-          </div>
-          <div className="space-y-1.5 mt-4">
-            {section.items.map((item) => (
-              <SubmenuNavItem
-                key={item.id}
-                item={item}
-                isActive={pathname === item.href}
-              />
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-
-  const GroupsSubmenuContent = () => (
-    <div className="space-y-6 py-6 px-4">
-      {groupsSubmenu.map((section) => (
+      {communitiesGroupsSubmenu.map((section) => (
         <div key={section.category}>
           <div className="px-0 py-2.5 text-xs font-bold text-muted-foreground/60 tracking-widest uppercase flex items-center gap-2">
             <div className="w-0.5 h-3 bg-gradient-to-b from-blue-500/60 to-transparent rounded-full" />
@@ -548,7 +510,7 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
           </div>
         )}
 
-        {expandedSubMenu === 'communities' && (
+        {expandedSubMenu === 'communities-groups' && (
           <div className="w-72 bg-background border-r border-border flex flex-col h-full overflow-hidden sidebar-enter">
             {/* Submenu Header */}
             <div className="h-[72px] sm:h-[84px] border-b border-border px-4 flex items-center justify-between flex-shrink-0">
@@ -556,10 +518,10 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
                 <div className="p-1.5 bg-blue-500/10 rounded-lg border border-blue-500/20">
                   <Building2 size={16} className="text-blue-500" />
                 </div>
-                <span className="text-sm font-bold text-foreground">Communities</span>
+                <span className="text-sm font-bold text-foreground">Communities & Groups</span>
               </div>
               <button
-                onClick={() => toggleSubMenu('communities')}
+                onClick={() => toggleSubMenu('communities-groups')}
                 className="p-1 hover:bg-muted rounded transition-all duration-300 group"
               >
                 <X size={18} className="text-muted-foreground group-hover:text-blue-500 transition-colors" />
@@ -568,32 +530,7 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
 
             {/* Submenu Content */}
             <div className="flex-1 overflow-hidden">
-              <CommunitiesSubmenuContent />
-            </div>
-          </div>
-        )}
-
-        {expandedSubMenu === 'groups' && (
-          <div className="w-72 bg-background border-r border-border flex flex-col h-full overflow-hidden sidebar-enter">
-            {/* Submenu Header */}
-            <div className="h-[72px] sm:h-[84px] border-b border-border px-4 flex items-center justify-between flex-shrink-0">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                  <Users size={16} className="text-blue-500" />
-                </div>
-                <span className="text-sm font-bold text-foreground">Groups</span>
-              </div>
-              <button
-                onClick={() => toggleSubMenu('groups')}
-                className="p-1 hover:bg-muted rounded transition-all duration-300 group"
-              >
-                <X size={18} className="text-muted-foreground group-hover:text-blue-500 transition-colors" />
-              </button>
-            </div>
-
-            {/* Submenu Content */}
-            <div className="flex-1 overflow-hidden">
-              <GroupsSubmenuContent />
+              <CommunitiesGroupsSubmenuContent />
             </div>
           </div>
         )}
@@ -681,10 +618,8 @@ function DualSidebarWrapper() {
       setExpandedSubMenu('locations')
     } else if (pathname === '/social-feed') {
       setExpandedSubMenu('social-feed')
-    } else if (pathname === '/communities') {
-      setExpandedSubMenu('communities')
-    } else if (pathname === '/groups') {
-      setExpandedSubMenu('groups')
+    } else if (pathname === '/communities-groups') {
+      setExpandedSubMenu('communities-groups')
     } else {
       setExpandedSubMenu(null)
     }
