@@ -22,11 +22,22 @@ export function GlobalSearch() {
 
   return (
     <>
-      <div className="relative">
+      {/* Mobile: Icon button */}
+      <button 
+        type="button"
+        onClick={() => setIsSpotlightOpen(true)}
+        className="sm:hidden flex items-center justify-center w-10 h-10 rounded-lg border border-input bg-background hover:bg-accent hover:border-ring transition-colors"
+        aria-label="Search"
+      >
+        <Search className="w-4 h-4 text-muted-foreground" />
+      </button>
+
+      {/* Desktop: Full search bar */}
+      <div className="relative hidden sm:block">
         <button 
           type="button"
           onClick={() => setIsSpotlightOpen(true)}
-          className="bg-background border border-input rounded-xl pl-10 pr-20 py-3 text-sm text-muted-foreground hover:text-foreground hover:border-ring focus:outline-none focus:border-ring w-80 cursor-pointer text-left transition-all duration-200 h-[46px]"
+          className="bg-background border border-input rounded-xl pl-10 pr-20 py-3 text-sm text-muted-foreground hover:text-foreground hover:border-ring focus:outline-none focus:border-ring w-64 md:w-80 cursor-pointer text-left transition-all duration-200 h-[46px]"
         >
           Search...
         </button>

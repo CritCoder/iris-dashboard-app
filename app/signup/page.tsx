@@ -23,6 +23,9 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   
+  // Get API URL from environment variable
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://irisnet.wiredleap.com'
+  
   // Initialize form data from localStorage
   const [formData, setFormData] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -133,7 +136,7 @@ export default function SignupPage() {
     try {
       if (signupMethod === 'email') {
         // For email signup, use the actual API
-        const response = await fetch('https://irisnet.wiredleap.com/api/auth/add-user', {
+        const response = await fetch(`${API_URL}/api/auth/add-user`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -165,7 +168,7 @@ export default function SignupPage() {
       } else {
         // For mobile signup, use the OTP endpoint
         const phoneNumber = `${formData.countryCode}${formData.mobile}`
-        const response = await fetch('https://irisnet.wiredleap.com/api/auth/otpLogin', {
+        const response = await fetch(`${API_URL}/api/auth/otpLogin`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

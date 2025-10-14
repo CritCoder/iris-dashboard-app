@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auth Token Checker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔐 Auth Token Diagnostic Tool</h1>
+    
+    <div id="results"></div>
+    
+    <div>
+        <button onclick="checkAuth()">🔄 Refresh Check</button>
+        <button onclick="clearAuth()">🗑️ Clear Token</button>
+        <button onclick="testLogin()">🔑 Test Login</button>
+    </div>
+
+    <script>
+        function checkAuth() {
+            const results = document.getElementById('results');
+            results.innerHTML = '';
+            
+            // Check localStorage
+            const token = localStorage.getItem('auth_token');
+            
+            let html = '';
+            
+            if (token) {
+                html += `
+                    <div class="status success">
+                        <h3>✅ Token Found in localStorage</h3>
+                        <p><strong>Length:</strong> ${token.length} characters</p>
+                        <p><strong>Preview:</strong> ${token.substring(0, 50)}...</p>
+                        <p><strong>Full Token:</strong></p>
+                        <pre>${token}</pre>
+                    </div>
+                `;
+                
+                // Try to decode JWT payload
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    html += `
+                        <div class="status success">
+                            <h3>📋 Token Payload (Decoded)</h3>
+                            <pre>${JSON.stringify(payload, null, 2)}</pre>
+                            <p><strong>Expires:</strong> ${new Date(payload.exp * 1000).toLocaleString()}</p>
+                            <p><strong>Time until expiry:</strong> ${Math.floor((payload.exp * 1000 - Date.now()) / 1000 / 60)} minutes</p>
+                        </div>
+                    `;
+                } catch (e) {
+                    html += `
+                        <div class="status warning">
+                            <h3>⚠️ Could not decode token</h3>
+                            <p>${e.message}</p>
+                        </div>
+                    `;
+                }
+                
+                // Test API call
+                testAPICall(token);
+                
+            } else {
+                html += `
+                    <div class="status error">
+                        <h3>❌ No Token Found</h3>
+                        <p>You are not logged in. Please login first.</p>
+                    </div>
+                `;
+            }
+            
+            results.innerHTML = html;
+        }
+        
+        async function testAPICall(token) {
+            const results = document.getElementById('results');
+            
+            try {
+                const response = await fetch('https://irisnet.wiredleap.com/api/social/posts?page=1&limit=5', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    results.innerHTML += `
+                        <div class="status success">
+                            <h3>✅ API Test Successful</h3>
+                            <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                            <p><strong>Posts Received:</strong> ${data.data?.length || 0}</p>
+                            <p><strong>Response:</strong></p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    results.innerHTML += `
+                        <div class="status error">
+                            <h3>❌ API Test Failed</h3>
+                            <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                            <p><strong>Error:</strong> ${data.message || 'Unknown error'}</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                results.innerHTML += `
+                    <div class="status error">
+                        <h3>❌ API Test Error</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function clearAuth() {
+            localStorage.removeItem('auth_token');
+            document.getElementById('results').innerHTML = `
+                <div class="status warning">
+                    <h3>🗑️ Token Cleared</h3>
+                    <p>Please refresh the check to verify.</p>
+                </div>
+            `;
+        }
+        
+        function testLogin() {
+            window.location.href = '/login';
+        }
+        
+        // Run check on load
+        checkAuth();
+    </script>
+</body>
+</html>
+

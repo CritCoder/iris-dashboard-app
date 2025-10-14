@@ -1,14 +1,43 @@
+/**
+ * Social Feed Page - Integrated with Social Posts API
+ * 
+ * API Endpoint: GET /api/social/posts
+ * Documentation: https://irisnet.wiredleap.com/api
+ * 
+ * Features:
+ * - Real-time post fetching with server-side filtering
+ * - Advanced search and filtering (platform, sentiment, media type, time range)
+ * - Pagination support (20 posts per page)
+ * - Automatic fallback to sample data when API is unavailable
+ * - Loading states and error handling
+ * 
+ * Supported Filters:
+ * - Platform: twitter, facebook, instagram, news
+ * - Sentiment: POSITIVE, NEUTRAL, NEGATIVE
+ * - Media Type: images, videos, text only
+ * - Time Range: 1h, 24h, 7d, 30d
+ * - Classification: CRITICAL, URGENT, HIGH, MEDIUM, LOW
+ * - Custom filters: trending, viral, high-engagement, high-impact
+ * 
+ * Data Transformation:
+ * - API response is transformed to match Post interface
+ * - Handles multiple author field variations (username, displayName, person.name)
+ * - Converts ISO timestamps to relative time (2h, 3d, etc.)
+ * - Calculates engagement metrics and viral status
+ */
+
 'use client'
 
 import { useState, useMemo, Suspense, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
-import { Search, Download, Heart, MessageCircle, Share2, Eye, X } from 'lucide-react'
+import { Search, Download, Heart, MessageCircle, Share2, Eye, X, Loader2, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
-import { useSocialPosts } from '@/hooks/use-api'
+import { api } from '@/lib/api'
+import { ensureAuthToken } from '@/lib/auth-utils'
 import { AnimatedPage, AnimatedGrid, AnimatedCard } from '@/components/ui/animated'
 import {
   Empty,
@@ -134,68 +163,254 @@ function SocialFeedContent() {
   const searchParams = useSearchParams()
   const activeFilter = searchParams.get('filter') || 'all-posts'
   const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
   const [isExporting, setIsExporting] = useState(false)
+  const [selectedPlatform, setSelectedPlatform] = useState('all')
+  const [selectedMediaType, setSelectedMediaType] = useState('all')
+  const [selectedTimeRange, setSelectedTimeRange] = useState('all')
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [allPosts, setAllPosts] = useState<Post[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Ensure auth token is loaded on mount
+  useEffect(() => {
+    ensureAuthToken()
+  }, [])
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery)
+    }, 500) // 500ms debounce
+
+    return () => clearTimeout(timer)
+  }, [searchQuery])
 
   // Build API params based on filters
-  const apiParams = useMemo(() => {
+  const buildApiParams = useCallback((page: number) => {
     const params: any = {
-      page: 1,
+      page,
       limit: 20,
+      sortBy: 'date', // Default sort by date
     }
 
-    if (searchQuery) {
-      params.search = searchQuery
+    if (debouncedSearchQuery) {
+      params.search = debouncedSearchQuery
+    }
+
+    // Apply platform filter
+    if (selectedPlatform !== 'all') {
+      params.platform = selectedPlatform
+    }
+
+    // Apply media type filter
+    if (selectedMediaType === 'images') {
+      params.hasImages = true
+    } else if (selectedMediaType === 'videos') {
+      params.hasVideos = true
+    } else if (selectedMediaType === 'text') {
+      params.hasImages = false
+      params.hasVideos = false
+    }
+
+    // Apply time range filter
+    if (selectedTimeRange !== 'all') {
+      params.timeRange = selectedTimeRange
     }
 
     // Apply filter-based params
     switch (activeFilter) {
+      case 'latest-posts':
+        params.sortBy = 'date'
+        break
       case 'high-impact':
-        params.priority = 'high'
+        params.classification = 'CRITICAL,URGENT,HIGH'
+        params.sortBy = 'priority'
         break
       case 'viral-negative':
-        params.sentiment = 'negative'
+        params.sentiment = 'NEGATIVE'
         params.needsAttention = true
+        params.min_likesCount = 1000
         break
       case 'trending':
         params.isFlagged = true
+        params.sortBy = 'engagement'
         break
       case 'high-engagement':
         params.min_likesCount = 1000
         params.min_commentsCount = 100
+        params.sortBy = 'engagement'
         break
       case 'news':
-        params.platform = 'news'
+        if (!params.platform) params.platform = 'news'
         break
       case 'videos':
         params.hasVideos = true
         break
       case 'twitter':
-        params.platform = 'twitter'
+        if (!params.platform) params.platform = 'twitter'
         break
       case 'facebook':
-        params.platform = 'facebook'
+        if (!params.platform) params.platform = 'facebook'
         break
       case 'instagram':
-        params.platform = 'instagram'
+        if (!params.platform) params.platform = 'instagram'
         break
       case 'positive':
-        params.sentiment = 'positive'
+        params.sentiment = 'POSITIVE'
         break
       case 'neutral':
-        params.sentiment = 'neutral'
+        params.sentiment = 'NEUTRAL'
         break
       case 'negative':
-        params.sentiment = 'negative'
+        params.sentiment = 'NEGATIVE'
         break
     }
 
     return params
-  }, [activeFilter, searchQuery])
+  }, [activeFilter, debouncedSearchQuery, selectedPlatform, selectedMediaType, selectedTimeRange])
 
-  const { data: apiPosts, loading, error } = useSocialPosts(apiParams)
+  // Load posts function
+  const loadPosts = useCallback(async (isLoadMore = false, page = 1) => {
+    console.log('loadPosts called:', { isLoadMore, page })
+    
+    if (isLoadMore) {
+      setLoadingMore(true)
+    } else {
+      setLoading(true)
+      setError(null)
+    }
+
+    try {
+      const params = buildApiParams(page)
+      console.log('API params:', params)
+      
+      const response = await api.social.getPosts(params)
+      console.log('API response:', {
+        success: response.success,
+        dataLength: response.data?.length,
+        pagination: (response as any).pagination
+      })
+      
+      if (response.success && response.data) {
+        const newPosts = response.data.map(transformApiPost)
+        console.log('Transformed posts:', newPosts.length)
+        
+        if (isLoadMore) {
+          // Append new posts
+          console.log('Appending posts, current count:', allPosts.length)
+          setAllPosts(prev => {
+            const updated = [...prev, ...newPosts]
+            console.log('Updated posts count:', updated.length)
+            return updated
+          })
+        } else {
+          // Replace posts
+          console.log('Replacing posts with:', newPosts.length)
+          setAllPosts(newPosts)
+        }
+        
+        // Check if more posts are available
+        const hasNext = (response as any).pagination?.hasNext || false
+        console.log('Has more:', hasNext)
+        setHasMore(hasNext)
+        setError(null)
+      } else {
+        console.log('API response not successful, using sample data')
+        // Use sample data as fallback
+        if (!isLoadMore) {
+          setAllPosts(samplePosts)
+        }
+        setHasMore(false)
+      }
+    } catch (err) {
+      console.error('Failed to load posts:', err)
+      setError(err instanceof Error ? err.message : 'Failed to load posts')
+      // Use sample data as fallback
+      if (!isLoadMore) {
+        setAllPosts(samplePosts)
+      }
+      setHasMore(false)
+    } finally {
+      setLoading(false)
+      setLoadingMore(false)
+    }
+  }, [buildApiParams])
+
+  // Load more posts
+  const loadMore = useCallback(() => {
+    console.log('loadMore called:', { loadingMore, hasMore, currentPage })
+    if (!loadingMore && hasMore) {
+      const nextPage = currentPage + 1
+      console.log('Loading page:', nextPage)
+      setCurrentPage(nextPage)
+      loadPosts(true, nextPage)
+    } else {
+      console.log('Cannot load more:', { loadingMore, hasMore })
+    }
+  }, [loadingMore, hasMore, currentPage, loadPosts])
+
+  // Load initial posts and reset on filter change
+  useEffect(() => {
+    setCurrentPage(1)
+    setHasMore(true)
+    setAllPosts([])
+    loadPosts(false, 1)
+  }, [activeFilter, debouncedSearchQuery, selectedPlatform, selectedMediaType, selectedTimeRange])
 
   const handleFilterChange = (filterId: string) => {
     router.push(`/social-feed?filter=${filterId}`)
+  }
+
+  // Transform API response to match Post interface
+  const transformApiPost = (apiPost: any): Post => {
+    // Get author from various possible fields
+    const author = apiPost.social_profile?.username || 
+                   apiPost.social_profile?.displayName || 
+                   apiPost.person?.name || 
+                   'Unknown Author'
+
+    // Convert ISO timestamp to relative time
+    const getRelativeTime = (isoDate: string) => {
+      const now = new Date()
+      const posted = new Date(isoDate)
+      const diffMs = now.getTime() - posted.getTime()
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+      const diffDays = Math.floor(diffHours / 24)
+      
+      if (diffDays > 0) return `${diffDays}d`
+      if (diffHours > 0) return `${diffHours}h`
+      return 'now'
+    }
+
+    return {
+      id: apiPost.id,
+      platform: apiPost.platform?.toLowerCase() as 'facebook' | 'twitter' | 'instagram' | 'news',
+      author,
+      authorName: apiPost.person?.name,
+      authorDisplayName: apiPost.social_profile?.displayName,
+      username: apiPost.social_profile?.username,
+      content: apiPost.content || '',
+      timestamp: getRelativeTime(apiPost.postedAt),
+      likes: apiPost.likesCount || 0,
+      comments: apiPost.commentsCount || 0,
+      shares: apiPost.sharesCount || 0,
+      views: apiPost.viewsCount || 0,
+      sentiment: (apiPost.aiSentiment?.toLowerCase() || 'neutral') as 'positive' | 'negative' | 'neutral',
+      engagement: (apiPost.likesCount || 0) + (apiPost.commentsCount || 0) + (apiPost.sharesCount || 0),
+      reach: apiPost.viewsCount || 0,
+      hasVideo: (apiPost.videoUrls && apiPost.videoUrls.length > 0) || apiPost.contentType === 'video',
+      impact: apiPost.classification === 'CRITICAL' || apiPost.classification === 'URGENT' ? 'high' 
+              : apiPost.classification === 'MEDIUM' ? 'medium' 
+              : 'low',
+      isViral: (apiPost.likesCount || 0) > 1000 && (apiPost.sharesCount || 0) > 100,
+      isTrending: apiPost.isFlagged || apiPost.needsAttention || false,
+    }
   }
 
   // Sample data for when API fails
@@ -310,26 +525,13 @@ function SocialFeedContent() {
     }
   ]
 
+  // Apply client-side filters that can't be done server-side
   const filteredPosts = useMemo(() => {
-    // Use API data if available, otherwise use sample data
-    const posts = apiPosts && apiPosts.length > 0 ? apiPosts : samplePosts
-    
-    // Ensure all posts have proper author data
-    const postsWithAuthors = posts.map(post => ({
-      ...post,
-      author: post.author || 'Unknown Author'
-    }))
-    
-    let filtered = [...postsWithAuthors]
+    let filtered = [...allPosts]
 
-    // Apply filter based on active filter for client-side filtering
     switch (activeFilter) {
       case 'latest-posts':
-        filtered = filtered.sort((a, b) => {
-          const aHours = parseInt(a.timestamp)
-          const bHours = parseInt(b.timestamp)
-          return aHours - bHours
-        })
+        // Already sorted by API (default sortBy: 'date')
         break
       case 'high-reach-low-engagement':
         filtered = filtered.filter(p => p.reach > 20000 && p.engagement < 1000)
@@ -337,46 +539,11 @@ function SocialFeedContent() {
       case 'viral-potential':
         filtered = filtered.filter(p => p.engagement > 2000 && p.engagement < 5000)
         break
-      case 'high-impact':
-        filtered = filtered.filter(p => p.impact === 'high')
-        break
-      case 'viral-negative':
-        filtered = filtered.filter(p => p.sentiment === 'negative' && p.isViral)
-        break
-      case 'trending':
-        filtered = filtered.filter(p => p.isTrending)
-        break
-      case 'high-engagement':
-        filtered = filtered.filter(p => p.engagement > 1000)
-        break
-      case 'news':
-        filtered = filtered.filter(p => p.platform === 'news')
-        break
-      case 'videos':
-        filtered = filtered.filter(p => p.hasVideo)
-        break
-      case 'twitter':
-        filtered = filtered.filter(p => p.platform === 'twitter')
-        break
-      case 'facebook':
-        filtered = filtered.filter(p => p.platform === 'facebook')
-        break
-      case 'instagram':
-        filtered = filtered.filter(p => p.platform === 'instagram')
-        break
-      case 'positive':
-        filtered = filtered.filter(p => p.sentiment === 'positive')
-        break
-      case 'neutral':
-        filtered = filtered.filter(p => p.sentiment === 'neutral')
-        break
-      case 'negative':
-        filtered = filtered.filter(p => p.sentiment === 'negative')
-        break
+      // All other filters are handled by API params
     }
 
-    return filtered.slice(0, 20) // Limit to 20 posts
-  }, [apiPosts, activeFilter])
+    return filtered
+  }, [allPosts, activeFilter])
 
   const discoverFilters = [
     { id: 'all-posts', label: 'All Posts', icon: '📋' },
@@ -417,7 +584,13 @@ function SocialFeedContent() {
         {/* Header */}
         <PageHeader
           title={getFilterLabel(activeFilter)}
-          description={`${filteredPosts.length} posts loaded`}
+          description={
+            loading 
+              ? 'Loading posts...' 
+              : error 
+                ? 'Using sample data - API unavailable' 
+                : `${filteredPosts.length} posts loaded${hasMore ? ' (scroll for more)' : ''}`
+          }
         />
 
         {/* Filters Section - Compact Layout */}
@@ -477,27 +650,39 @@ function SocialFeedContent() {
                 <option>All Campaigns</option>
               </select>
 
-              <select className="appearance-none bg-background border border-border text-foreground text-xs rounded-md px-3 py-1.5 h-8 cursor-pointer hover:bg-accent/20 transition-colors min-w-[120px]">
-                <option>All Platforms</option>
-                <option>Facebook</option>
-                <option>Twitter</option>
-                <option>Instagram</option>
-                <option>News</option>
+              <select 
+                value={selectedPlatform}
+                onChange={(e) => setSelectedPlatform(e.target.value)}
+                className="appearance-none bg-background border border-border text-foreground text-xs rounded-md px-3 py-1.5 h-8 cursor-pointer hover:bg-accent/20 transition-colors min-w-[120px]"
+              >
+                <option value="all">All Platforms</option>
+                <option value="facebook">Facebook</option>
+                <option value="twitter">Twitter</option>
+                <option value="instagram">Instagram</option>
+                <option value="news">News</option>
               </select>
 
-              <select className="appearance-none bg-background border border-border text-foreground text-xs rounded-md px-3 py-1.5 h-8 cursor-pointer hover:bg-accent/20 transition-colors min-w-[110px]">
-                <option>All Media</option>
-                <option>With Images</option>
-                <option>With Videos</option>
-                <option>Text Only</option>
+              <select 
+                value={selectedMediaType}
+                onChange={(e) => setSelectedMediaType(e.target.value)}
+                className="appearance-none bg-background border border-border text-foreground text-xs rounded-md px-3 py-1.5 h-8 cursor-pointer hover:bg-accent/20 transition-colors min-w-[110px]"
+              >
+                <option value="all">All Media</option>
+                <option value="images">With Images</option>
+                <option value="videos">With Videos</option>
+                <option value="text">Text Only</option>
               </select>
 
-              <select className="appearance-none bg-background border border-border text-foreground text-xs rounded-md px-3 py-1.5 h-8 cursor-pointer hover:bg-accent/20 transition-colors min-w-[110px]">
-                <option>All Time</option>
-                <option>Last Hour</option>
-                <option>Last 24 Hours</option>
-                <option>Last 7 Days</option>
-                <option>Last 30 Days</option>
+              <select 
+                value={selectedTimeRange}
+                onChange={(e) => setSelectedTimeRange(e.target.value)}
+                className="appearance-none bg-background border border-border text-foreground text-xs rounded-md px-3 py-1.5 h-8 cursor-pointer hover:bg-accent/20 transition-colors min-w-[110px]"
+              >
+                <option value="all">All Time</option>
+                <option value="1h">Last Hour</option>
+                <option value="24h">Last 24 Hours</option>
+                <option value="7d">Last 7 Days</option>
+                <option value="30d">Last 30 Days</option>
               </select>
 
               <Button variant="outline" size="sm" className="gap-1.5 h-8 ml-auto text-xs px-3">
@@ -510,15 +695,50 @@ function SocialFeedContent() {
 
         {/* Posts Grid */}
         <div className="flex-1 overflow-y-auto">
-          <AnimatedPage className="p-3">
-            {(filteredPosts || []).length > 0 ? (
-              <AnimatedGrid stagger={0.03} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
-                {(filteredPosts || []).map((post) => (
-                  <AnimatedCard key={post.id}>
-                    <PostCard post={post} />
-                  </AnimatedCard>
-                ))}
-              </AnimatedGrid>
+          <AnimatedPage className="p-2 sm:p-3">
+            {loading ? (
+              <FeedSkeleton />
+            ) : (filteredPosts || []).length > 0 ? (
+              <>
+                <AnimatedGrid stagger={0.03} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3">
+                  {(filteredPosts || []).map((post) => (
+                    <AnimatedCard key={post.id}>
+                      <PostCard post={post} />
+                    </AnimatedCard>
+                  ))}
+                </AnimatedGrid>
+                
+                {/* Infinite Scroll Trigger & Load More Button */}
+                {hasMore && (
+                  <div className="mt-6 flex justify-center">
+                    <Button
+                      onClick={loadMore}
+                      disabled={loadingMore}
+                      variant="outline"
+                      size="lg"
+                      className="min-w-[200px]"
+                    >
+                      {loadingMore ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Loading more...
+                        </>
+                      ) : (
+                        <>
+                          Load More Posts
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+                
+                {!hasMore && filteredPosts.length > 0 && (
+                  <div className="mt-6 text-center text-sm text-muted-foreground">
+                    No more posts to load
+                  </div>
+                )}
+              </>
             ) : (
               <Empty>
                 <EmptyHeader>
@@ -527,7 +747,10 @@ function SocialFeedContent() {
                   </EmptyMedia>
                   <EmptyTitle>No Posts Found</EmptyTitle>
                   <EmptyDescription>
-                    Try adjusting your filters or search query to find more posts.
+                    {error 
+                      ? 'Unable to load posts from API. Showing sample data.' 
+                      : 'Try adjusting your filters or search query to find more posts.'
+                    }
                   </EmptyDescription>
                 </EmptyHeader>
               </Empty>
@@ -541,7 +764,16 @@ function SocialFeedContent() {
 
 export default function SocialFeedPage() {
   return (
-    <Suspense fallback={<FeedSkeleton /> }>
+    <Suspense fallback={
+      <PageLayout>
+        <div className="h-screen flex flex-col overflow-hidden">
+          <PageHeader title="Social Feed" description="Loading posts..." />
+          <div className="flex-1 overflow-y-auto p-3">
+            <FeedSkeleton />
+          </div>
+        </div>
+      </PageLayout>
+    }>
       <SocialFeedContent />
     </Suspense>
   )
@@ -549,28 +781,24 @@ export default function SocialFeedPage() {
 
 function FeedSkeleton() {
   return (
-    <PageLayout>
-      <div className="p-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="bg-card border border-border rounded-lg p-4 animate-pulse">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 rounded-full bg-secondary" />
-                <div className="flex-1">
-                  <div className="h-3 w-32 bg-secondary rounded mb-2" />
-                  <div className="h-2 w-24 bg-secondary rounded" />
-                </div>
-              </div>
-              <div className="space-y-2 mb-4">
-                <div className="h-3 w-full bg-secondary rounded" />
-                <div className="h-3 w-5/6 bg-secondary rounded" />
-                <div className="h-3 w-2/3 bg-secondary rounded" />
-              </div>
-              <div className="h-8 w-full bg-secondary rounded" />
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3">
+      {Array.from({ length: 12 }).map((_, i) => (
+        <div key={i} className="bg-card border border-border rounded-lg p-4 animate-pulse">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 rounded-full bg-secondary" />
+            <div className="flex-1">
+              <div className="h-3 w-32 bg-secondary rounded mb-2" />
+              <div className="h-2 w-24 bg-secondary rounded" />
             </div>
-          ))}
+          </div>
+          <div className="space-y-2 mb-4">
+            <div className="h-3 w-full bg-secondary rounded" />
+            <div className="h-3 w-5/6 bg-secondary rounded" />
+            <div className="h-3 w-2/3 bg-secondary rounded" />
+          </div>
+          <div className="h-8 w-full bg-secondary rounded" />
         </div>
-      </div>
-    </PageLayout>
+      ))}
+    </div>
   )
 }

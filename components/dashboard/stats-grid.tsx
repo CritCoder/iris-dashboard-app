@@ -2,22 +2,16 @@ import { TrendingUp, TrendingDown } from 'lucide-react'
 import { usePoliticalStats } from '@/hooks/use-api'
 import { useState, useEffect } from 'react'
 
-// Fallback data for when API calls fail
-const getFallbackData = (dataType: string) => {
-  switch (dataType) {
-    case 'stats':
-      return {
-        totalCampaigns: 0,
-        activeCampaigns: 0,
-        totalPosts: 0,
-        totalEngagement: 0,
-        totalReach: 0,
-        totalViews: 0
-      };
-    default:
-      return null;
-  }
-};
+// Type definition for stats data
+interface StatsData {
+  totalPosts: number
+  totalEngagement: number
+  positiveSentiment: number
+  activeCampaigns: number
+  postsTrend?: number
+  engagementTrend?: number
+  campaignsTrend?: number
+}
 
 interface StatCardProps {
   value: string
@@ -76,7 +70,7 @@ export function StatsGrid() {
   const { data: stats, loading, error } = usePoliticalStats({ timeRange: '7d', cached: true })
   
   // Mock data for when API is not available
-  const mockStats = {
+  const mockStats: StatsData = {
     totalPosts: 14200,
     totalEngagement: 830400,
     positiveSentiment: 68,
@@ -87,7 +81,7 @@ export function StatsGrid() {
   }
   
   // Use mock data if API fails or is loading for too long
-  const displayData = stats || mockStats
+  const displayData: StatsData = (stats as StatsData) || mockStats
 
   // Show loading for only 2 seconds max, then show mock data
   const [showLoading, setShowLoading] = useState(true)

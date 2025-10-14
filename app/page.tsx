@@ -12,10 +12,12 @@ import { GlobalSearch } from '@/components/ui/global-search'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useState, useMemo, useEffect } from 'react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Settings, Grid3X3, Eye, EyeOff } from 'lucide-react'
+import { Settings, Grid3X3, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react'
 import { TrendingUp, TrendingDown, Hash } from 'lucide-react'
 import {
   ChatBubbleIcon,
@@ -26,13 +28,40 @@ import {
   Share2Icon,
   EyeOpenIcon,
   ClockIcon,
-  PinIcon,
   BarChartIcon,
   GlobeIcon,
   LightningBoltIcon,
   ExclamationTriangleIcon
 } from '@radix-ui/react-icons'
+import { 
+  usePoliticalStats, 
+  useCampaignThemes, 
+  useInfluencerTracker,
+  useOpponentNarratives,
+  useSupportBaseEnergy 
+} from '@/hooks/use-api'
 // import { AnimatedPage, div, Card } from '@/components/ui/animated'
+
+// Helper function to format numbers
+const formatNumber = (num: number): string => {
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1) + 'M'
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'K'
+  }
+  return num.toString()
+}
+
+// Helper function to map timeRange
+const mapTimeRange = (range: string): string => {
+  const mapping: Record<string, string> = {
+    '24h': '7d',
+    '7d': '7d',
+    '30d': '30d',
+  }
+  return mapping[range] || '7d'
+}
 
 export default function Page() {
   const [range, setRange] = useState('24h')
@@ -50,7 +79,22 @@ export default function Page() {
     'support-base': true
   })
 
-  // Sample data for the new dashboard sections
+  // Fetch dashboard data from APIs
+  const timeRange = mapTimeRange(range)
+  
+  // Memoize API params to prevent infinite re-renders
+  const apiParams = useMemo(() => ({ 
+    timeRange, 
+    cached: true 
+  }), [timeRange])
+  
+  const { data: quickStats, loading: statsLoading, error: statsError } = usePoliticalStats(apiParams)
+  const { data: campaignThemes, loading: themesLoading, error: themesError } = useCampaignThemes(apiParams)
+  const { data: influencerData, loading: influencerLoading, error: influencerError } = useInfluencerTracker(apiParams)
+  const { data: opponentData, loading: opponentLoading, error: opponentError } = useOpponentNarratives(apiParams)
+  const { data: supportBaseData, loading: supportLoading, error: supportError } = useSupportBaseEnergy(apiParams)
+
+  // Sample data for the new dashboard sections (fallback)
   const recentActivity = [
     { id: 1, type: 'mention', content: 'Bengaluru Police mentioned in viral post', time: '2m ago', sentiment: 'positive' },
     { id: 2, type: 'trend', content: 'Traffic management trending up', time: '5m ago', sentiment: 'neutral' },
@@ -59,19 +103,26 @@ export default function Page() {
     { id: 5, type: 'trend', content: 'Crime prevention discussions rising', time: '15m ago', sentiment: 'positive' }
   ]
 
-  const topInfluencers = [
-    { name: 'Rahul Gandhi', platform: 'Twitter', followers: '28.2M', engagement: '4.2%', sentiment: 'positive' },
-    { name: 'AajTak', platform: 'Twitter', followers: '24.5M', engagement: '3.8%', sentiment: 'neutral' },
-    { name: 'NDTV', platform: 'Twitter', followers: '18.9M', engagement: '3.5%', sentiment: 'neutral' },
-    { name: 'Times of India', platform: 'Twitter', followers: '15.2M', engagement: '3.1%', sentiment: 'positive' }
-  ]
-
-  const trendingTopics = [
-    { topic: 'Police Reforms', mentions: 1250, change: '+15%', sentiment: 'positive' },
-    { topic: 'Traffic Management', mentions: 890, change: '-8%', sentiment: 'negative' },
-    { topic: 'Crime Prevention', mentions: 2100, change: '+22%', sentiment: 'positive' },
-    { topic: 'Community Outreach', mentions: 1560, change: '+5%', sentiment: 'positive' }
-  ]
+  // Process trending topics from API
+  const trendingTopics = useMemo(() => {
+    if (!campaignThemes || typeof campaignThemes !== 'object' || !('themes' in campaignThemes)) return []
+    
+    const themes = (campaignThemes as any).themes
+    if (!themes) return []
+    
+    const allThemes: any[] = [
+      ...(themes.positive || []),
+      ...(themes.negative || []),
+      ...(themes.neutral || [])
+    ]
+    
+    return allThemes.slice(0, 4).map(campaign => ({
+      topic: campaign.campaignName || 'Unknown Campaign',
+      mentions: campaign.metrics?.totalPosts || 0,
+      change: campaign.metrics?.change || '+0%',
+      sentiment: campaign.sentiment || 'neutral'
+    }))
+  }, [campaignThemes])
 
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
@@ -168,10 +219,10 @@ export default function Page() {
   ]
 
   const toggleCard = (cardId: string) => {
-    console.log('Toggling card:', cardId, 'Current state:', enabledCards[cardId])
+    console.log('Toggling card:', cardId, 'Current state:', enabledCards[cardId as keyof typeof enabledCards])
     setEnabledCards(prev => ({
       ...prev,
-      [cardId]: !prev[cardId]
+      [cardId]: !prev[cardId as keyof typeof prev]
     }))
   }
 
@@ -179,11 +230,11 @@ export default function Page() {
     const allEnabled = Object.values(enabledCards).every(Boolean)
     const newState = !allEnabled
     console.log('Toggling all cards:', { allEnabled, newState })
-    const newEnabledCards = {}
+    const newEnabledCards: Record<string, boolean> = {}
     Object.keys(enabledCards).forEach(key => {
       newEnabledCards[key] = newState
     })
-    setEnabledCards(newEnabledCards)
+    setEnabledCards(newEnabledCards as typeof enabledCards)
   }
 
   return (
@@ -193,106 +244,128 @@ export default function Page() {
         title="Intelligence Dashboard"
         description="Real-time insights on narratives, opponents, and public sentiment"
         actions={
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
             <GlobalSearch />
             <Button
               variant={isCustomizing ? "default" : "outline"}
               size="sm"
               onClick={() => setIsCustomizing(!isCustomizing)}
-              className="flex items-center gap-2"
+              className="flex items-center justify-center gap-2 flex-shrink-0"
             >
               <Settings className="w-4 h-4" />
-              {isCustomizing ? 'Exit Customize' : 'Customize'}
+              <span className="hidden sm:inline">{isCustomizing ? 'Exit Customize' : 'Customize'}</span>
+              <span className="sm:hidden">Edit</span>
             </Button>
           </div>
         }
       />
 
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 py-4 sm:py-8">
+        <div className="max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="flex items-center justify-between mb-6">
-              <TabsList>
-                <TabsTrigger value="overview">📊 Overview</TabsTrigger>
-                <TabsTrigger value="analytics">📈 Analytics</TabsTrigger>
-                <TabsTrigger value="monitoring">🔍 Monitoring</TabsTrigger>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-6">
+              <TabsList className="w-full sm:w-auto overflow-x-auto">
+                <TabsTrigger value="overview" className="text-xs sm:text-sm whitespace-nowrap">
+                  <span className="hidden sm:inline">📊 Overview</span>
+                  <span className="sm:hidden">📊</span>
+                </TabsTrigger>
+                <TabsTrigger value="analytics" className="text-xs sm:text-sm whitespace-nowrap">
+                  <span className="hidden sm:inline">📈 Analytics</span>
+                  <span className="sm:hidden">📈</span>
+                </TabsTrigger>
+                <TabsTrigger value="monitoring" className="text-xs sm:text-sm whitespace-nowrap">
+                  <span className="hidden sm:inline">🔍 Monitoring</span>
+                  <span className="sm:hidden">🔍</span>
+                </TabsTrigger>
               </TabsList>
               <Tabs value={range} onValueChange={setRange}>
-                <TabsList>
-                  <TabsTrigger value="24h">24 Hours</TabsTrigger>
-                  <TabsTrigger value="7d">7 Days</TabsTrigger>
-                  <TabsTrigger value="30d">30 Days</TabsTrigger>
+                <TabsList className="w-full sm:w-auto">
+                  <TabsTrigger value="24h" className="text-xs sm:text-sm flex-1 sm:flex-none">
+                    <span className="hidden sm:inline">24 Hours</span>
+                    <span className="sm:hidden">24h</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="7d" className="text-xs sm:text-sm flex-1 sm:flex-none">
+                    <span className="hidden sm:inline">7 Days</span>
+                    <span className="sm:hidden">7d</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="30d" className="text-xs sm:text-sm flex-1 sm:flex-none">
+                    <span className="hidden sm:inline">30 Days</span>
+                    <span className="sm:hidden">30d</span>
+                  </TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
 
             {/* Customization Panel - Global for all tabs */}
             {isCustomizing && (
-              <div className="mb-6 p-6 bg-blue-50 dark:bg-blue-950/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <Grid3X3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                    <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">Customize Dashboard</h3>
-                    <Badge variant="secondary" className="text-xs">
-                      {Object.values(enabledCards).filter(Boolean).length} of {Object.keys(enabledCards).length} enabled
+              <div className="mb-6 p-3 sm:p-6 bg-blue-50 dark:bg-blue-950/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <Grid3X3 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                    <h3 className="text-sm sm:text-lg font-semibold text-blue-900 dark:text-blue-100">Customize Dashboard</h3>
+                    <Badge variant="secondary" className="text-[10px] sm:text-xs whitespace-nowrap">
+                      {Object.values(enabledCards).filter(Boolean).length}/{Object.keys(enabledCards).length}
                     </Badge>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={toggleAllCards}
-                    className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-100"
+                    className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-100 w-full sm:w-auto justify-center"
                   >
                     {Object.values(enabledCards).every(Boolean) ? (
                       <>
                         <EyeOff className="w-4 h-4" />
-                        Hide All
+                        <span className="text-xs sm:text-sm">Hide All</span>
                       </>
                     ) : (
                       <>
                         <Eye className="w-4 h-4" />
-                        Show All
+                        <span className="text-xs sm:text-sm">Show All</span>
                       </>
                     )}
                   </Button>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {dashboardCards.map((card) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                  {dashboardCards.map((card) => {
+                    const isEnabled = enabledCards[card.id as keyof typeof enabledCards]
+                    return (
                     <div
                       key={card.id}
-                      className={`p-4 border-2 rounded-lg transition-all duration-200 cursor-pointer hover:shadow-md ${
-                        enabledCards[card.id]
+                      className={`p-3 sm:p-4 border-2 rounded-lg transition-all duration-200 cursor-pointer hover:shadow-md ${
+                          isEnabled
                           ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30 shadow-md'
                           : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800/50 hover:border-blue-300'
                       }`}
                       onClick={() => toggleCard(card.id)}
                     >
-                      <div className="flex items-start gap-3">
+                      <div className="flex items-start gap-2 sm:gap-3">
                         <Checkbox
                           id={card.id}
-                          checked={enabledCards[card.id]}
+                            checked={isEnabled}
                           onCheckedChange={() => toggleCard(card.id)}
-                          className="mt-0.5"
+                          className="mt-0.5 flex-shrink-0"
                         />
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <card.icon className={`w-4 h-4 ${enabledCards[card.id] ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
-                            <span className={`text-sm font-medium ${enabledCards[card.id] ? 'text-blue-900 dark:text-blue-100' : 'text-foreground'}`}>
+                          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                              <card.icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 ${isEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                              <span className={`text-xs sm:text-sm font-medium ${isEnabled ? 'text-blue-900 dark:text-blue-100' : 'text-foreground'}`}>
                               {card.title}
                             </span>
-                            {enabledCards[card.id] && (
-                              <Badge variant="default" className="text-xs bg-blue-600 text-white">
+                              {isEnabled && (
+                              <Badge variant="default" className="text-[10px] sm:text-xs bg-blue-600 text-white">
                                 Active
                               </Badge>
                             )}
                           </div>
-                          <p className={`text-xs mt-1 ${enabledCards[card.id] ? 'text-blue-700 dark:text-blue-300' : 'text-muted-foreground'}`}>
+                            <p className={`text-[10px] sm:text-xs mt-1 ${isEnabled ? 'text-blue-700 dark:text-blue-300' : 'text-muted-foreground'}`}>
                             {card.description}
                           </p>
                         </div>
                       </div>
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
             )}
@@ -313,25 +386,37 @@ export default function Page() {
               </div>
 
               {/* CUSTOMIZABLE 3x3 DASHBOARD GRID */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
                 {/* Row 1 - Small Cards */}
                 {enabledCards['total-mentions'] && (
                   <Card>
                     <Card className="border-2 border-blue-500/30 bg-gradient-to-br from-blue-950/40 to-blue-900/20 shadow-lg">
-                      <CardContent className="p-6">
+                      <CardContent className="p-4 sm:p-6">
+                        {statsLoading ? (
+                          <div className="space-y-3">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-8 w-32" />
+                            <Skeleton className="h-3 w-28" />
+                          </div>
+                        ) : (
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-xs font-medium text-blue-300 uppercase tracking-wide">Total Mentions</p>
-                            <p className="text-3xl font-black text-white mb-1">12,847</p>
+                              <p className="text-3xl font-black text-white mb-1">
+                                {quickStats && typeof quickStats === 'object' && quickStats !== null && 'overview' in quickStats && (quickStats as any).overview?.totalPosts 
+                                  ? formatNumber((quickStats as any).overview.totalPosts) 
+                                  : '0'}
+                              </p>
                             <p className="text-xs text-green-400 flex items-center gap-1 font-bold">
                               <TrendingUp className="w-3 h-3" />
-                              +12.5% from last week
+                                Tracked across platforms
                             </p>
                           </div>
                           <div className="w-14 h-14 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center">
                             <ChatBubbleIcon className="w-7 h-7 text-blue-400" />
                           </div>
                         </div>
+                        )}
                       </CardContent>
                     </Card>
                   </Card>
@@ -340,20 +425,32 @@ export default function Page() {
                 {enabledCards['sentiment-score'] && (
                   <Card>
                     <Card className="border-2 border-green-500/30 bg-gradient-to-br from-green-950/40 to-green-900/20 shadow-lg">
-                      <CardContent className="p-6">
+                      <CardContent className="p-4 sm:p-6">
+                        {statsLoading ? (
+                          <div className="space-y-3">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-8 w-32" />
+                            <Skeleton className="h-3 w-28" />
+                          </div>
+                        ) : (
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-xs font-medium text-green-300 uppercase tracking-wide">Sentiment Score</p>
-                            <p className="text-3xl font-black text-white mb-1">68%</p>
+                              <p className="text-3xl font-black text-white mb-1">
+                                {quickStats && typeof quickStats === 'object' && quickStats !== null && 'sentiment' in quickStats && (quickStats as any).sentiment?.positive?.percentage 
+                                  ? `${(quickStats as any).sentiment.positive.percentage}%` 
+                                  : '0%'}
+                              </p>
                             <p className="text-xs text-green-400 flex items-center gap-1 font-bold">
                               <TrendingUp className="w-3 h-3" />
-                              +3.2% from last week
+                                Positive sentiment
                             </p>
                           </div>
                           <div className="w-14 h-14 rounded-xl bg-green-500/20 border border-green-400/30 flex items-center justify-center">
                             <HeartIcon className="w-7 h-7 text-green-400" />
                           </div>
                         </div>
+                        )}
                       </CardContent>
                     </Card>
                   </Card>
@@ -362,20 +459,30 @@ export default function Page() {
                 {enabledCards['active-campaigns'] && (
                   <Card>
                     <Card className="border border-border/50 bg-card/50">
-                      <CardContent className="p-6">
+                      <CardContent className="p-4 sm:p-6">
+                        {themesLoading ? (
+                          <div className="space-y-3">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-8 w-20" />
+                            <Skeleton className="h-3 w-28" />
+                          </div>
+                        ) : (
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-sm font-medium text-muted-foreground">Active Campaigns</p>
-                            <p className="text-2xl font-bold text-foreground">8</p>
+                              <p className="text-2xl font-bold text-foreground">
+                                {campaignThemes && typeof campaignThemes === 'object' && campaignThemes !== null && 'summary' in campaignThemes && (campaignThemes as any).summary?.totalCampaigns || 0}
+                              </p>
                             <p className="text-xs text-blue-500 flex items-center gap-1 font-medium">
                               <ActivityLogIcon className="w-3 h-3" />
-                              3 new this week
+                                {campaignThemes && typeof campaignThemes === 'object' && campaignThemes !== null && 'summary' in campaignThemes && (campaignThemes as any).summary?.positiveCount || 0} positive campaigns
                             </p>
                           </div>
                           <div className="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center">
                             <BarChartIcon className="w-6 h-6 text-purple-400" />
                           </div>
                         </div>
+                        )}
                       </CardContent>
                     </Card>
                   </Card>
@@ -390,12 +497,26 @@ export default function Page() {
                           <TrendingUp className="w-5 h-5" />
                           🔥 Trending Topics
                         </CardTitle>
-                        <CardDescription className="text-orange-200/80">Most discussed topics today</CardDescription>
+                        <CardDescription className="text-orange-200/80">Most discussed campaign themes</CardDescription>
                       </CardHeader>
                       <CardContent>
+                        {themesLoading ? (
+                          <div className="space-y-3">
+                            {[1, 2, 3, 4].map((i) => (
+                              <div key={i} className="p-3 space-y-2">
+                                <Skeleton className="h-5 w-48" />
+                                <Skeleton className="h-4 w-32" />
+                              </div>
+                            ))}
+                          </div>
+                        ) : trendingTopics.length === 0 ? (
+                          <div className="text-center py-8">
+                            <p className="text-muted-foreground">No trending topics available</p>
+                          </div>
+                        ) : (
                         <div className="space-y-3">
                           {trendingTopics.map((topic, index) => {
-                            const isHighVolume = topic.mentions > 1500
+                              const isHighVolume = topic.mentions > 100
                             const isNegative = topic.sentiment === 'negative'
                             return (
                               <div 
@@ -417,7 +538,7 @@ export default function Page() {
                                     {isHighVolume && <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full font-bold">HOT</span>}
                                   </div>
                                   <p className="text-xs text-muted-foreground mt-1">
-                                    <span className="font-bold text-orange-400">{topic.mentions}</span> mentions
+                                      <span className="font-bold text-orange-400">{formatNumber(topic.mentions)}</span> mentions
                                   </p>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -428,6 +549,7 @@ export default function Page() {
                                   }`}>
                                     {topic.sentiment}
                                   </Badge>
+                                    {topic.change && (
                                   <span className={`text-xs font-black ${
                                     topic.change.startsWith('+') 
                                       ? 'text-green-400' 
@@ -435,11 +557,13 @@ export default function Page() {
                                   }`}>
                                     {topic.change}
                                   </span>
+                                    )}
                                 </div>
                               </div>
                             )
                           })}
                         </div>
+                        )}
                       </CardContent>
                     </Card>
                   </Card>
@@ -476,19 +600,31 @@ export default function Page() {
 
                 {enabledCards['influencer-tracker'] && (
                   <Card>
-                    <InfluencerTracker />
+                    <InfluencerTracker 
+                      data={influencerData} 
+                      loading={influencerLoading} 
+                      error={influencerError} 
+                    />
                   </Card>
                 )}
 
                 {enabledCards['opponent-narrative'] && (
                   <Card className="lg:col-span-2">
-                    <OpponentNarrativeWatch />
+                    <OpponentNarrativeWatch 
+                      data={opponentData} 
+                      loading={opponentLoading} 
+                      error={opponentError} 
+                    />
                   </Card>
                 )}
 
                 {enabledCards['support-base'] && (
                   <Card>
-                    <SupportBaseEnergy />
+                    <SupportBaseEnergy 
+                      data={supportBaseData} 
+                      loading={supportLoading} 
+                      error={supportError} 
+                    />
                   </Card>
                 )}
               </div>
@@ -499,12 +635,16 @@ export default function Page() {
           <TabsContent value="analytics">
             <div className="space-y-6 animate-in fade-in duration-200">
               <StatsGrid />
-              <div stagger={0.1} className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 <Card>
                   <TopicSentimentHeatmap />
                 </Card>
                 <Card>
-                  <InfluencerTracker />
+                  <InfluencerTracker 
+                    data={influencerData} 
+                    loading={influencerLoading} 
+                    error={influencerError} 
+                  />
                 </Card>
               </div>
             </div>
@@ -611,12 +751,20 @@ export default function Page() {
                 </div>
               </div>
 
-              <div stagger={0.1} className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 <Card>
-                  <OpponentNarrativeWatch />
+                  <OpponentNarrativeWatch 
+                    data={opponentData} 
+                    loading={opponentLoading} 
+                    error={opponentError} 
+                  />
                 </Card>
                 <Card>
-                  <SupportBaseEnergy />
+                  <SupportBaseEnergy 
+                    data={supportBaseData} 
+                    loading={supportLoading} 
+                    error={supportError} 
+                  />
                 </Card>
               </div>
             </div>

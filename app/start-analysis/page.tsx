@@ -23,6 +23,9 @@ export default function StartAnalysisPage() {
   const [timeRange, setTimeRange] = useState('any')
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  
+  // Get API URL from environment variable
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://irisnet.wiredleap.com'
 
   const platforms = [
     { id: 'facebook', name: 'Facebook', icon: FacebookIcon, color: 'text-blue-500', bgColor: 'bg-blue-600', borderColor: 'border-blue-500' },
@@ -69,7 +72,7 @@ export default function StartAnalysisPage() {
       }
 
       // Create a new campaign for analysis
-      const response = await fetch('https://irisnet.wiredleap.com/api/campaigns', {
+      const response = await fetch(`${API_URL}/api/campaigns`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -111,11 +114,11 @@ export default function StartAnalysisPage() {
 
         {/* Main Content */}
         <div className="flex-1 overflow-y-auto">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
             {/* Analysis Type Tabs */}
-            <div className="flex justify-center mb-8">
+            <div className="flex justify-center mb-6 sm:mb-8">
               <div className="w-full max-w-2xl">
-                <div className="grid grid-cols-2 gap-3 p-1 bg-muted rounded-lg">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 p-1 bg-muted rounded-lg">
                   <button
                     onClick={() => setActiveTab('topic')}
                     className={`px-4 py-4 rounded-md transition-all ${
@@ -147,7 +150,7 @@ export default function StartAnalysisPage() {
             </div>
 
             {/* Search Input */}
-            <div className="mb-8">
+            <div className="mb-6 sm:mb-8">
               <label className="block text-sm font-medium text-foreground mb-2">
                 {activeTab === 'topic' ? 'Enter Topics, Keywords, or Hashtags' : 'Enter Person Name, Username, or Profile URL'}
               </label>
@@ -167,7 +170,7 @@ export default function StartAnalysisPage() {
             </div>
 
             {/* Analyze Button */}
-            <div className="mb-8">
+            <div className="mb-6 sm:mb-8">
               <Button 
                 onClick={handleAnalyze}
                 disabled={isAnalyzing || searchQuery.trim().length < 3}
@@ -193,7 +196,7 @@ export default function StartAnalysisPage() {
             </div>
 
             {/* Select Platforms */}
-            <div className="mb-8">
+            <div className="mb-6 sm:mb-8">
               <h3 className="text-foreground font-semibold mb-4">Select Platforms</h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {(platforms || []).map((platform) => {

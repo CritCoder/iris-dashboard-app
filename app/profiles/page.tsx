@@ -184,108 +184,46 @@ export default function ProfilesPage() {
 
   const { data: profiles, loading, error } = useProfiles(apiParams)
   
-  // Sample data for when API fails
-  const sampleProfiles: Profile[] = [
-    {
-      id: '1',
-      username: 'bengalurupolice',
-      displayName: 'Bengaluru Police',
-      platform: 'twitter',
-      followers: 125000,
-      following: 450,
-      posts: 2340,
-      verified: true,
-      blueVerified: false,
-      location: 'Bengaluru, India',
-      bio: 'Official Twitter handle of Bengaluru City Police. Committed to serving and protecting the citizens of Bengaluru.',
-      lastActive: '2 hours ago',
-      engagement: 8900,
-      sentiment: 'positive'
-    },
-    {
-      id: '2',
-      username: 'karnatakapolice',
-      displayName: 'Karnataka Police',
-      platform: 'facebook',
-      followers: 89000,
-      following: 200,
-      posts: 1560,
-      verified: true,
-      blueVerified: false,
-      location: 'Karnataka, India',
-      bio: 'Official Facebook page of Karnataka State Police. Ensuring safety and security across Karnataka.',
-      lastActive: '4 hours ago',
-      engagement: 5600,
-      sentiment: 'positive'
-    },
-    {
-      id: '3',
-      username: 'whitefieldtraffic',
-      displayName: 'Whitefield Traffic',
-      platform: 'instagram',
-      followers: 45000,
-      following: 150,
-      posts: 890,
-      verified: false,
-      blueVerified: false,
-      location: 'Whitefield, Bengaluru',
-      bio: 'Traffic updates and road safety information for Whitefield area.',
-      lastActive: '1 hour ago',
-      engagement: 2300,
-      sentiment: 'neutral'
-    },
-    {
-      id: '4',
-      username: 'bellandurresident',
-      displayName: 'Bellandur Resident',
-      platform: 'twitter',
-      followers: 12000,
-      following: 800,
-      posts: 2340,
-      verified: false,
-      blueVerified: false,
-      location: 'Bellandur, Bengaluru',
-      bio: 'Local resident sharing community updates and concerns about Bellandur area.',
-      lastActive: '30 minutes ago',
-      engagement: 1200,
-      sentiment: 'negative'
-    },
-    {
-      id: '5',
-      username: 'karnatakacm',
-      displayName: 'Karnataka CM',
-      platform: 'facebook',
-      followers: 450000,
-      following: 50,
-      posts: 890,
-      verified: true,
-      blueVerified: true,
-      location: 'Bengaluru, Karnataka',
-      bio: 'Official page of the Chief Minister of Karnataka. Updates on government initiatives and policies.',
-      lastActive: '6 hours ago',
-      engagement: 25000,
-      sentiment: 'positive'
-    },
-    {
-      id: '6',
-      username: 'mysorepalace',
-      displayName: 'Mysore Palace',
-      platform: 'instagram',
-      followers: 78000,
-      following: 100,
-      posts: 450,
-      verified: true,
-      blueVerified: false,
-      location: 'Mysore, Karnataka',
-      bio: 'Official Instagram of the magnificent Mysore Palace. Heritage and culture updates.',
-      lastActive: '3 hours ago',
-      engagement: 4200,
-      sentiment: 'positive'
-    }
-  ]
+  // Normalize API response into a flat array of Profile objects
+  const allProfiles: Profile[] = useMemo(() => {
+    const raw: any = profiles
 
-  // Use API data if available and no error, otherwise use sample data
-  const allProfiles = (profiles && profiles.length > 0 && !error) ? profiles : sampleProfiles
+    // Extract list from common shapes
+    const list: any[] = Array.isArray(raw)
+      ? raw
+      : Array.isArray(raw?.profiles)
+        ? raw.profiles
+        : Array.isArray(raw?.data)
+          ? raw.data
+          : []
+
+    // Best-effort field normalization
+    return list.map((p: any) => {
+      const platformGuess = p?.platform
+        || (p?.twitterUrl ? 'twitter'
+            : p?.facebookUrl ? 'facebook'
+            : p?.instagramUrl ? 'instagram'
+            : 'twitter')
+
+      return {
+        id: String(p?.id || p?._id || p?.username || p?.userName || Math.random()),
+        username: p?.username || p?.userName || '',
+        displayName: p?.displayName || p?.name || p?.username || p?.userName || 'Unknown',
+        platform: platformGuess,
+        followers: p?.followers ?? p?.followersCount ?? 0,
+        following: p?.following ?? p?.followingCount ?? 0,
+        posts: p?.posts ?? p?.mediaCount ?? p?.postsCount ?? 0,
+        verified: !!(p?.verified ?? p?.isVerified),
+        blueVerified: !!(p?.blueVerified ?? p?.isBlueVerified),
+        location: p?.location,
+        bio: p?.bio || p?.description || p?.profile_bio,
+        avatar: p?.avatar,
+        lastActive: p?.lastActive,
+        engagement: p?.engagement,
+        sentiment: p?.sentiment,
+      } as Profile
+    })
+  }, [profiles])
 
   const filteredProfiles = useMemo(() => {
     if (!allProfiles || !Array.isArray(allProfiles)) return []
@@ -355,9 +293,10 @@ export default function ProfilesPage() {
   return (
     <ProtectedRoute>
       <PageLayout>
+      <div className="h-screen flex flex-col overflow-hidden">
       <PageHeader
         title="Social Profiles"
-        description={error ? "Manage and analyze social media profiles (showing sample data)" : "Manage and analyze social media profiles"}
+          description={error ? "Unable to load profiles from the API" : "Manage and analyze social media profiles"}
         actions={
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="gap-2">
@@ -372,9 +311,10 @@ export default function ProfilesPage() {
         }
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div className="flex-1 overflow-y-auto">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
         {/* Search and Filters */}
-        <div className="mb-8 space-y-4">
+        <div className="mb-6 sm:mb-8 space-y-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -412,7 +352,7 @@ export default function ProfilesPage() {
         </div>
 
         {/* Profiles Grid */}
-        <AnimatedGrid stagger={0.03} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <AnimatedGrid stagger={0.03} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {(filteredProfiles || []).map((profile) => (
             <AnimatedCard key={profile.id}>
               <ProfileCard profile={profile} />
@@ -433,6 +373,8 @@ export default function ProfilesPage() {
             </EmptyHeader>
           </Empty>
         )}
+        </div>
+        </div>
       </div>
     </PageLayout>
     </ProtectedRoute>

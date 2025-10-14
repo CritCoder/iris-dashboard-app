@@ -66,18 +66,51 @@ const policeStations = [
 
 // Available search options
 const searchOptions: SearchOption[] = [
+  // IronVeil Entity Search Options
   {
-    id: 'topic-analysis',
-    label: 'Topic Analysis',
+    id: 'ironveil-username',
+    label: 'Username Search',
+    icon: User,
+    description: 'Search for usernames in breach databases'
+  },
+  {
+    id: 'ironveil-email',
+    label: 'Email Search',
+    icon: MessageSquare,
+    description: 'Find email addresses in data breaches'
+  },
+  {
+    id: 'ironveil-domain',
+    label: 'Domain Search',
+    icon: Building2,
+    description: 'Search domain-related breaches'
+  },
+  {
+    id: 'ironveil-phone',
+    label: 'Phone Search',
+    icon: Phone,
+    description: 'Find phone numbers in breached data'
+  },
+  {
+    id: 'ironveil-name',
+    label: 'Name Search',
+    icon: User,
+    description: 'Search for names in breach databases'
+  },
+  {
+    id: 'ironveil-hash',
+    label: 'Password Hash Search',
     icon: Hash,
-    description: 'Search for topics, keywords, hashtags'
+    description: 'Search for password hashes'
   },
+  // TrueCaller
   {
-    id: 'person-of-interest',
-    label: 'Person of Interest (POI)',
-    icon: Users2,
-    description: 'Search for specific individuals, profiles'
+    id: 'truecaller',
+    label: 'TrueCaller Search',
+    icon: Phone,
+    description: 'Search mobile number on TrueCaller'
   },
+  // Mobile Search Options
   {
     id: 'mobile-to-name',
     label: 'Mobile to Name',
@@ -108,12 +141,7 @@ const searchOptions: SearchOption[] = [
     icon: FileText,
     description: 'Find PAN card linked to mobile'
   },
-  {
-    id: 'truecaller',
-    label: 'TrueCaller Search',
-    icon: Phone,
-    description: 'Search mobile number on TrueCaller'
-  },
+  // Vehicle Search Options
   {
     id: 'vehicle-rc',
     label: 'Vehicle RC Details',
@@ -131,6 +159,19 @@ const searchOptions: SearchOption[] = [
     label: 'PUC Checking Record',
     icon: FileCheck,
     description: 'Check Pollution Under Control certificate details'
+  },
+  // Social Entity Analytics
+  {
+    id: 'entity-analytics',
+    label: 'Entity Analytics',
+    icon: Hash,
+    description: 'Get comprehensive entity analytics'
+  },
+  {
+    id: 'entity-search',
+    label: 'Entity Search',
+    icon: Search,
+    description: 'Search entities by name'
   }
 ]
 
@@ -362,9 +403,9 @@ export default function EntitySearchPage() {
   // Filter options based on search type
   const filteredOptions = searchOptions.filter(opt => {
     if (searchType === 'general') {
-      return opt.id === 'topic-analysis' || opt.id === 'person-of-interest'
+      return opt.id.startsWith('ironveil-') || opt.id === 'entity-analytics' || opt.id === 'entity-search'
     } else if (searchType === 'mobile') {
-      return opt.id.startsWith('mobile-') || opt.id === 'truecaller'
+      return opt.id.startsWith('mobile-') || opt.id === 'truecaller' || opt.id === 'ironveil-phone'
     } else {
       return opt.id.startsWith('vehicle-') || opt.id === 'puc-checking'
     }
@@ -468,6 +509,68 @@ export default function EntitySearchPage() {
       const isVehicleQuery = /^[A-Z]{2}[\s-]?\d{2}[\s-]?[A-Z]{1,2}[\s-]?\d{4}$/i.test(query)
 
       switch (optionId) {
+        // IronVeil Entity Search APIs
+        case 'ironveil-username':
+          result = await api.osint.ironveilSearch({ 
+            entityType: 'username', 
+            query, 
+            filters: {}, 
+            org, 
+            firNo 
+          })
+          break
+        case 'ironveil-email':
+          result = await api.osint.ironveilSearch({ 
+            entityType: 'email', 
+            query, 
+            filters: {}, 
+            org, 
+            firNo 
+          })
+          break
+        case 'ironveil-domain':
+          result = await api.osint.ironveilSearch({ 
+            entityType: 'domain', 
+            query, 
+            filters: {}, 
+            org, 
+            firNo 
+          })
+          break
+        case 'ironveil-phone':
+          if (!isMobileQuery) throw new Error('Invalid mobile number format')
+          result = await api.osint.ironveilSearch({ 
+            entityType: 'phone', 
+            query, 
+            filters: {}, 
+            org, 
+            firNo 
+          })
+          break
+        case 'ironveil-name':
+          result = await api.osint.ironveilSearch({ 
+            entityType: 'name', 
+            query, 
+            filters: {}, 
+            org, 
+            firNo 
+          })
+          break
+        case 'ironveil-hash':
+          result = await api.osint.ironveilSearch({ 
+            entityType: 'hash', 
+            query, 
+            filters: {}, 
+            org, 
+            firNo 
+          })
+          break
+        // TrueCaller
+        case 'truecaller':
+          if (!isMobileQuery) throw new Error('Invalid mobile number format')
+          result = await api.osint.truecallerSearch({ mobile_number: query, org, firNo })
+          break
+        // Mobile Search APIs
         case 'mobile-to-name':
           if (!isMobileQuery) throw new Error('Invalid mobile number format')
           result = await api.osint.mobileToName({ mobile_number: query, org, firNo })
@@ -488,10 +591,7 @@ export default function EntitySearchPage() {
           if (!isMobileQuery) throw new Error('Invalid mobile number format')
           result = await api.osint.mobileToPAN({ mobile_number: query, org, firNo })
           break
-        case 'truecaller':
-          if (!isMobileQuery) throw new Error('Invalid mobile number format')
-          result = await api.osint.truecallerSearch({ mobile_number: query, org, firNo })
-          break
+        // Vehicle Search APIs
         case 'vehicle-rc':
           if (!isVehicleQuery) throw new Error('Invalid vehicle number format')
           result = await api.osint.rcDetails({ rc_number: query, org, firNo })
@@ -503,6 +603,20 @@ export default function EntitySearchPage() {
         case 'puc-checking':
           if (!isVehicleQuery) throw new Error('Invalid vehicle number format')
           result = await checkPUCStatus(query, vehicleType)
+          break
+        // Social Entity Analytics
+        case 'entity-analytics':
+          result = await api.social.getEntityAnalytics({ 
+            query,
+            timeRange: '7d',
+            limit: 20 
+          })
+          break
+        case 'entity-search':
+          result = await api.social.searchEntities({ 
+            q: query,
+            limit: 20 
+          })
           break
         default:
           throw new Error('Service temporarily unavailable. Our systems are experiencing heavy load. Please try again in a few moments.')
@@ -621,7 +735,7 @@ export default function EntitySearchPage() {
         />
 
         <div className="flex-1 overflow-y-auto">
-          <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+          <div className="max-w-7xl mx-auto p-3 sm:p-4 lg:p-6 xl:p-8 space-y-4 sm:space-y-6">
             {/* Search Form */}
             <Card>
               <CardHeader>
@@ -633,7 +747,7 @@ export default function EntitySearchPage() {
                   Enter FIR details and select search options to begin investigation
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-4 sm:space-y-6">
                 {/* FIR Number and Station */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -708,7 +822,7 @@ export default function EntitySearchPage() {
                   <Input
                     id="search-query"
                     placeholder={searchType === 'general' 
-                      ? "Enter topic, keyword, hashtag, or person name"
+                      ? "Enter username, email, domain, name, or hash"
                       : searchType === 'mobile' 
                       ? "Enter 10-digit mobile number (e.g., 9876543210)" 
                       : "Enter vehicle number (e.g., KA01AB1234 or KA-01-AB-1234)"}
@@ -717,7 +831,9 @@ export default function EntitySearchPage() {
                     disabled={isSearching}
                   />
                   <p className="text-xs text-muted-foreground">
-                    {searchType === 'mobile' 
+                    {searchType === 'general'
+                      ? 'Enter username, email, domain, name, or password hash for IronVeil search'
+                      : searchType === 'mobile' 
                       ? 'Enter a valid 10-digit Indian mobile number' 
                       : 'Vehicle number format is flexible (7-13 characters)'}
                   </p>
@@ -862,7 +978,7 @@ export default function EntitySearchPage() {
                   </Badge>
                     </div>
 
-                <AnimatedGrid stagger={0.05} className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <AnimatedGrid stagger={0.05} className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   {results.map((result, index) => (
                     <AnimatedCard key={`${result.type}-${index}`}>
                       <ResultCard result={result} onRetry={handleRetry} searchQuery={searchQuery} />

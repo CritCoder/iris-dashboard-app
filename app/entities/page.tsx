@@ -15,110 +15,11 @@ interface Entity {
   id: string
   name: string
   type: 'TOPIC' | 'LOCATION' | 'ENTITY' | 'PERSON' | 'ORGANIZATION'
-  mentions: number
-  lastSeen: string
+  mentions?: number
+  lastSeen?: string
   icon: React.ElementType
 }
 
-// Sample data for when API fails
-const sampleEntities: Entity[] = [
-  {
-    id: '1',
-    name: 'Bengaluru Police',
-    type: 'ORGANIZATION',
-    mentions: 1250,
-    lastSeen: '2 hours ago',
-    icon: Building
-  },
-  {
-    id: '2',
-    name: 'Traffic Management',
-    type: 'TOPIC',
-    mentions: 890,
-    lastSeen: '1 hour ago',
-    icon: Hash
-  },
-  {
-    id: '3',
-    name: 'MG Road',
-    type: 'LOCATION',
-    mentions: 567,
-    lastSeen: '3 hours ago',
-    icon: MapPin
-  },
-  {
-    id: '4',
-    name: 'Karnataka CM',
-    type: 'PERSON',
-    mentions: 2340,
-    lastSeen: '30 minutes ago',
-    icon: User
-  },
-  {
-    id: '5',
-    name: 'Whitefield',
-    type: 'LOCATION',
-    mentions: 445,
-    lastSeen: '4 hours ago',
-    icon: MapPin
-  },
-  {
-    id: '6',
-    name: 'Digital Initiatives',
-    type: 'TOPIC',
-    mentions: 678,
-    lastSeen: '2 hours ago',
-    icon: Hash
-  },
-  {
-    id: '7',
-    name: 'Bellandur',
-    type: 'LOCATION',
-    mentions: 334,
-    lastSeen: '5 hours ago',
-    icon: MapPin
-  },
-  {
-    id: '8',
-    name: 'Women Safety',
-    type: 'TOPIC',
-    mentions: 1120,
-    lastSeen: '1 hour ago',
-    icon: Hash
-  },
-  {
-    id: '9',
-    name: 'Karnataka Police',
-    type: 'ORGANIZATION',
-    mentions: 980,
-    lastSeen: '2 hours ago',
-    icon: Building
-  },
-  {
-    id: '10',
-    name: 'Metro Construction',
-    type: 'TOPIC',
-    mentions: 456,
-    lastSeen: '3 hours ago',
-    icon: Hash
-  },
-  {
-    id: '11',
-    name: 'Dharmasthala',
-    type: 'LOCATION',
-    mentions: 289,
-    lastSeen: '6 hours ago',
-    icon: MapPin
-  },
-  {
-    id: '12',
-    name: 'Public Safety',
-    type: 'TOPIC',
-    mentions: 789,
-    lastSeen: '1 hour ago',
-    icon: Hash
-  }
-]
 
 function EntityCard({ entity, onClick }: { entity: Entity; onClick: () => void }) {
   const Icon = entity.icon
@@ -165,7 +66,7 @@ function EntityCard({ entity, onClick }: { entity: Entity; onClick: () => void }
       
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
-          {entity.mentions.toLocaleString()} mentions
+          {(entity.mentions || 0).toLocaleString()} mentions
         </div>
         <div className="text-sm text-muted-foreground">
           Click to view →
@@ -255,6 +156,7 @@ export default function EntitiesPage() {
   const apiParams = useMemo(() => {
     const params: any = {
       limit: 50,
+      timeRange: '7d', // Default to 7 days
     }
 
     if (searchQuery) {
@@ -264,16 +166,16 @@ export default function EntitiesPage() {
     // Apply filter-based params
     switch (activeFilter) {
       case 'topics':
-        params.type = 'topic'
+        params.type = 'TOPIC'
         break
       case 'people':
-        params.type = 'person'
+        params.type = 'PERSON'
         break
       case 'organizations':
-        params.type = 'organization'
+        params.type = 'ORGANIZATION'
         break
       case 'locations':
-        params.type = 'location'
+        params.type = 'LOCATION'
         break
       case 'high-impact':
         params.category = 'high_impact'
@@ -289,8 +191,15 @@ export default function EntitiesPage() {
   const { data: apiEntities, loading, error } = useEntities(apiParams)
 
   const filteredEntities = useMemo(() => {
-    // Use API data if available, otherwise use sample data
-    const entities = apiEntities && apiEntities.length > 0 ? apiEntities : sampleEntities
+    // Use API data only and map to add icons
+    const entities = (apiEntities || []).map(entity => ({
+      ...entity,
+      icon: entity.type === 'TOPIC' ? Hash :
+            entity.type === 'LOCATION' ? MapPin :
+            entity.type === 'PERSON' ? User :
+            entity.type === 'ORGANIZATION' ? Building :
+            Hash
+    }))
 
     // Apply client-side filtering based on activeFilter
     let filtered = entities
@@ -310,13 +219,13 @@ export default function EntitiesPage() {
         filtered = filtered.filter(e => e.type === 'LOCATION')
         break
       case 'high-impact':
-        filtered = filtered.filter(e => e.mentions > 1000)
+        filtered = filtered.filter(e => (e.mentions || 0) > 1000)
         break
       case 'trending':
-        filtered = filtered.filter(e => e.lastSeen.includes('hour') || e.lastSeen.includes('minute'))
+        filtered = filtered.filter(e => e.lastSeen && (e.lastSeen.includes('hour') || e.lastSeen.includes('minute')))
         break
       case 'frequent':
-        filtered = filtered.filter(e => e.mentions > 500)
+        filtered = filtered.filter(e => (e.mentions || 0) > 500)
         break
       case 'negative':
         // TODO: Add sentiment filtering when available
@@ -343,17 +252,37 @@ export default function EntitiesPage() {
     return filtered
   }, [apiEntities, searchQuery, activeFilter])
 
-  // Use sample data for filter counts when API data is not available
-  const entitiesForCounts = apiEntities && apiEntities.length > 0 ? apiEntities : sampleEntities
+  // Show loading state
+  if (loading) {
+    return (
+      <PageLayout>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading entities...</p>
+          </div>
+        </div>
+      </PageLayout>
+    )
+  }
+
+  const entitiesForCounts = (apiEntities || []).map(entity => ({
+    ...entity,
+    icon: entity.type === 'TOPIC' ? Hash :
+          entity.type === 'LOCATION' ? MapPin :
+          entity.type === 'PERSON' ? User :
+          entity.type === 'ORGANIZATION' ? Building :
+          Hash
+  }))
 
   const filterOptions = [
     { id: 'all-entities', label: 'All Entities', count: entitiesForCounts.length },
     { id: 'topics', label: 'All Topics', count: entitiesForCounts.filter(e => e.type === 'TOPIC').length },
     { id: 'people', label: 'All People', count: entitiesForCounts.filter(e => e.type === 'PERSON').length },
     { id: 'organizations', label: 'All Organizations', count: entitiesForCounts.filter(e => e.type === 'ORGANIZATION').length },
-    { id: 'high-impact', label: 'High Impact Entities', count: entitiesForCounts.filter(e => e.mentions > 1000).length },
-    { id: 'trending', label: 'Trending Topics', count: entitiesForCounts.filter(e => e.lastSeen === 'Just now').length },
-    { id: 'frequently-mentioned', label: 'Frequently Mentioned', count: entitiesForCounts.filter(e => e.mentions > 500).length },
+    { id: 'high-impact', label: 'High Impact Entities', count: entitiesForCounts.filter(e => (e.mentions || 0) > 1000).length },
+    { id: 'trending', label: 'Trending Topics', count: entitiesForCounts.filter(e => e.lastSeen && (e.lastSeen.includes('hour') || e.lastSeen.includes('minute'))).length },
+    { id: 'frequently-mentioned', label: 'Frequently Mentioned', count: entitiesForCounts.filter(e => (e.mentions || 0) > 500).length },
     { id: 'negative', label: 'Negative Entities', count: 0 },
     { id: 'positive', label: 'Positive Entities', count: 0 },
     { id: 'controversial', label: 'Controversial', count: 0 },
@@ -372,7 +301,7 @@ export default function EntitiesPage() {
 
         <div className="flex-1 flex overflow-hidden">
           {/* Left Sidebar - Filters */}
-          <div className="hidden lg:block lg:w-80 border-r border-border bg-muted/30 overflow-y-auto">
+          <div className="hidden xl:block xl:w-80 2xl:w-96 border-r border-border bg-muted/30 overflow-y-auto">
             <div className="p-4 sm:p-6">
               <h2 className="text-lg font-semibold text-foreground mb-6">Entities</h2>
               
@@ -386,7 +315,7 @@ export default function EntitiesPage() {
                 <FilterItem 
                   label="High Impact Entities"
                   onClick={() => setActiveFilter('high-impact')}
-                  count={entitiesForCounts.filter(e => e.mentions > 1000).length}
+                  count={entitiesForCounts.filter(e => (e.mentions || 0) > 1000).length}
                 />
                 <FilterItem 
                   label="Trending Topics"
@@ -396,7 +325,7 @@ export default function EntitiesPage() {
                 <FilterItem 
                   label="Frequently Mentioned"
                   onClick={() => setActiveFilter('frequent')}
-                  count={entitiesForCounts.filter(e => e.mentions > 500).length}
+                  count={entitiesForCounts.filter(e => (e.mentions || 0) > 500).length}
                 />
               </FilterSection>
 
@@ -475,17 +404,29 @@ export default function EntitiesPage() {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-              <AnimatedGrid stagger={0.03} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-                {(filteredEntities || []).map((entity) => (
-                  <AnimatedCard key={entity.id}>
-                    <EntityCard
-                      entity={entity}
-                      onClick={() => handleEntityClick(entity)}
-                    />
-                  </AnimatedCard>
-                ))}
-              </AnimatedGrid>
+            <div className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6">
+              {filteredEntities.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <Hash className="w-16 h-16 text-muted-foreground/50 mb-4" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">No entities found</h3>
+                  <p className="text-muted-foreground max-w-md">
+                    {searchQuery 
+                      ? `No entities match "${searchQuery}". Try adjusting your search or filters.`
+                      : 'No entities available at the moment. Check back later.'}
+                  </p>
+                </div>
+              ) : (
+                <AnimatedGrid stagger={0.03} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4">
+                  {filteredEntities.map((entity) => (
+                    <AnimatedCard key={entity.id}>
+                      <EntityCard
+                        entity={entity}
+                        onClick={() => handleEntityClick(entity)}
+                      />
+                    </AnimatedCard>
+                  ))}
+                </AnimatedGrid>
+              )}
             </div>
           </div>
         </div>

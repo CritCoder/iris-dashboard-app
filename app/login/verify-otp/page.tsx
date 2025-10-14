@@ -28,6 +28,9 @@ export default function VerifyOTPPage() {
   const [timer, setTimer] = useState(120)
   const [isVerifying, setIsVerifying] = useState(false)
   const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null)
+  
+  // Get API URL from environment variable
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://irisnet.wiredleap.com'
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   useEffect(() => {
@@ -144,7 +147,7 @@ export default function VerifyOTPPage() {
     try {
       if (contactInfo.method === 'mobile') {
         // Use the same API endpoint as port 3008 for resending OTP
-        const response = await fetch('https://irisnet.wiredleap.com/api/auth/otpLogin', {
+        const response = await fetch(`${API_URL}/api/auth/otpLogin`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

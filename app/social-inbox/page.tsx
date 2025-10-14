@@ -7,7 +7,7 @@ import { Search, Heart, MessageCircle, Share2, Eye, Plus, FolderPlus, Flag, Chec
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { FacebookIcon, InstagramIcon, TwitterIcon } from '@/components/ui/platform-icons'
+import { FacebookIcon, InstagramIcon, TwitterIcon, YouTubeIcon, NewsIcon } from '@/components/ui/platform-icons'
 import { useSocialPosts, useInboxStats } from '@/hooks/use-api'
 import { AnimatedPage, AnimatedList, AnimatedCard, FadeIn } from '@/components/ui/animated'
 import {
@@ -35,10 +35,12 @@ interface Post {
 }
 
 function PostListItem({ post, isSelected, onClick }: { post: Post; isSelected: boolean; onClick: () => void }) {
-  const platformIcons = {
+  const platformIcons: Record<string, React.ComponentType<{ className?: string }>> = {
     facebook: FacebookIcon,
     twitter: TwitterIcon,
-    instagram: InstagramIcon
+    instagram: InstagramIcon,
+    youtube: YouTubeIcon,
+    'india-news': NewsIcon
   }
 
   const priorityColors = {
@@ -47,16 +49,26 @@ function PostListItem({ post, isSelected, onClick }: { post: Post; isSelected: b
     HIGH: 'bg-red-600 text-white'
   }
 
+  // Helper to safely get string value from object or string
+  const getDisplayValue = (value: any): string => {
+    if (!value) return 'Unknown'
+    if (typeof value === 'string') return value
+    if (typeof value === 'object' && value.name) return value.name
+    return String(value)
+  }
+
   // Determine why this post is showing
   const getAlertReason = () => {
     const reasons = []
     if (post.priority === 'HIGH') reasons.push({ icon: '🚨', text: 'High Priority Alert', color: 'text-red-500' })
-    if (post.likes > 1000 || post.comments > 100) reasons.push({ icon: '📈', text: 'High Engagement', color: 'text-blue-500' })
-    if (post.relevanceScore > 80) reasons.push({ icon: '🎯', text: 'High Relevance', color: 'text-purple-500' })
+    if ((post.likes || 0) > 1000 || (post.comments || 0) > 100) reasons.push({ icon: '📈', text: 'High Engagement', color: 'text-blue-500' })
+    if ((post.relevanceScore || 0) > 80) reasons.push({ icon: '🎯', text: 'High Relevance', color: 'text-purple-500' })
     return reasons[0] || { icon: '📬', text: 'Needs Review', color: 'text-gray-500' }
   }
 
   const alertReason = getAlertReason()
+  const authorName = getDisplayValue(post.author)
+  const campaignName = getDisplayValue(post.campaign)
 
   return (
     <div
@@ -70,13 +82,13 @@ function PostListItem({ post, isSelected, onClick }: { post: Post; isSelected: b
       <div className="flex items-start gap-3 mb-2">
         <div className="w-6 h-6 flex items-center justify-center">
           {(() => {
-            const IconComponent = platformIcons[post.platform]
+            const IconComponent = platformIcons[post.platform] || MessageCircle
             return <IconComponent className="w-5 h-5 text-muted-foreground" />
           })()}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-foreground font-medium text-sm mb-1">{post.author}</div>
-          <p className="text-muted-foreground text-sm line-clamp-2 mb-2">{post.content}</p>
+          <div className="text-foreground font-medium text-sm mb-1">{authorName}</div>
+          <p className="text-muted-foreground text-sm line-clamp-2 mb-2">{post.content || 'No content'}</p>
           <div className="flex items-center gap-2 mb-2 flex-wrap">
             <span className={`px-2 py-0.5 rounded text-xs font-medium ${priorityColors[post.priority]}`}>
               {post.priority}
@@ -87,16 +99,16 @@ function PostListItem({ post, isSelected, onClick }: { post: Post; isSelected: b
             </span>
           </div>
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <span>⏰ {post.timestamp}</span>
+            <span>⏰ {post.timestamp || 'Unknown'}</span>
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1">
-                <Heart className="w-3 h-3" /> {post.likes}
+                <Heart className="w-3 h-3" /> {post.likes || 0}
               </span>
               <span className="flex items-center gap-1">
-                <MessageCircle className="w-3 h-3" /> {post.comments}
+                <MessageCircle className="w-3 h-3" /> {post.comments || 0}
               </span>
               <span className="flex items-center gap-1">
-                <Share2 className="w-3 h-3" /> {post.shares}
+                <Share2 className="w-3 h-3" /> {post.shares || 0}
               </span>
             </div>
           </div>
@@ -117,6 +129,14 @@ export default function SocialInboxPage() {
   const [selectedCampaign, setSelectedCampaign] = useState('all')
   const [selectedTimeRange, setSelectedTimeRange] = useState('24h')
   const [sortBy, setSortBy] = useState('date')
+
+  // Helper to safely get string value from object or string
+  const getDisplayValue = (value: any): string => {
+    if (!value) return 'Unknown'
+    if (typeof value === 'string') return value
+    if (typeof value === 'object' && value.name) return value.name
+    return String(value)
+  }
 
   // Fetch posts that need attention/review - using production API
   // Removed needsAttention and reviewStatus filters to get all posts
@@ -237,50 +257,56 @@ export default function SocialInboxPage() {
           description="New posts from all campaigns"
           actions={
             <div className="w-full">
-              <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
-                {/* Tab Toggle */}
-                <div className="flex items-center bg-muted/50 rounded-md border border-border overflow-hidden">
+              {/* Mobile: Compact Tab Toggle */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+                {/* Tab Toggle - Mobile Optimized */}
+                <div className="flex items-center bg-muted/50 rounded-md border border-border overflow-hidden w-full sm:w-auto">
                   <button 
                     onClick={() => setActiveTab('posts')}
-                    className={`px-4 py-2 text-sm font-medium transition-all duration-200 border-r border-border ${
+                    className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-all duration-200 border-r border-border ${
                       activeTab === 'posts' 
                         ? 'bg-primary/10 text-primary' 
                         : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
                     }`}
                   >
-                    Inbox Posts
+                    <span className="hidden sm:inline">Inbox Posts</span>
+                    <span className="sm:hidden">Posts</span>
                   </button>
                   <button 
                     onClick={() => setActiveTab('notes')}
-                    className={`px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                    className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-all duration-200 ${
                       activeTab === 'notes' 
                         ? 'bg-primary/10 text-primary' 
                         : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
                     }`}
                   >
-                    Saved Notes
+                    <span className="hidden sm:inline">Saved Notes</span>
+                    <span className="sm:hidden">Notes</span>
                   </button>
                 </div>
 
-                {/* Search Bar */}
+                {/* Search Bar - Mobile Optimized */}
                 <div className="relative flex-1 min-w-0">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                  <Search className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                   <Input
                     type="text"
                     placeholder="Search posts..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 w-full"
+                    className="pl-8 sm:pl-10 w-full text-sm"
                   />
                 </div>
+              </div>
 
-                {/* Filters Row */}
+              {/* Filters - Collapsible on Mobile */}
+              <div className="mt-3 space-y-2 sm:space-y-0">
+                {/* Primary Filters Row - Always Visible */}
                 <div className="flex flex-wrap items-center gap-2">
                   {/* Sentiment Filter */}
                   <select
                     value={selectedSentiment}
                     onChange={(e) => setSelectedSentiment(e.target.value)}
-                    className="appearance-none bg-background border border-border rounded-md px-3 py-2 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer"
+                    className="appearance-none bg-background border border-border rounded-md px-2 sm:px-3 py-1.5 sm:py-2 pr-6 sm:pr-8 text-foreground text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer min-w-0 flex-1 sm:flex-none"
                     style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
                   >
                     <option value="all">All Sentiments</option>
@@ -294,7 +320,7 @@ export default function SocialInboxPage() {
                   <select
                     value={selectedPlatform}
                     onChange={(e) => setSelectedPlatform(e.target.value)}
-                    className="appearance-none bg-background border border-border rounded-md px-3 py-2 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer"
+                    className="appearance-none bg-background border border-border rounded-md px-2 sm:px-3 py-1.5 sm:py-2 pr-6 sm:pr-8 text-foreground text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer min-w-0 flex-1 sm:flex-none"
                     style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
                   >
                     <option value="all">All Platforms</option>
@@ -305,11 +331,11 @@ export default function SocialInboxPage() {
                     <option value="india-news">India News</option>
                   </select>
 
-                  {/* Campaign Filter */}
+                  {/* Campaign Filter - Hidden on mobile, shown on larger screens */}
                   <select
                     value={selectedCampaign}
                     onChange={(e) => setSelectedCampaign(e.target.value)}
-                    className="appearance-none bg-background border border-border rounded-md px-2 py-2 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 max-w-[10rem] truncate cursor-pointer"
+                    className="hidden md:block appearance-none bg-background border border-border rounded-md px-3 py-2 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 max-w-[12rem] truncate cursor-pointer"
                     style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
                   >
                     <option value="all">All Campaigns</option>
@@ -373,6 +399,26 @@ export default function SocialInboxPage() {
                     <option value="cmdk56kqg0001z2yxe0f73hyv">bangalore traffic</option>
                   </select>
 
+                  {/* Reset Button */}
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      setSelectedSentiment('all')
+                      setSelectedPlatform('all')
+                      setSelectedCampaign('all')
+                      setSelectedTimeRange('24h')
+                      setSortBy('date')
+                      setSearchQuery('')
+                    }}
+                    className="bg-background hover:bg-accent border border-border hover:border-accent/50 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
+                  >
+                    Reset
+                  </Button>
+                </div>
+
+                {/* Secondary Filters Row - Hidden on mobile, shown on larger screens */}
+                <div className="hidden lg:flex flex-wrap items-center gap-2">
                   {/* Time Range Filter */}
                   <select
                     value={selectedTimeRange}
@@ -401,23 +447,64 @@ export default function SocialInboxPage() {
                     <option value="date">Sort by Date</option>
                     <option value="relevance">Sort by Relevance</option>
                   </select>
+                </div>
 
-                  {/* Reset Button */}
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => {
-                      setSelectedSentiment('all')
-                      setSelectedPlatform('all')
-                      setSelectedCampaign('all')
-                      setSelectedTimeRange('24h')
-                      setSortBy('date')
-                      setSearchQuery('')
-                    }}
-                    className="bg-background hover:bg-accent border border-border hover:border-accent/50"
-                  >
-                    Reset
-                  </Button>
+                {/* Mobile: Collapsible Advanced Filters */}
+                <div className="lg:hidden">
+                  <details className="group">
+                    <summary className="flex items-center justify-between w-full p-2 text-xs text-muted-foreground hover:text-foreground cursor-pointer border border-border rounded-md bg-muted/30">
+                      <span>Advanced Filters</span>
+                      <span className="group-open:rotate-180 transition-transform">▼</span>
+                    </summary>
+                    <div className="mt-2 space-y-2 p-2 bg-muted/20 border border-border rounded-md">
+                      {/* Campaign Filter - Mobile */}
+                      <div>
+                        <label className="block text-xs text-muted-foreground mb-1">Campaign</label>
+                        <select
+                          value={selectedCampaign}
+                          onChange={(e) => setSelectedCampaign(e.target.value)}
+                          className="w-full appearance-none bg-background border border-border rounded-md px-2 py-1.5 pr-6 text-foreground text-xs focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/30 cursor-pointer"
+                          style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
+                        >
+                          <option value="all">All Campaigns</option>
+                          <option value="cmgjzn11q0001z2alaq70ckwk">Bengaluru Police</option>
+                          <option value="cmgjzjpf50001z2yqum0gfs8a">Bengaluru Police</option>
+                          <option value="cmgjz4l4k0001z2cknnhlna63">Karnataka</option>
+                        </select>
+                      </div>
+                      
+                      {/* Time Range Filter - Mobile */}
+                      <div>
+                        <label className="block text-xs text-muted-foreground mb-1">Time Range</label>
+                        <select
+                          value={selectedTimeRange}
+                          onChange={(e) => setSelectedTimeRange(e.target.value)}
+                          className="w-full appearance-none bg-background border border-border rounded-md px-2 py-1.5 pr-6 text-foreground text-xs focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/30 cursor-pointer"
+                          style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
+                        >
+                          <option value="24h">Last 24 Hours</option>
+                          <option value="1h">Last 1 Hour</option>
+                          <option value="6h">Last 6 Hours</option>
+                          <option value="3d">Last 3 Days</option>
+                          <option value="1w">Last Week</option>
+                        </select>
+                      </div>
+
+                      {/* Sort Filter - Mobile */}
+                      <div>
+                        <label className="block text-xs text-muted-foreground mb-1">Sort By</label>
+                        <select
+                          value={sortBy}
+                          onChange={(e) => setSortBy(e.target.value)}
+                          className="w-full appearance-none bg-background border border-border rounded-md px-2 py-1.5 pr-6 text-foreground text-xs focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/30 cursor-pointer"
+                          style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
+                        >
+                          <option value="date">Sort by Date</option>
+                          <option value="relevance">Sort by Relevance</option>
+                        </select>
+                      </div>
+                    </div>
+                  </details>
                 </div>
               </div>
             </div>
@@ -425,9 +512,9 @@ export default function SocialInboxPage() {
         />
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden w-full h-full">
+        <div className="flex-1 flex flex-col xl:flex-row overflow-hidden w-full h-full">
           {/* Left Column - Post List */}
-          <div className="w-full lg:w-[300px] border-r border-border bg-background flex-shrink-0 flex flex-col h-full max-h-[40vh] lg:max-h-none">
+          <div className="w-full xl:w-[320px] 2xl:w-[360px] border-r border-border bg-background flex-shrink-0 flex flex-col h-full max-h-[50vh] xl:max-h-none">
             <div className="p-3 sm:p-4 border-b border-border flex-shrink-0">
               <h2 className="text-foreground font-semibold mb-1 text-sm sm:text-base">Inbox ({posts?.length || 0})</h2>
               <p className="text-xs text-muted-foreground">New posts that have not been classified yet</p>
@@ -470,52 +557,52 @@ export default function SocialInboxPage() {
           </div>
 
           {/* Center Column - Post Detail (Main Focus) */}
-          <div className="flex-1 overflow-y-auto min-w-0 h-full max-w-4xl mx-auto">
+          <div className="flex-1 overflow-y-auto min-w-0 h-full max-w-5xl mx-auto">
             {selectedPost ? (
-              <AnimatedPage className="p-4 sm:p-8 max-w-4xl mx-auto">
+              <AnimatedPage className="p-3 sm:p-6 lg:p-8 max-w-4xl mx-auto">
                 {/* Selected Post - Centered and Prominent */}
-                <FadeIn className="bg-card border border-border rounded-xl p-8 mb-8 list-animate-in shadow-sm">
+                <FadeIn className="bg-card border border-border rounded-xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 list-animate-in shadow-sm">
                   <div className="flex items-start gap-4 mb-6">
                     <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-foreground font-semibold text-lg">
-                      {selectedPost.author[0]}
+                      {getDisplayValue(selectedPost.author)[0] || '?'}
                     </div>
                     <div className="flex-1">
-                      <div className="text-foreground font-semibold text-lg mb-1">{selectedPost.author}</div>
+                      <div className="text-foreground font-semibold text-lg mb-1">{getDisplayValue(selectedPost.author)}</div>
                       <div className="text-muted-foreground text-sm flex items-center gap-2">
-                        <span className="capitalize">{selectedPost.platform}</span>
+                        <span className="capitalize">{selectedPost.platform || 'Unknown'}</span>
                         <span>•</span>
-                        <span>{selectedPost.timestamp}</span>
+                        <span>{selectedPost.timestamp || 'Unknown'}</span>
                         <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
                           selectedPost.priority === 'HIGH' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' :
                           selectedPost.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' :
                           'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
                         }`}>
-                          {selectedPost.priority}
+                          {selectedPost.priority || 'LOW'}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  <p className="text-foreground/90 mb-6 leading-relaxed text-base whitespace-pre-wrap break-words">{selectedPost.content}</p>
+                  <p className="text-foreground/90 mb-6 leading-relaxed text-base whitespace-pre-wrap break-words">{selectedPost.content || 'No content available'}</p>
 
                   <div className="flex items-center justify-between pt-6 border-t border-border">
                     <div className="flex items-center gap-8">
                       <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
                         <Heart className="w-5 h-5" />
-                        <span className="font-medium">{selectedPost.likes.toLocaleString()}</span>
+                        <span className="font-medium">{(selectedPost.likes || 0).toLocaleString()}</span>
                       </button>
                       <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
                         <MessageCircle className="w-5 h-5" />
-                        <span className="font-medium">{selectedPost.comments.toLocaleString()}</span>
+                        <span className="font-medium">{(selectedPost.comments || 0).toLocaleString()}</span>
                       </button>
                       <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
                         <Share2 className="w-5 h-5" />
-                        <span className="font-medium">{selectedPost.shares.toLocaleString()}</span>
+                        <span className="font-medium">{(selectedPost.shares || 0).toLocaleString()}</span>
                       </button>
                     </div>
                     <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
                       <Eye className="w-5 h-5" />
-                      <span className="font-medium">{selectedPost.views.toLocaleString()} views</span>
+                      <span className="font-medium">{(selectedPost.views || 0).toLocaleString()} views</span>
                     </button>
                   </div>
                 </FadeIn>
@@ -527,31 +614,31 @@ export default function SocialInboxPage() {
                   <div className="mb-8">
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-base text-muted-foreground">Relevance Score</span>
-                      <span className="text-foreground font-semibold text-lg">{selectedPost.relevanceScore}%</span>
+                      <span className="text-foreground font-semibold text-lg">{selectedPost.relevanceScore || 0}%</span>
                     </div>
                     <div className="w-full bg-secondary rounded-full h-3">
                       <div
                         className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500"
-                        style={{ width: `${selectedPost.relevanceScore}%` }}
+                        style={{ width: `${selectedPost.relevanceScore || 0}%` }}
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                     <div className="text-left p-4 bg-muted/50 rounded-lg">
-                      <div className="text-3xl font-bold text-foreground mb-2">{selectedPost.likes.toLocaleString()}</div>
+                      <div className="text-3xl font-bold text-foreground mb-2">{(selectedPost.likes || 0).toLocaleString()}</div>
                       <div className="text-sm text-muted-foreground">Likes</div>
                     </div>
                     <div className="text-left p-4 bg-muted/50 rounded-lg">
-                      <div className="text-3xl font-bold text-foreground mb-2">{selectedPost.shares.toLocaleString()}</div>
+                      <div className="text-3xl font-bold text-foreground mb-2">{(selectedPost.shares || 0).toLocaleString()}</div>
                       <div className="text-sm text-muted-foreground">Shares</div>
                     </div>
                     <div className="text-left p-4 bg-muted/50 rounded-lg">
-                      <div className="text-3xl font-bold text-foreground mb-2">{selectedPost.comments.toLocaleString()}</div>
+                      <div className="text-3xl font-bold text-foreground mb-2">{(selectedPost.comments || 0).toLocaleString()}</div>
                       <div className="text-sm text-muted-foreground">Comments</div>
                     </div>
                     <div className="text-left p-4 bg-muted/50 rounded-lg">
-                      <div className="text-3xl font-bold text-foreground mb-2">{selectedPost.views.toLocaleString()}</div>
+                      <div className="text-3xl font-bold text-foreground mb-2">{(selectedPost.views || 0).toLocaleString()}</div>
                       <div className="text-sm text-muted-foreground">Views</div>
                     </div>
                   </div>
@@ -668,7 +755,7 @@ export default function SocialInboxPage() {
           </div>
 
           {/* Right Column - Quick Details */}
-          <div className="w-full lg:w-[320px] bg-muted/30 p-4 sm:p-6 overflow-y-auto">
+          <div className="w-full xl:w-[320px] 2xl:w-[360px] bg-muted/30 p-3 sm:p-4 lg:p-6 overflow-y-auto">
             <h3 className="text-foreground font-semibold mb-4">Quick Details</h3>
             
             {selectedPost ? (
@@ -677,15 +764,15 @@ export default function SocialInboxPage() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between py-2">
                       <span className="text-sm text-muted-foreground">Platform:</span>
-                      <span className="text-sm text-foreground font-medium capitalize">{selectedPost.platform}</span>
+                      <span className="text-sm text-foreground font-medium capitalize">{selectedPost.platform || 'Unknown'}</span>
                     </div>
                     <div className="flex items-center justify-between py-2">
                       <span className="text-sm text-muted-foreground">Posted:</span>
-                      <span className="text-sm text-foreground font-medium">{selectedPost.timestamp}</span>
+                      <span className="text-sm text-foreground font-medium">{selectedPost.timestamp || 'Unknown'}</span>
                     </div>
                     <div className="flex items-center justify-between py-2">
                       <span className="text-sm text-muted-foreground">Author:</span>
-                      <span className="text-sm text-foreground font-medium">{selectedPost.author}</span>
+                      <span className="text-sm text-foreground font-medium">{getDisplayValue(selectedPost.author)}</span>
                     </div>
                     <div className="flex items-center justify-between py-2">
                       <span className="text-sm text-muted-foreground">Priority:</span>
@@ -694,13 +781,13 @@ export default function SocialInboxPage() {
                         selectedPost.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' :
                         'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
                       }`}>
-                        {selectedPost.priority}
+                        {selectedPost.priority || 'LOW'}
                       </span>
                     </div>
                     <div className="pt-2 border-t border-border">
                       <div className="flex items-center justify-between py-2">
                         <span className="text-sm text-muted-foreground">Relevance:</span>
-                        <span className="text-sm text-foreground font-medium">{selectedPost.relevanceScore}%</span>
+                        <span className="text-sm text-foreground font-medium">{selectedPost.relevanceScore || 0}%</span>
                       </div>
                     </div>
                   </div>
@@ -709,7 +796,7 @@ export default function SocialInboxPage() {
                 <div className="mt-6">
                   <h3 className="text-foreground font-semibold mb-3">Campaign</h3>
                   <div className="bg-muted border border-border rounded-lg px-3 py-2">
-                    <span className="text-sm text-foreground">{selectedPost.campaign}</span>
+                    <span className="text-sm text-foreground">{getDisplayValue(selectedPost.campaign)}</span>
                   </div>
                 </div>
               </div>
