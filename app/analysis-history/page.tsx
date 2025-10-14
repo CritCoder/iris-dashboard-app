@@ -69,8 +69,6 @@ function CampaignRow({
   const [isDeleting, setIsDeleting] = useState(false)
   const [isToggling, setIsToggling] = useState(false)
 
-  const sentimentScore = calculateSentimentScore(campaign.metrics?.sentimentDistribution)
-
   const getSentimentColor = (sentiment: number) => {
     if (sentiment >= 70) return 'bg-green-600 text-white'
     if (sentiment >= 40) return 'bg-yellow-600 text-white'
@@ -78,7 +76,7 @@ function CampaignRow({
   }
 
   // Calculate display values
-  const sentimentScore = calculateSentimentScore(campaign.metrics.sentimentDistribution)
+  const sentimentScore = calculateSentimentScore(campaign.metrics?.sentimentDistribution)
   const displayDate = new Date(campaign.updatedAt).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
