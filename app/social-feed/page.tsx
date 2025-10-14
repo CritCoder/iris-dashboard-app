@@ -695,12 +695,12 @@ function SocialFeedContent() {
 
         {/* Posts Grid */}
         <div className="flex-1 overflow-y-auto">
-          <AnimatedPage className="p-3">
+          <AnimatedPage className="p-2 sm:p-3">
             {loading ? (
               <FeedSkeleton />
             ) : (filteredPosts || []).length > 0 ? (
               <>
-                <AnimatedGrid stagger={0.03} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
+                <AnimatedGrid stagger={0.03} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3">
                   {(filteredPosts || []).map((post) => (
                     <AnimatedCard key={post.id}>
                       <PostCard post={post} />
@@ -781,7 +781,7 @@ export default function SocialFeedPage() {
 
 function FeedSkeleton() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3">
       {Array.from({ length: 12 }).map((_, i) => (
         <div key={i} className="bg-card border border-border rounded-lg p-4 animate-pulse">
           <div className="flex items-center gap-3 mb-3">

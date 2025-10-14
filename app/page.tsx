@@ -261,7 +261,7 @@ export default function Page() {
       />
 
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 py-4 sm:py-8">
+        <div className="max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-6">
               <TabsList className="w-full sm:w-auto overflow-x-auto">
@@ -386,12 +386,12 @@ export default function Page() {
               </div>
 
               {/* CUSTOMIZABLE 3x3 DASHBOARD GRID */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
                 {/* Row 1 - Small Cards */}
                 {enabledCards['total-mentions'] && (
                   <Card>
                     <Card className="border-2 border-blue-500/30 bg-gradient-to-br from-blue-950/40 to-blue-900/20 shadow-lg">
-                      <CardContent className="p-6">
+                      <CardContent className="p-4 sm:p-6">
                         {statsLoading ? (
                           <div className="space-y-3">
                             <Skeleton className="h-4 w-24" />
@@ -425,7 +425,7 @@ export default function Page() {
                 {enabledCards['sentiment-score'] && (
                   <Card>
                     <Card className="border-2 border-green-500/30 bg-gradient-to-br from-green-950/40 to-green-900/20 shadow-lg">
-                      <CardContent className="p-6">
+                      <CardContent className="p-4 sm:p-6">
                         {statsLoading ? (
                           <div className="space-y-3">
                             <Skeleton className="h-4 w-24" />
@@ -459,7 +459,7 @@ export default function Page() {
                 {enabledCards['active-campaigns'] && (
                   <Card>
                     <Card className="border border-border/50 bg-card/50">
-                      <CardContent className="p-6">
+                      <CardContent className="p-4 sm:p-6">
                         {themesLoading ? (
                           <div className="space-y-3">
                             <Skeleton className="h-4 w-24" />

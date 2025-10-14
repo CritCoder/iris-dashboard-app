@@ -512,9 +512,9 @@ export default function SocialInboxPage() {
         />
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden w-full h-full">
+        <div className="flex-1 flex flex-col xl:flex-row overflow-hidden w-full h-full">
           {/* Left Column - Post List */}
-          <div className="w-full lg:w-[300px] border-r border-border bg-background flex-shrink-0 flex flex-col h-full max-h-[40vh] lg:max-h-none">
+          <div className="w-full xl:w-[320px] 2xl:w-[360px] border-r border-border bg-background flex-shrink-0 flex flex-col h-full max-h-[50vh] xl:max-h-none">
             <div className="p-3 sm:p-4 border-b border-border flex-shrink-0">
               <h2 className="text-foreground font-semibold mb-1 text-sm sm:text-base">Inbox ({posts?.length || 0})</h2>
               <p className="text-xs text-muted-foreground">New posts that have not been classified yet</p>
@@ -557,11 +557,11 @@ export default function SocialInboxPage() {
           </div>
 
           {/* Center Column - Post Detail (Main Focus) */}
-          <div className="flex-1 overflow-y-auto min-w-0 h-full max-w-4xl mx-auto">
+          <div className="flex-1 overflow-y-auto min-w-0 h-full max-w-5xl mx-auto">
             {selectedPost ? (
-              <AnimatedPage className="p-4 sm:p-8 max-w-4xl mx-auto">
+              <AnimatedPage className="p-3 sm:p-6 lg:p-8 max-w-4xl mx-auto">
                 {/* Selected Post - Centered and Prominent */}
-                <FadeIn className="bg-card border border-border rounded-xl p-8 mb-8 list-animate-in shadow-sm">
+                <FadeIn className="bg-card border border-border rounded-xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 list-animate-in shadow-sm">
                   <div className="flex items-start gap-4 mb-6">
                     <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-foreground font-semibold text-lg">
                       {getDisplayValue(selectedPost.author)[0] || '?'}
@@ -755,7 +755,7 @@ export default function SocialInboxPage() {
           </div>
 
           {/* Right Column - Quick Details */}
-          <div className="w-full lg:w-[320px] bg-muted/30 p-4 sm:p-6 overflow-y-auto">
+          <div className="w-full xl:w-[320px] 2xl:w-[360px] bg-muted/30 p-3 sm:p-4 lg:p-6 overflow-y-auto">
             <h3 className="text-foreground font-semibold mb-4">Quick Details</h3>
             
             {selectedPost ? (
