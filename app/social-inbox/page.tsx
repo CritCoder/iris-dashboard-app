@@ -7,7 +7,7 @@ import { Search, Heart, MessageCircle, Share2, Eye, Plus, FolderPlus, Flag, Chec
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { FacebookIcon, InstagramIcon, TwitterIcon } from '@/components/ui/platform-icons'
+import { FacebookIcon, InstagramIcon, TwitterIcon, YouTubeIcon, NewsIcon } from '@/components/ui/platform-icons'
 import { useSocialPosts, useInboxStats } from '@/hooks/use-api'
 import { AnimatedPage, AnimatedList, AnimatedCard, FadeIn } from '@/components/ui/animated'
 import {
@@ -35,10 +35,12 @@ interface Post {
 }
 
 function PostListItem({ post, isSelected, onClick }: { post: Post; isSelected: boolean; onClick: () => void }) {
-  const platformIcons = {
+  const platformIcons: Record<string, React.ComponentType<{ className?: string }>> = {
     facebook: FacebookIcon,
     twitter: TwitterIcon,
-    instagram: InstagramIcon
+    instagram: InstagramIcon,
+    youtube: YouTubeIcon,
+    'india-news': NewsIcon
   }
 
   const priorityColors = {
@@ -47,16 +49,26 @@ function PostListItem({ post, isSelected, onClick }: { post: Post; isSelected: b
     HIGH: 'bg-red-600 text-white'
   }
 
+  // Helper to safely get string value from object or string
+  const getDisplayValue = (value: any): string => {
+    if (!value) return 'Unknown'
+    if (typeof value === 'string') return value
+    if (typeof value === 'object' && value.name) return value.name
+    return String(value)
+  }
+
   // Determine why this post is showing
   const getAlertReason = () => {
     const reasons = []
     if (post.priority === 'HIGH') reasons.push({ icon: '🚨', text: 'High Priority Alert', color: 'text-red-500' })
-    if (post.likes > 1000 || post.comments > 100) reasons.push({ icon: '📈', text: 'High Engagement', color: 'text-blue-500' })
-    if (post.relevanceScore > 80) reasons.push({ icon: '🎯', text: 'High Relevance', color: 'text-purple-500' })
+    if ((post.likes || 0) > 1000 || (post.comments || 0) > 100) reasons.push({ icon: '📈', text: 'High Engagement', color: 'text-blue-500' })
+    if ((post.relevanceScore || 0) > 80) reasons.push({ icon: '🎯', text: 'High Relevance', color: 'text-purple-500' })
     return reasons[0] || { icon: '📬', text: 'Needs Review', color: 'text-gray-500' }
   }
 
   const alertReason = getAlertReason()
+  const authorName = getDisplayValue(post.author)
+  const campaignName = getDisplayValue(post.campaign)
 
   return (
     <div
@@ -70,13 +82,13 @@ function PostListItem({ post, isSelected, onClick }: { post: Post; isSelected: b
       <div className="flex items-start gap-3 mb-2">
         <div className="w-6 h-6 flex items-center justify-center">
           {(() => {
-            const IconComponent = platformIcons[post.platform]
+            const IconComponent = platformIcons[post.platform] || MessageCircle
             return <IconComponent className="w-5 h-5 text-muted-foreground" />
           })()}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-foreground font-medium text-sm mb-1">{post.author}</div>
-          <p className="text-muted-foreground text-sm line-clamp-2 mb-2">{post.content}</p>
+          <div className="text-foreground font-medium text-sm mb-1">{authorName}</div>
+          <p className="text-muted-foreground text-sm line-clamp-2 mb-2">{post.content || 'No content'}</p>
           <div className="flex items-center gap-2 mb-2 flex-wrap">
             <span className={`px-2 py-0.5 rounded text-xs font-medium ${priorityColors[post.priority]}`}>
               {post.priority}
@@ -87,16 +99,16 @@ function PostListItem({ post, isSelected, onClick }: { post: Post; isSelected: b
             </span>
           </div>
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <span>⏰ {post.timestamp}</span>
+            <span>⏰ {post.timestamp || 'Unknown'}</span>
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1">
-                <Heart className="w-3 h-3" /> {post.likes}
+                <Heart className="w-3 h-3" /> {post.likes || 0}
               </span>
               <span className="flex items-center gap-1">
-                <MessageCircle className="w-3 h-3" /> {post.comments}
+                <MessageCircle className="w-3 h-3" /> {post.comments || 0}
               </span>
               <span className="flex items-center gap-1">
-                <Share2 className="w-3 h-3" /> {post.shares}
+                <Share2 className="w-3 h-3" /> {post.shares || 0}
               </span>
             </div>
           </div>
@@ -117,6 +129,14 @@ export default function SocialInboxPage() {
   const [selectedCampaign, setSelectedCampaign] = useState('all')
   const [selectedTimeRange, setSelectedTimeRange] = useState('24h')
   const [sortBy, setSortBy] = useState('date')
+
+  // Helper to safely get string value from object or string
+  const getDisplayValue = (value: any): string => {
+    if (!value) return 'Unknown'
+    if (typeof value === 'string') return value
+    if (typeof value === 'object' && value.name) return value.name
+    return String(value)
+  }
 
   // Fetch posts that need attention/review - using production API
   // Removed needsAttention and reviewStatus filters to get all posts
@@ -477,45 +497,45 @@ export default function SocialInboxPage() {
                 <FadeIn className="bg-card border border-border rounded-xl p-8 mb-8 list-animate-in shadow-sm">
                   <div className="flex items-start gap-4 mb-6">
                     <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-foreground font-semibold text-lg">
-                      {selectedPost.author[0]}
+                      {getDisplayValue(selectedPost.author)[0] || '?'}
                     </div>
                     <div className="flex-1">
-                      <div className="text-foreground font-semibold text-lg mb-1">{selectedPost.author}</div>
+                      <div className="text-foreground font-semibold text-lg mb-1">{getDisplayValue(selectedPost.author)}</div>
                       <div className="text-muted-foreground text-sm flex items-center gap-2">
-                        <span className="capitalize">{selectedPost.platform}</span>
+                        <span className="capitalize">{selectedPost.platform || 'Unknown'}</span>
                         <span>•</span>
-                        <span>{selectedPost.timestamp}</span>
+                        <span>{selectedPost.timestamp || 'Unknown'}</span>
                         <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
                           selectedPost.priority === 'HIGH' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' :
                           selectedPost.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' :
                           'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
                         }`}>
-                          {selectedPost.priority}
+                          {selectedPost.priority || 'LOW'}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  <p className="text-foreground/90 mb-6 leading-relaxed text-base whitespace-pre-wrap break-words">{selectedPost.content}</p>
+                  <p className="text-foreground/90 mb-6 leading-relaxed text-base whitespace-pre-wrap break-words">{selectedPost.content || 'No content available'}</p>
 
                   <div className="flex items-center justify-between pt-6 border-t border-border">
                     <div className="flex items-center gap-8">
                       <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
                         <Heart className="w-5 h-5" />
-                        <span className="font-medium">{selectedPost.likes.toLocaleString()}</span>
+                        <span className="font-medium">{(selectedPost.likes || 0).toLocaleString()}</span>
                       </button>
                       <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
                         <MessageCircle className="w-5 h-5" />
-                        <span className="font-medium">{selectedPost.comments.toLocaleString()}</span>
+                        <span className="font-medium">{(selectedPost.comments || 0).toLocaleString()}</span>
                       </button>
                       <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
                         <Share2 className="w-5 h-5" />
-                        <span className="font-medium">{selectedPost.shares.toLocaleString()}</span>
+                        <span className="font-medium">{(selectedPost.shares || 0).toLocaleString()}</span>
                       </button>
                     </div>
                     <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
                       <Eye className="w-5 h-5" />
-                      <span className="font-medium">{selectedPost.views.toLocaleString()} views</span>
+                      <span className="font-medium">{(selectedPost.views || 0).toLocaleString()} views</span>
                     </button>
                   </div>
                 </FadeIn>
@@ -527,31 +547,31 @@ export default function SocialInboxPage() {
                   <div className="mb-8">
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-base text-muted-foreground">Relevance Score</span>
-                      <span className="text-foreground font-semibold text-lg">{selectedPost.relevanceScore}%</span>
+                      <span className="text-foreground font-semibold text-lg">{selectedPost.relevanceScore || 0}%</span>
                     </div>
                     <div className="w-full bg-secondary rounded-full h-3">
                       <div
                         className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500"
-                        style={{ width: `${selectedPost.relevanceScore}%` }}
+                        style={{ width: `${selectedPost.relevanceScore || 0}%` }}
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                     <div className="text-left p-4 bg-muted/50 rounded-lg">
-                      <div className="text-3xl font-bold text-foreground mb-2">{selectedPost.likes.toLocaleString()}</div>
+                      <div className="text-3xl font-bold text-foreground mb-2">{(selectedPost.likes || 0).toLocaleString()}</div>
                       <div className="text-sm text-muted-foreground">Likes</div>
                     </div>
                     <div className="text-left p-4 bg-muted/50 rounded-lg">
-                      <div className="text-3xl font-bold text-foreground mb-2">{selectedPost.shares.toLocaleString()}</div>
+                      <div className="text-3xl font-bold text-foreground mb-2">{(selectedPost.shares || 0).toLocaleString()}</div>
                       <div className="text-sm text-muted-foreground">Shares</div>
                     </div>
                     <div className="text-left p-4 bg-muted/50 rounded-lg">
-                      <div className="text-3xl font-bold text-foreground mb-2">{selectedPost.comments.toLocaleString()}</div>
+                      <div className="text-3xl font-bold text-foreground mb-2">{(selectedPost.comments || 0).toLocaleString()}</div>
                       <div className="text-sm text-muted-foreground">Comments</div>
                     </div>
                     <div className="text-left p-4 bg-muted/50 rounded-lg">
-                      <div className="text-3xl font-bold text-foreground mb-2">{selectedPost.views.toLocaleString()}</div>
+                      <div className="text-3xl font-bold text-foreground mb-2">{(selectedPost.views || 0).toLocaleString()}</div>
                       <div className="text-sm text-muted-foreground">Views</div>
                     </div>
                   </div>
@@ -677,15 +697,15 @@ export default function SocialInboxPage() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between py-2">
                       <span className="text-sm text-muted-foreground">Platform:</span>
-                      <span className="text-sm text-foreground font-medium capitalize">{selectedPost.platform}</span>
+                      <span className="text-sm text-foreground font-medium capitalize">{selectedPost.platform || 'Unknown'}</span>
                     </div>
                     <div className="flex items-center justify-between py-2">
                       <span className="text-sm text-muted-foreground">Posted:</span>
-                      <span className="text-sm text-foreground font-medium">{selectedPost.timestamp}</span>
+                      <span className="text-sm text-foreground font-medium">{selectedPost.timestamp || 'Unknown'}</span>
                     </div>
                     <div className="flex items-center justify-between py-2">
                       <span className="text-sm text-muted-foreground">Author:</span>
-                      <span className="text-sm text-foreground font-medium">{selectedPost.author}</span>
+                      <span className="text-sm text-foreground font-medium">{getDisplayValue(selectedPost.author)}</span>
                     </div>
                     <div className="flex items-center justify-between py-2">
                       <span className="text-sm text-muted-foreground">Priority:</span>
@@ -694,13 +714,13 @@ export default function SocialInboxPage() {
                         selectedPost.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' :
                         'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
                       }`}>
-                        {selectedPost.priority}
+                        {selectedPost.priority || 'LOW'}
                       </span>
                     </div>
                     <div className="pt-2 border-t border-border">
                       <div className="flex items-center justify-between py-2">
                         <span className="text-sm text-muted-foreground">Relevance:</span>
-                        <span className="text-sm text-foreground font-medium">{selectedPost.relevanceScore}%</span>
+                        <span className="text-sm text-foreground font-medium">{selectedPost.relevanceScore || 0}%</span>
                       </div>
                     </div>
                   </div>
@@ -709,7 +729,7 @@ export default function SocialInboxPage() {
                 <div className="mt-6">
                   <h3 className="text-foreground font-semibold mb-3">Campaign</h3>
                   <div className="bg-muted border border-border rounded-lg px-3 py-2">
-                    <span className="text-sm text-foreground">{selectedPost.campaign}</span>
+                    <span className="text-sm text-foreground">{getDisplayValue(selectedPost.campaign)}</span>
                   </div>
                 </div>
               </div>

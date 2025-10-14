@@ -23,6 +23,9 @@ export default function StartAnalysisPage() {
   const [timeRange, setTimeRange] = useState('any')
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  
+  // Get API URL from environment variable
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://irisnet.wiredleap.com'
 
   const platforms = [
     { id: 'facebook', name: 'Facebook', icon: FacebookIcon, color: 'text-blue-500', bgColor: 'bg-blue-600', borderColor: 'border-blue-500' },
@@ -69,7 +72,7 @@ export default function StartAnalysisPage() {
       }
 
       // Create a new campaign for analysis
-      const response = await fetch('https://irisnet.wiredleap.com/api/campaigns', {
+      const response = await fetch(`${API_URL}/api/campaigns`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

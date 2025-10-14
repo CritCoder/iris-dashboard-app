@@ -1,4 +1,7 @@
-import { Users, Zap, Lightbulb } from 'lucide-react'
+import { Users, Zap, Lightbulb, Loader2 } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { AlertCircle } from 'lucide-react'
 
 // Static data to prevent flickering
 const staticInfluencerData = {
@@ -144,9 +147,33 @@ function EntityCard({ avatar, name, handle, platform, stance, followers, posts, 
   )
 }
 
-export function InfluencerTracker() {
-  // Use static data to prevent flickering
-  const influencerData = staticInfluencerData
+interface InfluencerTrackerProps {
+  data?: any
+  loading?: boolean
+  error?: string | null
+}
+
+export function InfluencerTracker({ data, loading, error }: InfluencerTrackerProps = {}) {
+  // Transform API data or use static data as fallback
+  const influencerData = data?.influencers ? {
+    influencers: data.influencers.map((inf: any) => ({
+      avatar: inf.displayName?.substring(0, 2).toUpperCase() || inf.username?.substring(0, 2).toUpperCase() || '??',
+      name: inf.displayName || inf.username || 'Unknown',
+      handle: `@${inf.username || 'unknown'}`,
+      platform: inf.platform || 'Unknown',
+      stance: inf.stance || 'Unknown',
+      followers: inf.followers || 'N/A',
+      posts: inf.totalPosts || inf.metrics?.totalPosts || 'N/A',
+      engagement: inf.engagement || inf.metrics?.totalEngagement || 'N/A',
+      viralContent: inf.viralContent ? {
+        engagement: inf.viralContent.engagement || 'N/A',
+        text: inf.viralContent.content || inf.viralContent.text || ''
+      } : undefined
+    })),
+    summary: `${data.influencers.length} key influencers tracked`,
+    insight: data.insight || 'Tracking key influencers across platforms'
+  } : staticInfluencerData
+  
   const displayData = influencerData.influencers
   const summary = influencerData.summary
   const insight = influencerData.insight
@@ -156,33 +183,71 @@ export function InfluencerTracker() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-semibold text-foreground mb-1">Influencer & Entity Tracker</h2>
-          <p className="text-sm text-muted-foreground">{summary}</p>
+          <p className="text-sm text-muted-foreground">{loading ? 'Loading...' : summary}</p>
         </div>
-        <Users className="w-5 h-5 text-muted-foreground" />
+        {loading ? (
+          <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" />
+        ) : (
+          <Users className="w-5 h-5 text-muted-foreground" />
+        )}
       </div>
 
-      <div className="space-y-4">
-        {(displayData || []).map((entity: any, index: number) => (
-          <EntityCard
-            key={index}
-            avatar={entity.avatar}
-            name={entity.name}
-            handle={entity.handle}
-            platform={entity.platform}
-            stance={entity.stance}
-            followers={entity.followers}
-            posts={entity.posts}
-            engagement={entity.engagement}
-            viralContent={entity.viralContent}
-          />
-        ))}
-      </div>
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {loading ? (
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="p-5 border border-border rounded-lg space-y-3">
+              <div className="flex items-center gap-3">
+                <Skeleton className="w-10 h-10 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {(displayData || []).map((entity: any, index: number) => (
+            <EntityCard
+              key={index}
+              avatar={entity.avatar}
+              name={entity.name}
+              handle={entity.handle}
+              platform={entity.platform}
+              stance={entity.stance}
+              followers={entity.followers}
+              posts={entity.posts}
+              engagement={entity.engagement}
+              viralContent={entity.viralContent}
+            />
+          ))}
+        </div>
+      )}
 
       <div className="mt-6 p-4 bg-muted/50 border border-border rounded-lg">
         <div className="flex items-start gap-3">
           <Lightbulb className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
           <div className="text-xs text-muted-foreground leading-relaxed">
-            <span className="font-medium text-foreground">Key Insight:</span> {insight}
+            {loading ? (
+              <Skeleton className="h-4 w-64" />
+            ) : (
+              <>
+                <span className="font-medium text-foreground">Key Insight:</span> {insight}
+              </>
+            )}
           </div>
         </div>
       </div>

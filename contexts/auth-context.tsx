@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useToast } from '@/hooks/use-toast'
+import { authApi, AuthManager } from '@/lib/api'
 
 interface User {
   id: string
@@ -51,13 +52,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       const token = localStorage.getItem('auth_token')
+      console.log('AuthContext: Checking auth, token exists:', !!token)
+      
       if (!token) {
+        console.log('AuthContext: No token found, user not authenticated')
         setUser(null)
         setLoading(false)
         return
       }
 
-      // Handle test tokens for local development
+      // Always set token in AuthManager first
+      AuthManager.setToken(token)
+      console.log('AuthContext: Token set in AuthManager')
+
+      // Handle test tokens for local development (fallback only)
       if (token.startsWith('test_token_')) {
         console.log('Using test authentication - API not available')
         // Ensure cookie is set for middleware
@@ -73,37 +81,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return
       }
 
-      const response = await fetch('https://irisnet.wiredleap.com/api/auth/me', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
+      // Use centralized API client
+      const result = await authApi.getProfile()
 
-      console.log('Auth check response status:', response.status) // Debug log
+      console.log('Auth check response:', result) // Debug log
 
-      if (response.ok) {
-        const result = await response.json()
-        console.log('Auth check response:', result) // Debug log
-        
-        if (result.success) {
-          // Ensure cookie is set for middleware
-          document.cookie = `auth_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}` // 7 days
-          setUser(result.data)
-        } else {
-          localStorage.removeItem('auth_token')
-          document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;'
-          setUser(null)
-        }
+      if (result.success && result.data) {
+        // Ensure cookie is set for middleware
+        document.cookie = `auth_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}` // 7 days
+        setUser(result.data)
       } else {
-        console.log('Auth check failed with status:', response.status)
+        console.log('Auth check failed:', result.message)
         localStorage.removeItem('auth_token')
+        AuthManager.clearToken()
         document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;'
         setUser(null)
       }
     } catch (error) {
       console.error('Auth check failed:', error)
       localStorage.removeItem('auth_token')
+      AuthManager.clearToken()
       document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;'
       setUser(null)
     } finally {
@@ -113,32 +110,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const login = async (credentials: { email: string; password: string }): Promise<boolean> => {
     try {
-      const response = await fetch('https://irisnet.wiredleap.com/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      })
-
-      const result = await response.json()
+      // Use centralized API client
+      const result = await authApi.login(credentials)
+      console.log('Login response:', result) // Debug log
 
       if (result.success && result.data?.token) {
-        localStorage.setItem('auth_token', result.data.token)
+        const token = result.data.token
+        localStorage.setItem('auth_token', token)
+        AuthManager.setToken(token)
         // Set cookie for middleware authentication check
-        document.cookie = `auth_token=${result.data.token}; path=/; max-age=${60 * 60 * 24 * 7}` // 7 days
+        document.cookie = `auth_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}` // 7 days
         setUser(result.data.user)
         success('Login successful!')
         
-        // Check for redirect parameter in URL
+        // Check for redirect parameter in URL or sessionStorage
         const urlParams = new URLSearchParams(window.location.search)
-        const redirectPath = urlParams.get('redirect')
+        let redirectPath = urlParams.get('redirect')
+        
+        // If no redirect in URL, check sessionStorage (from ProtectedRoute)
+        if (!redirectPath) {
+          redirectPath = sessionStorage.getItem('redirectPath')
+          sessionStorage.removeItem('redirectPath')
+        }
         
         // Redirect to original page or dashboard
+        console.log('Login: Redirecting to', redirectPath || '/')
         router.push(redirectPath || '/')
         return true
       } else {
-        error(result.error?.message || 'Login failed')
+        error(result.error?.message || result.message || 'Login failed')
         return false
       }
     } catch (error) {
@@ -150,48 +150,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const otpLogin = async (data: { phoneNumber: string; otp: string }): Promise<boolean> => {
     try {
-      // For testing purposes, accept any 6-digit OTP when API is not available
-      if (data.otp.length === 6 && /^\d+$/.test(data.otp)) {
-        console.log('Using test authentication - API not available')
-        
-        // Create a test user and token
-        const testToken = 'test_token_' + Date.now()
-        const testUser = {
-          id: '1',
-          email: data.phoneNumber + '@test.com',
-          name: 'Test User',
-          role: 'user'
-        }
-        
-        localStorage.setItem('auth_token', testToken)
-        // Set cookie for middleware authentication check
-        document.cookie = `auth_token=${testToken}; path=/; max-age=${60 * 60 * 24 * 7}` // 7 days
-        setUser(testUser)
-        success('Login successful! (Test Mode - API not available)')
-        
-        // Check for redirect parameter in URL
-        const urlParams = new URLSearchParams(window.location.search)
-        const redirectPath = urlParams.get('redirect')
-        
-        // Redirect to original page or dashboard
-        router.push(redirectPath || '/')
-        return true
-      } else {
-        error('Please enter a valid 6-digit OTP')
-        return false
-      }
-      
-      // Original API call (commented out due to API issues)
-      /*
-      const response = await fetch('https://irisnet.wiredleap.com/api/auth/otpLogin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      })
-
-      const result = await response.json()
+      // Use centralized API client
+      const result = await authApi.otpLogin(data)
       console.log('OTP Login Response:', result) // Debug log
 
       if (result.success) {
@@ -201,6 +161,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         
         if (token) {
           localStorage.setItem('auth_token', token)
+          AuthManager.setToken(token)
+          // Set cookie for middleware authentication check
+          document.cookie = `auth_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}` // 7 days
+          
           if (user) {
             setUser(user)
           } else {
@@ -213,8 +177,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
             })
           }
           success('Login successful!')
-          // Redirect to dashboard after successful login
-          window.location.href = '/'
+          
+          // Check for redirect parameter in URL or sessionStorage
+          const urlParams = new URLSearchParams(window.location.search)
+          let redirectPath = urlParams.get('redirect')
+          
+          // If no redirect in URL, check sessionStorage (from ProtectedRoute)
+          if (!redirectPath) {
+            redirectPath = sessionStorage.getItem('redirectPath')
+            sessionStorage.removeItem('redirectPath')
+          }
+          
+          // Redirect to original page or dashboard
+          console.log('OTP Login: Redirecting to', redirectPath || '/')
+          router.push(redirectPath || '/')
           return true
         } else {
           error('No authentication token received')
@@ -224,7 +200,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         error(result.error?.message || result.message || 'OTP verification failed')
         return false
       }
-      */
     } catch (error) {
       console.error('OTP login error:', error)
       error('OTP verification failed. Please try again.')
@@ -234,10 +209,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = () => {
     try {
+      console.log('Logout: Starting logout process...')
+      
       // Clear authentication data
       localStorage.removeItem('auth_token')
       localStorage.removeItem('user')
       sessionStorage.clear()
+      AuthManager.clearToken()
+      
+      console.log('Logout: Cleared localStorage and AuthManager')
       
       // Clear all cookies including auth_token
       document.cookie.split(";").forEach((c) => {
@@ -246,8 +226,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
           .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
       })
 
+      console.log('Logout: Cleared cookies')
+
       setUser(null)
+      console.log('Logout: User state cleared')
+      
       success('Logged out successfully')
+      console.log('Logout: Redirecting to login...')
+      
       router.push('/login')
     } catch (error) {
       console.error('Logout error:', error)

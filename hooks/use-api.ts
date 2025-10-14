@@ -11,27 +11,53 @@ export function useApi<T>(
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchData = useCallback(async () => {
+  useEffect(() => {
+    let cancelled = false
+    
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const response = await apiCall()
+        if (!cancelled) {
+          setData(response.data as T)
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.warn('API call failed:', err)
+          setError(err instanceof Error ? err.message : 'An error occurred')
+          setData(null)
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    }
+
+    fetchData()
+
+    return () => {
+      cancelled = true
+    }
+  }, [...dependencies])
+
+  const refetch = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
       const response = await apiCall()
-      setData(response.data)
+      setData(response.data as T)
     } catch (err) {
       console.warn('API call failed:', err)
       setError(err instanceof Error ? err.message : 'An error occurred')
-      // Set fallback data to prevent UI crashes
       setData(null)
     } finally {
       setLoading(false)
     }
-  }, dependencies)
+  }, [...dependencies])
 
-  useEffect(() => {
-    fetchData()
-  }, [fetchData])
-
-  return { data, loading, error, refetch: fetchData }
+  return { data, loading, error, refetch }
 }
 
 // Hook for paginated API calls
@@ -97,7 +123,7 @@ export function useAuth() {
       const response = await api.auth.login(credentials)
       if (response.success) {
         // Store token and user data
-        setUser(response.data.user)
+        setUser((response.data as any)?.user || response.data)
         return response
       }
       throw new Error(response.message || 'Login failed')
@@ -110,7 +136,7 @@ export function useAuth() {
     try {
       const response = await api.auth.otpLogin(data)
       if (response.success) {
-        setUser(response.data.user)
+        setUser((response.data as any)?.user || response.data)
         return response
       }
       throw new Error(response.message || 'OTP login failed')
@@ -167,7 +193,7 @@ export function useCampaigns(params?: {
   monitored?: boolean
 }) {
   return usePaginatedApi(
-    (page, limit) => api.campaign.getAll({ ...params, page, limit }),
+    (page, limit) => api.campaign.getAll({ ...params, page, limit }) as any,
     params?.page,
     params?.limit
   )
@@ -187,11 +213,46 @@ export function useCampaignData(id: string, params?: any) {
 
 // Social Media hooks
 export function useSocialPosts(params?: any) {
-  return usePaginatedApi(
-    (page, limit) => api.social.getPosts({ ...params, page, limit }),
-    params?.page,
-    params?.limit
-  )
+  const [data, setData] = useState<any[]>([])
+  const [pagination, setPagination] = useState({
+    page: params?.page || 1,
+    limit: params?.limit || 20,
+    total: 0,
+    totalPages: 0,
+    hasNext: false,
+    hasPrev: false,
+  })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const response = await api.social.getPosts(params)
+      if (response.success && response.data) {
+        setData(response.data as any[])
+        if ((response as any).pagination) {
+          setPagination((response as any).pagination)
+        }
+      } else {
+        setError(response.message || 'Failed to fetch posts')
+        setData([])
+      }
+    } catch (err) {
+      console.warn('Failed to fetch social posts:', err)
+      setError(err instanceof Error ? err.message : 'An error occurred')
+      setData([])
+    } finally {
+      setLoading(false)
+    }
+  }, [JSON.stringify(params)]) // Use JSON.stringify to properly detect params changes
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  return { data, pagination, loading, error, refetch: fetchData }
 }
 
 export function useSocialStats() {
@@ -209,7 +270,7 @@ export function usePost(id: string) {
 // Profile hooks
 export function useProfiles(params?: any) {
   return usePaginatedApi(
-    (page, limit) => api.profile.getAll({ ...params, page, limit }),
+    (page, limit) => api.profile.getAll({ ...params, page, limit }) as any,
     params?.page,
     params?.limit
   )
@@ -221,45 +282,123 @@ export function useProfile(id: string) {
 
 // Entity hooks
 export function useEntities(params?: any) {
-  return useApi(() => api.entity.search(params), [params])
+  const [data, setData] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      // Use search API if query is provided, otherwise use analytics
+      const response = params?.q 
+        ? await api.entity.search(params)
+        : await api.entity.getAnalytics(params)
+      
+      if (response.success && response.data) {
+        setData(Array.isArray(response.data) ? response.data : [])
+      } else {
+        setError(response.message || 'Failed to fetch entities')
+        setData([])
+      }
+    } catch (err) {
+      console.warn('Failed to fetch entities:', err)
+      setError(err instanceof Error ? err.message : 'An error occurred')
+      setData([])
+    } finally {
+      setLoading(false)
+    }
+  }, [JSON.stringify(params)])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  return { data, loading, error, refetch: fetchData }
 }
 
 export function useEntityAnalytics(params?: any) {
-  return useApi(() => api.entity.getAnalytics(params), [params])
+  return useApi(() => api.entity.getAnalytics(params), [JSON.stringify(params)])
 }
 
 export function useTopEntities(type: string, params?: any) {
-  return useApi(() => api.entity.getTop(type, params), [type, params])
+  return useApi(() => api.entity.getTop(type, params), [type, JSON.stringify(params)])
+}
+
+export function useEntityDetails(id: string, params?: any) {
+  return useApi(() => api.entity.getDetails(id, params), [id, JSON.stringify(params)])
 }
 
 // Location hooks
 export function useLocationAnalytics(params?: any) {
-  return useApi(() => api.location.getAnalytics(params), [params])
+  return useApi(() => api.location.getAnalytics(params), [JSON.stringify(params)])
 }
 
 export function useTopLocations(params?: any) {
-  return useApi(() => api.location.getTop(params), [params])
+  const [data, setData] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      // Use search API if query is provided, otherwise use top locations
+      const response = params?.q 
+        ? await api.location.search(params)
+        : await api.location.getTop(params)
+      
+      if (response.success && response.data) {
+        setData(Array.isArray(response.data) ? response.data : [])
+      } else {
+        setError(response.message || 'Failed to fetch locations')
+        setData([])
+      }
+    } catch (err) {
+      console.warn('Failed to fetch locations:', err)
+      setError(err instanceof Error ? err.message : 'An error occurred')
+      setData([])
+    } finally {
+      setLoading(false)
+    }
+  }, [JSON.stringify(params)])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  return { data, loading, error, refetch: fetchData }
+}
+
+export function useLocationDetails(id: string, params?: any) {
+  return useApi(() => api.location.getDetails(id, params), [id, JSON.stringify(params)])
+}
+
+export function useMultipleLocationDetails(params?: any) {
+  return useApi(() => api.location.getMultipleDetails(params), [JSON.stringify(params)])
 }
 
 // Political Dashboard hooks
 export function usePoliticalStats(params?: any) {
-  return useApi(() => api.political.getQuickStats(params), [params])
+  return useApi(() => api.political.getQuickStats(params), [JSON.stringify(params)])
 }
 
 export function useCampaignThemes(params?: any) {
-  return useApi(() => api.political.getCampaignThemes(params), [params])
+  return useApi(() => api.political.getCampaignThemes(params), [JSON.stringify(params)])
 }
 
 export function useInfluencerTracker(params?: any) {
-  return useApi(() => api.political.getInfluencerTracker(params), [params])
+  return useApi(() => api.political.getInfluencerTracker(params), [JSON.stringify(params)])
 }
 
 export function useOpponentNarratives(params?: any) {
-  return useApi(() => api.political.getOpponentNarratives(params), [params])
+  return useApi(() => api.political.getOpponentNarratives(params), [JSON.stringify(params)])
 }
 
 export function useSupportBaseEnergy(params?: any) {
-  return useApi(() => api.political.getSupportBaseEnergy(params), [params])
+  return useApi(() => api.political.getSupportBaseEnergy(params), [JSON.stringify(params)])
 }
 
 // OSINT hooks
@@ -277,19 +416,19 @@ export function useOSINTExternal(params: { type: string; query: string }) {
   const searchFunction = () => {
     switch (type) {
       case 'name':
-        return api.osint.mobileToName({ mobile: query })
+        return api.osint.mobileToName({ mobile_number: query, org: '', firNo: '' })
       case 'address':
-        return api.osint.mobileToAddress({ mobile: query })
+        return api.osint.mobileToAddress({ mobile_number: query, org: '', firNo: '' })
       case 'account':
-        return api.osint.mobileToAccount({ mobile: query })
+        return api.osint.mobileToAccount({ mobile_number: query, org: '', firNo: '' })
       case 'vehicle':
-        return api.osint.mobileToVehicle({ mobile: query })
+        return api.osint.mobileToVehicle({ mobile_number: query, org: '', firNo: '' })
       case 'pan':
-        return api.osint.mobileToPan({ mobile: query })
+        return api.osint.mobileToPAN({ mobile_number: query, org: '', firNo: '' })
       case 'truecaller':
-        return api.osint.truecallerSearch({ mobile: query })
+        return api.osint.truecallerSearch({ mobile_number: query, org: '', firNo: '' })
       default:
-        return Promise.resolve(null)
+        return Promise.resolve({ success: true, data: null } as any)
     }
   }
   
@@ -303,15 +442,16 @@ export function useProfileDetails(id: string) {
 
 export function useProfilePosts(id: string, params?: any) {
   return usePaginatedApi(
-    (page, limit) => api.profile.getPosts(id, { ...params, page, limit }),
-    [id, params]
+    (page, limit) => api.profile.getPosts(id, { ...params, page, limit }) as any,
+    params?.page,
+    params?.limit
   )
 }
 
 // Person hooks
 export function usePersons(params?: any) {
   return usePaginatedApi(
-    (page, limit) => api.person.getAll({ ...params, page, limit }),
+    (page, limit) => api.person.getAll({ ...params, page, limit }) as any,
     params?.page,
     params?.limit
   )
@@ -324,7 +464,7 @@ export function usePerson(id: string) {
 // User hooks
 export function useUsers(params?: any) {
   return usePaginatedApi(
-    (page, limit) => api.user.getAll({ ...params, page, limit }),
+    (page, limit) => api.user.getAll({ ...params, page, limit }) as any,
     params?.page,
     params?.limit
   )
@@ -337,7 +477,7 @@ export function useUser(id: string) {
 // Credit hooks
 export function useCredits(params?: any) {
   return usePaginatedApi(
-    (page, limit) => api.credit.getAll({ ...params, page, limit }),
+    (page, limit) => api.credit.getAll({ ...params, page, limit }) as any,
     params?.page,
     params?.limit
   )
@@ -359,7 +499,7 @@ export function useTool(id: string) {
 // Account hooks
 export function useAccounts(params?: any) {
   return usePaginatedApi(
-    (page, limit) => api.account.getAll({ ...params, page, limit }),
+    (page, limit) => api.account.getAll({ ...params, page, limit }) as any,
     params?.page,
     params?.limit
   )
@@ -372,7 +512,7 @@ export function useAccount(id: string) {
 // Incident hooks
 export function useIncidents(params?: any) {
   return usePaginatedApi(
-    (page, limit) => api.incident.getAll({ ...params, page, limit }),
+    (page, limit) => api.incident.getAll({ ...params, page, limit }) as any,
     params?.page,
     params?.limit
   )
@@ -383,9 +523,9 @@ export function useIncident(id: string) {
 }
 
 export function useCommunities(params?: any) {
-  return usePaginatedApi(() => api.communities.getCommunities(params), [params])
+  return usePaginatedApi(() => api.communities.getCommunities(params) as any, 1, 10)
 }
 
 export function useGroups(params?: any) {
-  return usePaginatedApi(() => api.groups.getGroups(params), [params])
+  return usePaginatedApi(() => api.groups.getGroups(params) as any, 1, 10)
 }

@@ -25,29 +25,6 @@ interface Location {
   riskLevel?: 'low' | 'medium' | 'high'
 }
 
-// Sample data for when API fails
-const sampleLocations: Location[] = [
-  { id: '1', name: 'Bengaluru', type: 'LOCATION', mentions: 387, lastSeen: '10/10/2025', sentiment: 'negative', trend: 'up', incidents: 12, engagement: 89, riskLevel: 'high' },
-  { id: '2', name: 'Bellandur', type: 'LOCATION', mentions: 359, lastSeen: '10/10/2025', sentiment: 'negative', trend: 'up', incidents: 8, engagement: 76, riskLevel: 'medium' },
-  { id: '3', name: 'Bangalore', type: 'LOCATION', mentions: 176, lastSeen: '10/11/2025', sentiment: 'neutral', trend: 'stable', incidents: 3, engagement: 45, riskLevel: 'low' },
-  { id: '4', name: 'Karnataka', type: 'LOCATION', mentions: 161, lastSeen: '10/10/2025', sentiment: 'neutral', trend: 'down', incidents: 2, engagement: 52, riskLevel: 'low' },
-  { id: '5', name: 'India', type: 'LOCATION', mentions: 86, lastSeen: '10/10/2025', sentiment: 'positive', trend: 'stable', incidents: 1, engagement: 34, riskLevel: 'low' },
-  { id: '6', name: 'Marathahalli', type: 'LOCATION', mentions: 83, lastSeen: '10/7/2025', sentiment: 'negative', trend: 'up', incidents: 6, engagement: 67, riskLevel: 'medium' },
-  { id: '7', name: 'BTM', type: 'LOCATION', mentions: 69, lastSeen: '10/8/2025', sentiment: 'negative', trend: 'up', incidents: 5, engagement: 58, riskLevel: 'medium' },
-  { id: '8', name: 'HSR', type: 'LOCATION', mentions: 63, lastSeen: '10/7/2025', sentiment: 'neutral', trend: 'stable', incidents: 2, engagement: 42, riskLevel: 'low' },
-  { id: '9', name: 'Kadubeesanahalli', type: 'LOCATION', mentions: 61, lastSeen: '10/8/2025', sentiment: 'negative', trend: 'up', incidents: 4, engagement: 51, riskLevel: 'medium' },
-  { id: '10', name: 'HSR Layout', type: 'LOCATION', mentions: 59, lastSeen: '10/10/2025', sentiment: 'neutral', trend: 'down', incidents: 1, engagement: 38, riskLevel: 'low' },
-  { id: '11', name: 'Chintamani', type: 'LOCATION', mentions: 52, lastSeen: '10/6/2025', sentiment: 'positive', trend: 'stable', incidents: 0, engagement: 29, riskLevel: 'low' },
-  { id: '12', name: 'Sarjapur Road', type: 'LOCATION', mentions: 49, lastSeen: '10/10/2025', sentiment: 'negative', trend: 'up', incidents: 3, engagement: 44, riskLevel: 'medium' },
-  { id: '13', name: 'Koramangala', type: 'LOCATION', mentions: 49, lastSeen: '10/7/2025', sentiment: 'neutral', trend: 'stable', incidents: 2, engagement: 36, riskLevel: 'low' },
-  { id: '14', name: 'Whitefield', type: 'LOCATION', mentions: 48, lastSeen: '10/9/2025', sentiment: 'negative', trend: 'up', incidents: 4, engagement: 43, riskLevel: 'medium' },
-  { id: '15', name: 'Sarjapur', type: 'LOCATION', mentions: 44, lastSeen: '10/9/2025', sentiment: 'neutral', trend: 'down', incidents: 1, engagement: 31, riskLevel: 'low' },
-  { id: '16', name: 'Yelahanka', type: 'LOCATION', mentions: 44, lastSeen: '10/7/2025', sentiment: 'positive', trend: 'stable', incidents: 0, engagement: 28, riskLevel: 'low' },
-  { id: '17', name: 'Green Glen Layout', type: 'LOCATION', mentions: 44, lastSeen: '10/9/2025', sentiment: 'neutral', trend: 'stable', incidents: 1, engagement: 32, riskLevel: 'low' },
-  { id: '18', name: 'Mysuru', type: 'LOCATION', mentions: 44, lastSeen: '10/8/2025', sentiment: 'positive', trend: 'down', incidents: 0, engagement: 26, riskLevel: 'low' },
-  { id: '19', name: 'Udupi', type: 'LOCATION', mentions: 43, lastSeen: '10/9/2025', sentiment: 'positive', trend: 'stable', incidents: 0, engagement: 24, riskLevel: 'low' },
-  { id: '20', name: 'Hebbal', type: 'LOCATION', mentions: 43, lastSeen: '10/8/2025', sentiment: 'neutral', trend: 'up', incidents: 2, engagement: 35, riskLevel: 'low' }
-]
 
 function LocationCard({ location, onClick }: { location: Location; onClick: () => void }) {
   const getSentimentColor = (sentiment?: string) => {
@@ -260,6 +237,7 @@ export default function LocationsPage() {
   const apiParams = useMemo(() => {
     const params: any = {
       limit: 50,
+      timeRange: '7d', // Default to 7 days
     }
 
     if (searchQuery) {
@@ -272,8 +250,8 @@ export default function LocationsPage() {
   const { data: apiLocations, loading, error } = useTopLocations(apiParams)
 
   const filteredLocations = useMemo(() => {
-    // Use API data if available, otherwise use sample data
-    const locations = apiLocations && apiLocations.length > 0 ? apiLocations : sampleLocations
+    // Use API data only
+    const locations = apiLocations || []
 
     // Apply client-side filtering
     return locations.filter(location =>
@@ -281,16 +259,29 @@ export default function LocationsPage() {
     )
   }, [apiLocations, searchQuery])
 
-  // Use sample data for filter counts when API data is not available
-  const locationsForCounts = apiLocations && apiLocations.length > 0 ? apiLocations : sampleLocations
+  // Show loading state
+  if (loading) {
+    return (
+      <PageLayout>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading locations...</p>
+          </div>
+        </div>
+      </PageLayout>
+    )
+  }
+
+  const locationsForCounts = apiLocations || []
 
   const filterOptions = [
     { id: 'all-locations', label: 'All Locations', count: locationsForCounts.length },
     { id: 'high-impact', label: 'High Impact Locations', count: locationsForCounts.filter(l => l.mentions > 100).length },
-    { id: 'trending', label: 'Trending Locations', count: locationsForCounts.filter(l => l.lastSeen === '10/10/2025').length },
+    { id: 'trending', label: 'Trending Locations', count: locationsForCounts.filter(l => l.trend === 'up').length },
     { id: 'frequently-mentioned', label: 'Frequently Mentioned', count: locationsForCounts.filter(l => l.mentions > 50).length },
-    { id: 'negative', label: 'Negative Locations', count: 0 },
-    { id: 'positive', label: 'Positive Locations', count: 0 },
+    { id: 'negative', label: 'Negative Locations', count: locationsForCounts.filter(l => l.sentiment === 'negative').length },
+    { id: 'positive', label: 'Positive Locations', count: locationsForCounts.filter(l => l.sentiment === 'positive').length },
     { id: 'controversial', label: 'Controversial', count: 0 }
   ]
 
@@ -336,16 +327,28 @@ export default function LocationsPage() {
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-              <div stagger={0.03} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-                {(filteredLocations || []).map((location) => (
-                  <Card key={location.id}>
-                    <LocationCard
-                      location={location}
-                      onClick={() => handleLocationClick(location)}
-                    />
-                  </Card>
-                ))}
-              </div>
+              {filteredLocations.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <MapPin className="w-16 h-16 text-muted-foreground/50 mb-4" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">No locations found</h3>
+                  <p className="text-muted-foreground max-w-md">
+                    {searchQuery 
+                      ? `No locations match "${searchQuery}". Try adjusting your search.`
+                      : 'No locations available at the moment. Check back later.'}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+                  {filteredLocations.map((location) => (
+                    <Card key={location.id}>
+                      <LocationCard
+                        location={location}
+                        onClick={() => handleLocationClick(location)}
+                      />
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
         </div>
       </div>

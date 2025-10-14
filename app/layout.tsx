@@ -6,6 +6,7 @@ import { AuthProvider } from '@/contexts/auth-context'
 import { ToastProvider } from '@/components/ui/toast-provider'
 import { RouteProgress } from '@/components/layout/route-progress'
 import { PageTransition } from '@/components/layout/page-transition'
+import { ProtectedRoute } from '@/components/auth/protected-route'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -28,11 +29,13 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased bg-background text-foreground`}>
         <ThemeProvider>
           <AuthProvider>
-            <ToastProvider />
-            <RouteProgress />
-            <PageTransition>
-              {children}
-            </PageTransition>
+            <ProtectedRoute>
+              <ToastProvider />
+              <RouteProgress />
+              <PageTransition>
+                {children}
+              </PageTransition>
+            </ProtectedRoute>
           </AuthProvider>
         </ThemeProvider>
       </body>
