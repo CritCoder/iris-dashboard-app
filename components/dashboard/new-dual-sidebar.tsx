@@ -57,13 +57,27 @@ interface DualSidebarProps {
   setExpandedSubMenu: (id: string | null) => void
 }
 
-function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, setExpandedSubMenu }: DualSidebarProps) {
+function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, setExpandedSubMenu, sidebarAnimationState, setSidebarAnimationState }: DualSidebarProps & { sidebarAnimationState: {[key: string]: 'entering' | 'entered' | 'exiting' | 'exited'}, setSidebarAnimationState: React.Dispatch<React.SetStateAction<{[key: string]: 'entering' | 'entered' | 'exiting' | 'exited'}>> }) {
   const pathname = usePathname()
   const [hoveredNav, setHoveredNav] = useState<string | null>(null)
   const { setIsOpen: setMobileOpen } = useMobileMenu()
 
   const toggleSubMenu = useCallback((menuId: string) => {
-    setExpandedSubMenu(expandedSubMenu === menuId ? null : menuId)
+    if (expandedSubMenu === menuId) {
+      // Closing current submenu
+      setSidebarAnimationState(prev => ({ ...prev, [menuId]: 'exiting' }))
+      setTimeout(() => {
+        setExpandedSubMenu(null)
+        setSidebarAnimationState(prev => ({ ...prev, [menuId]: 'exited' }))
+      }, 300) // Match the exit animation duration
+    } else {
+      // Opening new submenu
+      setExpandedSubMenu(menuId)
+      setSidebarAnimationState(prev => ({ ...prev, [menuId]: 'entering' }))
+      setTimeout(() => {
+        setSidebarAnimationState(prev => ({ ...prev, [menuId]: 'entered' }))
+      }, 50) // Small delay to ensure smooth transition
+    }
   }, [expandedSubMenu, setExpandedSubMenu])
 
   const exploreItems = useMemo<NavItemData[]>(() => [
@@ -373,8 +387,40 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
           }
         }
 
+        @keyframes slideOutInertia {
+          0% {
+            opacity: 1;
+            transform: translateX(0);
+          }
+          100% {
+            opacity: 0;
+            transform: translateX(-100%);
+          }
+        }
+
         .sidebar-enter {
-          animation: slideInInertia 0.6s cubic-bezier(0.23, 1, 0.320, 1) forwards;
+          animation: slideInInertia 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .sidebar-exit {
+          animation: slideOutInertia 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
+        }
+
+        .sidebar-content {
+          transform: translateX(0);
+          transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .sidebar-content.entering {
+          transform: translateX(-100%);
+        }
+
+        .sidebar-content.entered {
+          transform: translateX(0);
+        }
+
+        .sidebar-content.exiting {
+          transform: translateX(-100%);
         }
       `}</style>
 
@@ -499,7 +545,7 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
 
         {/* Submenu Sidebar - Hidden on mobile, shown on larger screens */}
         {expandedSubMenu === 'profiles' && (
-          <div className="hidden md:flex w-72 bg-background border-r border-border flex-col h-full overflow-hidden sidebar-enter">
+          <div className={`hidden md:flex w-72 bg-background border-r border-border flex-col h-full overflow-hidden sidebar-enter sidebar-content ${sidebarAnimationState['profiles'] || 'entered'}`}>
             {/* Submenu Header */}
             <div className="h-[72px] sm:h-[84px] border-b border-border px-4 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-2">
@@ -525,7 +571,7 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
 
 
         {expandedSubMenu === 'groups' && (
-          <div className="hidden md:flex w-72 bg-background border-r border-border flex-col h-full overflow-hidden sidebar-enter">
+          <div className={`hidden md:flex w-72 bg-background border-r border-border flex-col h-full overflow-hidden sidebar-enter sidebar-content ${sidebarAnimationState['groups'] || 'entered'}`}>
             {/* Submenu Header */}
             <div className="h-[72px] sm:h-[84px] border-b border-border px-4 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-2">
@@ -550,7 +596,7 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
         )}
 
         {expandedSubMenu === 'entities' && (
-          <div className="hidden md:flex w-72 bg-background border-r border-border flex-col h-full overflow-hidden sidebar-enter">
+          <div className={`hidden md:flex w-72 bg-background border-r border-border flex-col h-full overflow-hidden sidebar-enter sidebar-content ${sidebarAnimationState['entities'] || 'entered'}`}>
             {/* Submenu Header */}
             <div className="h-[72px] sm:h-[84px] border-b border-border px-4 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-2">
@@ -575,7 +621,7 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
         )}
 
         {expandedSubMenu === 'locations' && (
-          <div className="hidden md:flex w-72 bg-background border-r border-border flex-col h-full overflow-hidden sidebar-enter">
+          <div className={`hidden md:flex w-72 bg-background border-r border-border flex-col h-full overflow-hidden sidebar-enter sidebar-content ${sidebarAnimationState['locations'] || 'entered'}`}>
             {/* Submenu Header */}
             <div className="h-[72px] sm:h-[84px] border-b border-border px-4 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-2">
@@ -621,6 +667,7 @@ function DualSidebarWrapper() {
   })
 
   const [expandedSubMenu, setExpandedSubMenu] = useState<string | null>(null)
+  const [sidebarAnimationState, setSidebarAnimationState] = useState<{[key: string]: 'entering' | 'entered' | 'exiting' | 'exited'}>({})
 
   // Auto-close mobile menu on resize to desktop
   React.useEffect(() => {
@@ -660,6 +707,8 @@ function DualSidebarWrapper() {
           setActiveNavItem={setActiveNavItem}
           expandedSubMenu={expandedSubMenu}
           setExpandedSubMenu={setExpandedSubMenu}
+          sidebarAnimationState={sidebarAnimationState}
+          setSidebarAnimationState={setSidebarAnimationState}
         />
       </div>
 
