@@ -256,195 +256,260 @@ export default function SocialInboxPage() {
           title="Social Inbox"
           description="New posts from all campaigns"
           actions={
-            <div className="flex items-center gap-4">
-              {/* Search Bar */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  type="text"
-                  placeholder="Search posts..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 w-64"
-                />
+            <div className="w-full">
+              {/* Mobile: Compact Tab Toggle */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+                {/* Tab Toggle - Mobile Optimized */}
+                <div className="flex items-center bg-muted/50 rounded-md border border-border overflow-hidden w-full sm:w-auto">
+                  <button 
+                    onClick={() => setActiveTab('posts')}
+                    className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-all duration-200 border-r border-border ${
+                      activeTab === 'posts' 
+                        ? 'bg-primary/10 text-primary' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                    }`}
+                  >
+                    <span className="hidden sm:inline">Inbox Posts</span>
+                    <span className="sm:hidden">Posts</span>
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('notes')}
+                    className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-all duration-200 ${
+                      activeTab === 'notes' 
+                        ? 'bg-primary/10 text-primary' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                    }`}
+                  >
+                    <span className="hidden sm:inline">Saved Notes</span>
+                    <span className="sm:hidden">Notes</span>
+                  </button>
+                </div>
+
+                {/* Search Bar - Mobile Optimized */}
+                <div className="relative flex-1 min-w-0">
+                  <Search className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                  <Input
+                    type="text"
+                    placeholder="Search posts..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-8 sm:pl-10 w-full text-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Filters - Collapsible on Mobile */}
+              <div className="mt-3 space-y-2 sm:space-y-0">
+                {/* Primary Filters Row - Always Visible */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Sentiment Filter */}
+                  <select
+                    value={selectedSentiment}
+                    onChange={(e) => setSelectedSentiment(e.target.value)}
+                    className="appearance-none bg-background border border-border rounded-md px-2 sm:px-3 py-1.5 sm:py-2 pr-6 sm:pr-8 text-foreground text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer min-w-0 flex-1 sm:flex-none"
+                    style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
+                  >
+                    <option value="all">All Sentiments</option>
+                    <option value="POSITIVE">Positive</option>
+                    <option value="NEGATIVE">Negative</option>
+                    <option value="NEUTRAL">Neutral</option>
+                    <option value="MIXED">Mixed</option>
+                  </select>
+
+                  {/* Platform Filter */}
+                  <select
+                    value={selectedPlatform}
+                    onChange={(e) => setSelectedPlatform(e.target.value)}
+                    className="appearance-none bg-background border border-border rounded-md px-2 sm:px-3 py-1.5 sm:py-2 pr-6 sm:pr-8 text-foreground text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer min-w-0 flex-1 sm:flex-none"
+                    style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
+                  >
+                    <option value="all">All Platforms</option>
+                    <option value="twitter">Twitter</option>
+                    <option value="facebook">Facebook</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="youtube">YouTube</option>
+                    <option value="india-news">India News</option>
+                  </select>
+
+                  {/* Campaign Filter - Hidden on mobile, shown on larger screens */}
+                  <select
+                    value={selectedCampaign}
+                    onChange={(e) => setSelectedCampaign(e.target.value)}
+                    className="hidden md:block appearance-none bg-background border border-border rounded-md px-3 py-2 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 max-w-[12rem] truncate cursor-pointer"
+                    style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
+                  >
+                    <option value="all">All Campaigns</option>
+                    <option value="cmgjzn11q0001z2alaq70ckwk">Bengaluru Police</option>
+                    <option value="cmgjzjpf50001z2yqum0gfs8a">Bengaluru Police</option>
+                    <option value="cmgjz4l4k0001z2cknnhlna63">Karnataka</option>
+                    <option value="cmghzsbzu0001z2ks8m3lkqwy">Karnataka</option>
+                    <option value="cmghlcu8i00b1z2ulan0hltsc">Person: Namma Karnataka Sene</option>
+                    <option value="cmggordtg00ahz2ulvpwmh2c2">https://www.facebook.com/share/17Uviu2NRS/</option>
+                    <option value="cmggomfez00adz2ulbx65o7ta">[8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/15hQEYpsJg/ [8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/19QKn8syac/ [8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/1A6jV8udxm/ [8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/17Uviu2NRS/</option>
+                    <option value="cmgf1njtx000hz2ulnb7tt1o5">Namma Karnataka Sene</option>
+                    <option value="cmgf1hd160003z2ul846zyil1">Namma Karnataka Sene</option>
+                    <option value="cmgf0cqjl006tz21oqzh47ko2">Person: kiran_murthy_</option>
+                    <option value="cmgf0b9ox006pz21oxhlst5r7">Person: @kiranmurthy</option>
+                    <option value="cmgf09e56006lz21odzy5zkeb">PAVANKALYAN</option>
+                    <option value="cmgezjz1q0069z21olev19tk3">Person: yenri_mediaa_</option>
+                    <option value="cmgezggpq0065z21owi57rlv5">https://www.instagram.com/stories/ganesh__thanushree_/</option>
+                    <option value="cmgez9r6g005xz21orvu254i0">BANGALORE PROTEST</option>
+                    <option value="cmgeyjmsb004zz21oczivhqs2">BlrCityPolice</option>
+                    <option value="cmgeybbcj004dz21owmdvctzi">Person: @rytdwrong</option>
+                    <option value="cmgey3uou003hz21o1d7v3a8l">#pavankalyan</option>
+                    <option value="cmgexzr2e0035z21olrzgr6qr">@rytdwrong</option>
+                    <option value="cmgexxhfe002xz21oy24q4zyb">pavan kalyan visit</option>
+                    <option value="cmgexvufc002tz21opejgkg61">pavan kalyan visit</option>
+                    <option value="cmgew0hk5001dz21o26089sfy">I LOVE MOHAMMADA</option>
+                    <option value="cmgeuzzte000hz21otshx88k2">Person: BlrCityPolice</option>
+                    <option value="cmgbvyjuj005zz2quv8c7mp28">bengaluru dasara</option>
+                    <option value="cmgazwhd40031z2que2uhbuzh">the wholetruth foods</option>
+                    <option value="cmgamhaxm0019z2qu1ga00opq">social media</option>
+                    <option value="cmgaltvwr000xz2que4fq08v6">ರೈತರ ಭೂಸ್ವಾದಿನ ಹೋರಾಟ</option>
+                    <option value="cmgalozw6000pz2qu6krys0mu">gen-Z karnataka</option>
+                    <option value="cmgal9c16000dz2quurnwe3cj">Person: Kavanagala__kavitegara___anita</option>
+                    <option value="cmgal6hkn0009z2qu72fqfju2">Person: https://www.instagram.com/kavanagala__kavitegara___anita?igsh=MTlmb2dyZzl0YzVwcQ==</option>
+                    <option value="cmgal3i0p0005z2quvmfsxbjf">Person: tourismcares</option>
+                    <option value="cmgakel42001vz2dt29ptboaa">Person: kavanagala_kavitegara_anita</option>
+                    <option value="cmgak4ote001pz2dtf53lu6pq">Person: nasa</option>
+                    <option value="cmgak40vs001dz2dthcg7mzrn">Person: nasa</option>
+                    <option value="cmg4v0oeo0015z25e2napklew">women safety blr</option>
+                    <option value="cmg4uu17s000hz25eiw0gcdwe">kanakpura taluk</option>
+                    <option value="cmg4u8zpr0009z25efza5o89x">whitefield bengaluru</option>
+                    <option value="cmg4tfvqu002dz2hb48gzy7qz">whitefield</option>
+                    <option value="cmg4t110g0023z2hbxbjch5rj">bellandur</option>
+                    <option value="cmg44b9200003z25vdrgrpzi4">bengaluru police</option>
+                    <option value="cmg27ryub004xz2iwa19kbat6">dharmasthala</option>
+                    <option value="cmg1vlcou0019z2iw3jadm3wx">https://www.instagram.com/noel.sdh?igsh=ejE0dXU1dGJpNGFh</option>
+                    <option value="cmg0jamy400j5z2q4smnpy8pi">@karnatakaportfolio_</option>
+                    <option value="cmg0iwdsc00irz2q4bjjsdbip">https://www.instagram.com/share/p/BAIi6rar/M</option>
+                    <option value="cmg0irpnh00inz2q4ros3j5tp">https://www.instagram.com/share/reel/_38TPRUCC</option>
+                    <option value="cmfzfjttw00frz2q42jxyqp4k">MA SALEEM</option>
+                    <option value="cmfzfewgd00fnz2q4i5n7mqrn">BCP</option>
+                    <option value="cmfzb7lb600e9z2q441t9wd9u">manemanepolice</option>
+                    <option value="cmfxwg4fu009lz2q4uzev1rni">S L Bhyrappa</option>
+                    <option value="cmfxwezq6009hz2q4ob76nlst">S L Bhyrappa</option>
+                    <option value="cmfwptjon0049z2q43qv6v35j">vaibhavceramics2025</option>
+                    <option value="cmfwjtiuq0037z2q4hcaxf3cw">dasara</option>
+                    <option value="cmfwjsh1m0031z2q4vjqctbfz">chain snatch</option>
+                    <option value="cmfus0rj4001nz2b5if1stf0d">Banu Mushtaq</option>
+                    <option value="cmfurzgg0001jz2b56jxmo12r">Mysore Dasara</option>
+                    <option value="cmftn1zqa0017z2gnxxjcch1u">modi ji</option>
+                    <option value="cmdmvv64a0005z204lkihy0gl">@blrcitypolice</option>
+                    <option value="cmdk56kqg0001z2yxe0f73hyv">bangalore traffic</option>
+                  </select>
+
+                  {/* Reset Button */}
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      setSelectedSentiment('all')
+                      setSelectedPlatform('all')
+                      setSelectedCampaign('all')
+                      setSelectedTimeRange('24h')
+                      setSortBy('date')
+                      setSearchQuery('')
+                    }}
+                    className="bg-background hover:bg-accent border border-border hover:border-accent/50 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
+                  >
+                    Reset
+                  </Button>
+                </div>
+
+                {/* Secondary Filters Row - Hidden on mobile, shown on larger screens */}
+                <div className="hidden lg:flex flex-wrap items-center gap-2">
+                  {/* Time Range Filter */}
+                  <select
+                    value={selectedTimeRange}
+                    onChange={(e) => setSelectedTimeRange(e.target.value)}
+                    className="appearance-none bg-background border border-border rounded-md px-3 py-2 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer"
+                    style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
+                  >
+                    <option value="30m">Last 30 Minutes</option>
+                    <option value="1h">Last 1 Hour</option>
+                    <option value="6h">Last 6 Hours</option>
+                    <option value="12h">Last 12 Hours</option>
+                    <option value="24h">Last 24 Hours</option>
+                    <option value="3d">Last 3 Days</option>
+                    <option value="1w">Last Week</option>
+                    <option value="1m">Last Month</option>
+                    <option value="custom">Custom Range</option>
+                  </select>
+
+                  {/* Sort Filter */}
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="appearance-none bg-background border border-border rounded-md px-3 py-2 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer"
+                    style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
+                  >
+                    <option value="date">Sort by Date</option>
+                    <option value="relevance">Sort by Relevance</option>
+                  </select>
+                </div>
+
+                {/* Mobile: Collapsible Advanced Filters */}
+                <div className="lg:hidden">
+                  <details className="group">
+                    <summary className="flex items-center justify-between w-full p-2 text-xs text-muted-foreground hover:text-foreground cursor-pointer border border-border rounded-md bg-muted/30">
+                      <span>Advanced Filters</span>
+                      <span className="group-open:rotate-180 transition-transform">▼</span>
+                    </summary>
+                    <div className="mt-2 space-y-2 p-2 bg-muted/20 border border-border rounded-md">
+                      {/* Campaign Filter - Mobile */}
+                      <div>
+                        <label className="block text-xs text-muted-foreground mb-1">Campaign</label>
+                        <select
+                          value={selectedCampaign}
+                          onChange={(e) => setSelectedCampaign(e.target.value)}
+                          className="w-full appearance-none bg-background border border-border rounded-md px-2 py-1.5 pr-6 text-foreground text-xs focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/30 cursor-pointer"
+                          style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
+                        >
+                          <option value="all">All Campaigns</option>
+                          <option value="cmgjzn11q0001z2alaq70ckwk">Bengaluru Police</option>
+                          <option value="cmgjzjpf50001z2yqum0gfs8a">Bengaluru Police</option>
+                          <option value="cmgjz4l4k0001z2cknnhlna63">Karnataka</option>
+                        </select>
+                      </div>
+                      
+                      {/* Time Range Filter - Mobile */}
+                      <div>
+                        <label className="block text-xs text-muted-foreground mb-1">Time Range</label>
+                        <select
+                          value={selectedTimeRange}
+                          onChange={(e) => setSelectedTimeRange(e.target.value)}
+                          className="w-full appearance-none bg-background border border-border rounded-md px-2 py-1.5 pr-6 text-foreground text-xs focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/30 cursor-pointer"
+                          style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
+                        >
+                          <option value="24h">Last 24 Hours</option>
+                          <option value="1h">Last 1 Hour</option>
+                          <option value="6h">Last 6 Hours</option>
+                          <option value="3d">Last 3 Days</option>
+                          <option value="1w">Last Week</option>
+                        </select>
+                      </div>
+
+                      {/* Sort Filter - Mobile */}
+                      <div>
+                        <label className="block text-xs text-muted-foreground mb-1">Sort By</label>
+                        <select
+                          value={sortBy}
+                          onChange={(e) => setSortBy(e.target.value)}
+                          className="w-full appearance-none bg-background border border-border rounded-md px-2 py-1.5 pr-6 text-foreground text-xs focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/30 cursor-pointer"
+                          style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
+                        >
+                          <option value="date">Sort by Date</option>
+                          <option value="relevance">Sort by Relevance</option>
+                        </select>
+                      </div>
+                    </div>
+                  </details>
+                </div>
               </div>
             </div>
           }
         />
-
-        {/* Tab Toggle - Centered */}
-        <div className="flex justify-center mb-6">
-          <div className="flex items-center bg-muted/50 rounded-md border border-border overflow-hidden">
-            <button 
-              onClick={() => setActiveTab('posts')}
-              className={`px-6 py-3 text-sm font-medium transition-all duration-200 border-r border-border ${
-                activeTab === 'posts' 
-                  ? 'bg-primary/10 text-primary' 
-                  : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
-              }`}
-            >
-              Inbox Posts
-            </button>
-            <button 
-              onClick={() => setActiveTab('notes')}
-              className={`px-6 py-3 text-sm font-medium transition-all duration-200 ${
-                activeTab === 'notes' 
-                  ? 'bg-primary/10 text-primary' 
-                  : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
-              }`}
-            >
-              Saved Notes
-            </button>
-          </div>
-        </div>
-
-        {/* Filters Row */}
-        <div className="mb-6">
-          <div className="flex flex-wrap items-center gap-2 justify-center">
-            {/* Sentiment Filter */}
-            <select
-              value={selectedSentiment}
-              onChange={(e) => setSelectedSentiment(e.target.value)}
-              className="appearance-none bg-background border border-border rounded-md px-3 py-2 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer"
-              style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
-            >
-              <option value="all">All Sentiments</option>
-              <option value="POSITIVE">Positive</option>
-              <option value="NEGATIVE">Negative</option>
-              <option value="NEUTRAL">Neutral</option>
-              <option value="MIXED">Mixed</option>
-            </select>
-
-            {/* Platform Filter */}
-            <select
-              value={selectedPlatform}
-              onChange={(e) => setSelectedPlatform(e.target.value)}
-              className="appearance-none bg-background border border-border rounded-md px-3 py-2 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer"
-              style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
-            >
-              <option value="all">All Platforms</option>
-              <option value="twitter">Twitter</option>
-              <option value="facebook">Facebook</option>
-              <option value="instagram">Instagram</option>
-              <option value="youtube">YouTube</option>
-              <option value="india-news">India News</option>
-            </select>
-
-            {/* Campaign Filter */}
-            <select
-              value={selectedCampaign}
-              onChange={(e) => setSelectedCampaign(e.target.value)}
-              className="appearance-none bg-background border border-border rounded-md px-2 py-2 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 max-w-[10rem] truncate cursor-pointer"
-              style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
-            >
-              <option value="all">All Campaigns</option>
-              <option value="cmgjzn11q0001z2alaq70ckwk">Bengaluru Police</option>
-              <option value="cmgjzjpf50001z2yqum0gfs8a">Bengaluru Police</option>
-              <option value="cmgjz4l4k0001z2cknnhlna63">Karnataka</option>
-              <option value="cmghzsbzu0001z2ks8m3lkqwy">Karnataka</option>
-              <option value="cmghlcu8i00b1z2ulan0hltsc">Person: Namma Karnataka Sene</option>
-              <option value="cmggordtg00ahz2ulvpwmh2c2">https://www.facebook.com/share/17Uviu2NRS/</option>
-              <option value="cmggomfez00adz2ulbx65o7ta">[8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/15hQEYpsJg/ [8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/19QKn8syac/ [8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/1A6jV8udxm/ [8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/17Uviu2NRS/</option>
-              <option value="cmgf1njtx000hz2ulnb7tt1o5">Namma Karnataka Sene</option>
-              <option value="cmgf1hd160003z2ul846zyil1">Namma Karnataka Sene</option>
-              <option value="cmgf0cqjl006tz21oqzh47ko2">Person: kiran_murthy_</option>
-              <option value="cmgf0b9ox006pz21oxhlst5r7">Person: @kiranmurthy</option>
-              <option value="cmgf09e56006lz21odzy5zkeb">PAVANKALYAN</option>
-              <option value="cmgezjz1q0069z21olev19tk3">Person: yenri_mediaa_</option>
-              <option value="cmgezggpq0065z21owi57rlv5">https://www.instagram.com/stories/ganesh__thanushree_/</option>
-              <option value="cmgez9r6g005xz21orvu254i0">BANGALORE PROTEST</option>
-              <option value="cmgeyjmsb004zz21oczivhqs2">BlrCityPolice</option>
-              <option value="cmgeybbcj004dz21owmdvctzi">Person: @rytdwrong</option>
-              <option value="cmgey3uou003hz21o1d7v3a8l">#pavankalyan</option>
-              <option value="cmgexzr2e0035z21olrzgr6qr">@rytdwrong</option>
-              <option value="cmgexxhfe002xz21oy24q4zyb">pavan kalyan visit</option>
-              <option value="cmgexvufc002tz21opejgkg61">pavan kalyan visit</option>
-              <option value="cmgew0hk5001dz21o26089sfy">I LOVE MOHAMMADA</option>
-              <option value="cmgeuzzte000hz21otshx88k2">Person: BlrCityPolice</option>
-              <option value="cmgbvyjuj005zz2quv8c7mp28">bengaluru dasara</option>
-              <option value="cmgazwhd40031z2que2uhbuzh">the wholetruth foods</option>
-              <option value="cmgamhaxm0019z2qu1ga00opq">social media</option>
-              <option value="cmgaltvwr000xz2que4fq08v6">ರೈತರ ಭೂಸ್ವಾದಿನ ಹೋರಾಟ</option>
-              <option value="cmgalozw6000pz2qu6krys0mu">gen-Z karnataka</option>
-              <option value="cmgal9c16000dz2quurnwe3cj">Person: Kavanagala__kavitegara___anita</option>
-              <option value="cmgal6hkn0009z2qu72fqfju2">Person: https://www.instagram.com/kavanagala__kavitegara___anita?igsh=MTlmb2dyZzl0YzVwcQ==</option>
-              <option value="cmgal3i0p0005z2quvmfsxbjf">Person: tourismcares</option>
-              <option value="cmgakel42001vz2dt29ptboaa">Person: kavanagala_kavitegara_anita</option>
-              <option value="cmgak4ote001pz2dtf53lu6pq">Person: nasa</option>
-              <option value="cmgak40vs001dz2dthcg7mzrn">Person: nasa</option>
-              <option value="cmg4v0oeo0015z25e2napklew">women safety blr</option>
-              <option value="cmg4uu17s000hz25eiw0gcdwe">kanakpura taluk</option>
-              <option value="cmg4u8zpr0009z25efza5o89x">whitefield bengaluru</option>
-              <option value="cmg4tfvqu002dz2hb48gzy7qz">whitefield</option>
-              <option value="cmg4t110g0023z2hbxbjch5rj">bellandur</option>
-              <option value="cmg44b9200003z25vdrgrpzi4">bengaluru police</option>
-              <option value="cmg27ryub004xz2iwa19kbat6">dharmasthala</option>
-              <option value="cmg1vlcou0019z2iw3jadm3wx">https://www.instagram.com/noel.sdh?igsh=ejE0dXU1dGJpNGFh</option>
-              <option value="cmg0jamy400j5z2q4smnpy8pi">@karnatakaportfolio_</option>
-              <option value="cmg0iwdsc00irz2q4bjjsdbip">https://www.instagram.com/share/p/BAIi6rar/M</option>
-              <option value="cmg0irpnh00inz2q4ros3j5tp">https://www.instagram.com/share/reel/_38TPRUCC</option>
-              <option value="cmfzfjttw00frz2q42jxyqp4k">MA SALEEM</option>
-              <option value="cmfzfewgd00fnz2q4i5n7mqrn">BCP</option>
-              <option value="cmfzb7lb600e9z2q441t9wd9u">manemanepolice</option>
-              <option value="cmfxwg4fu009lz2q4uzev1rni">S L Bhyrappa</option>
-              <option value="cmfxwezq6009hz2q4ob76nlst">S L Bhyrappa</option>
-              <option value="cmfwptjon0049z2q43qv6v35j">vaibhavceramics2025</option>
-              <option value="cmfwjtiuq0037z2q4hcaxf3cw">dasara</option>
-              <option value="cmfwjsh1m0031z2q4vjqctbfz">chain snatch</option>
-              <option value="cmfus0rj4001nz2b5if1stf0d">Banu Mushtaq</option>
-              <option value="cmfurzgg0001jz2b56jxmo12r">Mysore Dasara</option>
-              <option value="cmftn1zqa0017z2gnxxjcch1u">modi ji</option>
-              <option value="cmdmvv64a0005z204lkihy0gl">@blrcitypolice</option>
-              <option value="cmdk56kqg0001z2yxe0f73hyv">bangalore traffic</option>
-            </select>
-
-            {/* Time Range Filter */}
-            <select
-              value={selectedTimeRange}
-              onChange={(e) => setSelectedTimeRange(e.target.value)}
-              className="appearance-none bg-background border border-border rounded-md px-3 py-2 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer"
-              style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
-            >
-              <option value="30m">Last 30 Minutes</option>
-              <option value="1h">Last 1 Hour</option>
-              <option value="6h">Last 6 Hours</option>
-              <option value="12h">Last 12 Hours</option>
-              <option value="24h">Last 24 Hours</option>
-              <option value="3d">Last 3 Days</option>
-              <option value="1w">Last Week</option>
-              <option value="1m">Last Month</option>
-              <option value="custom">Custom Range</option>
-            </select>
-
-            {/* Sort Filter */}
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="appearance-none bg-background border border-border rounded-md px-3 py-2 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer"
-              style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
-            >
-              <option value="date">Sort by Date</option>
-              <option value="relevance">Sort by Relevance</option>
-            </select>
-
-            {/* Reset Button */}
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => {
-                setSelectedSentiment('all')
-                setSelectedPlatform('all')
-                setSelectedCampaign('all')
-                setSelectedTimeRange('24h')
-                setSortBy('date')
-                setSearchQuery('')
-              }}
-              className="bg-background hover:bg-accent border border-border hover:border-accent/50"
-            >
-              Reset
-            </Button>
-          </div>
-        </div>
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden w-full h-full">

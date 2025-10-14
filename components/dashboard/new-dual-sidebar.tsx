@@ -69,9 +69,10 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
   const exploreItems = useMemo<NavItemData[]>(() => [
     { id: 'social-feed', label: 'Social Feed', icon: Globe, href: '/social-feed', submenu: undefined, description: 'whats happening (feed)' },
     { id: 'profiles', label: 'Profiles', icon: Users, href: '/profiles', submenu: 'profiles', description: 'who is talking' },
-    { id: 'entities', label: 'Entities', icon: Hash, href: '/entities', submenu: undefined, description: 'what is being talked about' },
-    { id: 'locations', label: 'Locations', icon: MapPin, href: '/locations', submenu: undefined, description: 'where things are happening' },
-    { id: 'communities-groups', label: 'Communities & Groups', icon: Building2, href: '/communities-groups', submenu: 'communities-groups', description: 'social communities and groups' },
+    { id: 'entities', label: 'Entities', icon: Hash, href: '/entities', submenu: 'entities', description: 'what is being talked about' },
+    { id: 'locations', label: 'Locations', icon: MapPin, href: '/locations', submenu: 'locations', description: 'where things are happening' },
+    { id: 'communities', label: 'Communities', icon: Building2, href: '/communities', submenu: 'communities', description: 'groups and communities' },
+    { id: 'groups', label: 'Groups', icon: Users, href: '/groups', submenu: 'groups', description: 'user groups and organizations' },
   ], [])
 
   const profilesSubmenu = useMemo(() => [
@@ -106,7 +107,42 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
     }
   ], [])
 
-  const communitiesGroupsSubmenu = useMemo(() => [
+  const communitiesSubmenu = useMemo(() => [
+    {
+      category: 'PRIMARY',
+      items: [
+        { id: 'all-communities-groups', label: 'All Communities & Groups', icon: Building2, href: '/communities-groups' },
+        { id: 'communities-only', label: 'Communities Only', icon: Building2, href: '/communities-groups?view=communities' },
+        { id: 'groups-only', label: 'Groups Only', icon: Users, href: '/communities-groups?view=groups' },
+      ]
+    },
+    {
+      category: 'COMMUNITY TYPE',
+      items: [
+        { id: 'political', label: 'Political Communities', icon: Building2, href: '/communities-groups?type=political' },
+        { id: 'social', label: 'Social Communities', icon: Users, href: '/communities-groups?type=social' },
+        { id: 'professional', label: 'Professional Groups', icon: Building2, href: '/communities-groups?type=professional' },
+      ]
+    },
+    {
+      category: 'GROUP TYPE',
+      items: [
+        { id: 'public-groups', label: 'Public Groups', icon: Globe, href: '/communities-groups?type=public' },
+        { id: 'private-groups', label: 'Private Groups', icon: Shield, href: '/communities-groups?type=private' },
+        { id: 'closed-groups', label: 'Closed Groups', icon: Building2, href: '/communities-groups?type=closed' },
+      ]
+    },
+    {
+      category: 'ACTIVITY & SIZE',
+      items: [
+        { id: 'high-activity', label: 'High Activity', icon: TrendingUp, href: '/communities-groups?activity=high' },
+        { id: 'large-groups', label: 'Large Groups (10k+)', icon: TrendingUp, href: '/communities-groups?size=large' },
+        { id: 'active', label: 'Recently Active', icon: BarChart3, href: '/communities-groups?status=active' },
+      ]
+    }
+  ], [])
+
+  const groupsSubmenu = useMemo(() => [
     {
       category: 'PRIMARY',
       items: [
@@ -243,7 +279,7 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
       <button
         onMouseEnter={() => setHoveredNav(item.id)}
         onMouseLeave={() => setHoveredNav(null)}
-        className={`w-full flex items-center justify-start gap-3 px-3.5 py-2.5 text-sm rounded-lg transition-all duration-300 group relative overflow-hidden ${
+        className={`w-full flex items-center justify-start gap-2 md:gap-3 px-2 md:px-3.5 py-2 md:py-2.5 text-xs md:text-sm rounded-lg transition-all duration-300 group relative overflow-hidden ${
           isActive
             ? 'bg-gradient-to-r from-blue-500/20 to-blue-500/10 text-foreground border border-blue-500/30'
             : 'text-foreground/80 hover:text-foreground hover:bg-muted/50'
@@ -252,12 +288,12 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
         {!isActive && (
           <div className="absolute inset-0 bg-gradient-to-r from-muted/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         )}
-        <div className={`transition-all duration-300 relative z-10 ${
+        <div className={`transition-all duration-300 relative z-10 flex-shrink-0 ${
           isActive ? 'text-blue-500' : 'text-foreground/70 group-hover:text-blue-500'
         }`}>
-          <item.icon size={16} strokeWidth={1.5} />
+          <item.icon size={14} className="md:w-4 md:h-4" strokeWidth={1.5} />
         </div>
-        <span className="relative z-10 text-left">{item.label}</span>
+        <span className="relative z-10 text-left truncate">{item.label}</span>
       </button>
     </Link>
   )
@@ -270,14 +306,14 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
   )
 
   const ProfilesSubmenuContent = () => (
-    <div className="space-y-6 py-6 px-4">
+    <div className="space-y-4 md:space-y-6 py-3 md:py-6 px-2 md:px-4">
       {profilesSubmenu.map((section) => (
         <div key={section.category}>
-          <div className="px-0 py-2.5 text-xs font-bold text-muted-foreground/60 tracking-widest uppercase flex items-center gap-2">
-            <div className="w-0.5 h-3 bg-gradient-to-b from-blue-500/60 to-transparent rounded-full" />
+          <div className="px-0 py-1.5 md:py-2.5 text-[10px] md:text-xs font-bold text-muted-foreground/60 tracking-widest uppercase flex items-center gap-2">
+            <div className="w-0.5 h-2 md:h-3 bg-gradient-to-b from-blue-500/60 to-transparent rounded-full" />
             {section.category}
           </div>
-          <div className="space-y-1.5 mt-4">
+          <div className="space-y-1 md:space-y-1.5 mt-2 md:mt-4">
             {section.items.map((item) => (
               <SubmenuNavItem
                 key={item.id}
@@ -291,16 +327,38 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
     </div>
   )
 
-  const CommunitiesGroupsSubmenuContent = () => (
-    <div className="space-y-6 py-6 px-4">
-      {communitiesGroupsSubmenu.map((section) => (
+  const CommunitiesSubmenuContent = () => (
+    <div className="space-y-4 md:space-y-6 py-3 md:py-6 px-2 md:px-4">
+      {communitiesSubmenu.map((section: { category: string; items: SubmenuItemData[] }) => (
         <div key={section.category}>
-          <div className="px-0 py-2.5 text-xs font-bold text-muted-foreground/60 tracking-widest uppercase flex items-center gap-2">
-            <div className="w-0.5 h-3 bg-gradient-to-b from-blue-500/60 to-transparent rounded-full" />
+          <div className="px-0 py-1.5 md:py-2.5 text-[10px] md:text-xs font-bold text-muted-foreground/60 tracking-widest uppercase flex items-center gap-2">
+            <div className="w-0.5 h-2 md:h-3 bg-gradient-to-b from-blue-500/60 to-transparent rounded-full" />
             {section.category}
           </div>
-          <div className="space-y-1.5 mt-4">
-            {section.items.map((item) => (
+          <div className="space-y-1 md:space-y-1.5 mt-2 md:mt-4">
+            {section.items.map((item: SubmenuItemData) => (
+              <SubmenuNavItem
+                key={item.id}
+                item={item}
+                isActive={pathname === item.href}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+
+  const GroupsSubmenuContent = () => (
+    <div className="space-y-4 md:space-y-6 py-3 md:py-6 px-2 md:px-4">
+      {groupsSubmenu.map((section: { category: string; items: SubmenuItemData[] }) => (
+        <div key={section.category}>
+          <div className="px-0 py-1.5 md:py-2.5 text-[10px] md:text-xs font-bold text-muted-foreground/60 tracking-widest uppercase flex items-center gap-2">
+            <div className="w-0.5 h-2 md:h-3 bg-gradient-to-b from-blue-500/60 to-transparent rounded-full" />
+            {section.category}
+          </div>
+          <div className="space-y-1 md:space-y-1.5 mt-2 md:mt-4">
+            {section.items.map((item: SubmenuItemData) => (
               <SubmenuNavItem
                 key={item.id}
                 item={item}
@@ -314,14 +372,14 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
   )
 
   const EntitiesSubmenuContent = () => (
-    <div className="space-y-6 py-6 px-4">
+    <div className="space-y-4 md:space-y-6 py-3 md:py-6 px-2 md:px-4">
       {entitiesSubmenu.map((section) => (
         <div key={section.category}>
-          <div className="px-0 py-2.5 text-xs font-bold text-muted-foreground/60 tracking-widest uppercase flex items-center gap-2">
-            <div className="w-0.5 h-3 bg-gradient-to-b from-blue-500/60 to-transparent rounded-full" />
+          <div className="px-0 py-1.5 md:py-2.5 text-[10px] md:text-xs font-bold text-muted-foreground/60 tracking-widest uppercase flex items-center gap-2">
+            <div className="w-0.5 h-2 md:h-3 bg-gradient-to-b from-blue-500/60 to-transparent rounded-full" />
             {section.category}
           </div>
-          <div className="space-y-1.5 mt-4">
+          <div className="space-y-1 md:space-y-1.5 mt-2 md:mt-4">
             {section.items.map((item) => (
               <SubmenuNavItem
                 key={item.id}
@@ -336,14 +394,14 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
   )
 
   const LocationsSubmenuContent = () => (
-    <div className="space-y-6 py-6 px-4">
+    <div className="space-y-4 md:space-y-6 py-3 md:py-6 px-2 md:px-4">
       {locationsSubmenu.map((section) => (
         <div key={section.category}>
-          <div className="px-0 py-2.5 text-xs font-bold text-muted-foreground/60 tracking-widest uppercase flex items-center gap-2">
-            <div className="w-0.5 h-3 bg-gradient-to-b from-blue-500/60 to-transparent rounded-full" />
+          <div className="px-0 py-1.5 md:py-2.5 text-[10px] md:text-xs font-bold text-muted-foreground/60 tracking-widest uppercase flex items-center gap-2">
+            <div className="w-0.5 h-2 md:h-3 bg-gradient-to-b from-blue-500/60 to-transparent rounded-full" />
             {section.category}
           </div>
-          <div className="space-y-1.5 mt-4">
+          <div className="space-y-1 md:space-y-1.5 mt-2 md:mt-4">
             {section.items.map((item) => (
               <SubmenuNavItem
                 key={item.id}
@@ -376,9 +434,9 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
         }
       `}</style>
 
-      <div className="flex h-full">
-        {/* Main Sidebar - 80 units wide */}
-        <div className="w-80 bg-background border-r border-border flex flex-col h-full overflow-hidden">
+      <div className="flex h-full w-full">
+        {/* Main Sidebar - Responsive width */}
+        <div className="w-full sm:w-80 bg-background border-r border-border flex flex-col h-full overflow-hidden">
           {/* Header */}
           <div className="h-[72px] sm:h-[84px] border-b border-border px-4 flex items-center gap-3 flex-shrink-0">
             <div className="w-9 h-9 bg-blue-500/10 rounded-md flex items-center justify-center flex-shrink-0 border border-blue-500/20">
@@ -391,7 +449,7 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
           </div>
 
           {/* Navigation Content */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden">
             <div className="px-3 py-4 space-y-1.5">
               <NavItem
                 item={{ id: 'home', label: 'Home', icon: Home, href: '/' }}
@@ -427,12 +485,24 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
               <SectionLabel label="EXPLORE" />
               <div className="px-3 space-y-1.5">
                 {exploreItems.map((item) => (
-                  <NavItem
-                    key={item.id}
-                    item={item}
-                    isActive={pathname === item.href || (item.submenu && expandedSubMenu === item.submenu)}
-                    hasSubmenu={!!item.submenu}
-                  />
+                  <div key={item.id}>
+                    <NavItem
+                      item={item}
+                      isActive={pathname === item.href || !!(item.submenu && expandedSubMenu === item.submenu)}
+                      hasSubmenu={!!item.submenu}
+                    />
+                    
+                    {/* Mobile Inline Submenu - Shows on mobile when expanded */}
+                    {item.submenu && expandedSubMenu === item.submenu && (
+                      <div className="md:hidden mt-2 ml-2 pl-4 border-l-2 border-blue-500/30 space-y-1 animate-in slide-in-from-top-2 duration-300">
+                        {item.submenu === 'profiles' && <ProfilesSubmenuContent />}
+                        {item.submenu === 'communities' && <CommunitiesSubmenuContent />}
+                        {item.submenu === 'groups' && <GroupsSubmenuContent />}
+                        {item.submenu === 'entities' && <EntitiesSubmenuContent />}
+                        {item.submenu === 'locations' && <LocationsSubmenuContent />}
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             </div>
@@ -484,9 +554,9 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
           </div>
         </div>
 
-        {/* Submenu Sidebar - 72 units wide */}
+        {/* Submenu Sidebar - Hidden on mobile, shown on larger screens */}
         {expandedSubMenu === 'profiles' && (
-          <div className="w-72 bg-background border-r border-border flex flex-col h-full overflow-hidden sidebar-enter">
+          <div className="hidden md:flex w-72 bg-background border-r border-border flex-col h-full overflow-hidden sidebar-enter">
             {/* Submenu Header */}
             <div className="h-[72px] sm:h-[84px] border-b border-border px-4 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-2">
@@ -504,14 +574,14 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
             </div>
 
             {/* Submenu Content */}
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden">
               <ProfilesSubmenuContent />
             </div>
           </div>
         )}
 
-        {expandedSubMenu === 'communities-groups' && (
-          <div className="w-72 bg-background border-r border-border flex flex-col h-full overflow-hidden sidebar-enter">
+        {expandedSubMenu === 'communities' && (
+          <div className="hidden md:flex w-72 bg-background border-r border-border flex-col h-full overflow-hidden sidebar-enter">
             {/* Submenu Header */}
             <div className="h-[72px] sm:h-[84px] border-b border-border px-4 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-2">
@@ -529,14 +599,39 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
             </div>
 
             {/* Submenu Content */}
-            <div className="flex-1 overflow-hidden">
-              <CommunitiesGroupsSubmenuContent />
+            <div className="flex-1 overflow-y-auto overflow-x-hidden">
+              <CommunitiesSubmenuContent />
+            </div>
+          </div>
+        )}
+
+        {expandedSubMenu === 'groups' && (
+          <div className="hidden md:flex w-72 bg-background border-r border-border flex-col h-full overflow-hidden sidebar-enter">
+            {/* Submenu Header */}
+            <div className="h-[72px] sm:h-[84px] border-b border-border px-4 flex items-center justify-between flex-shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                  <Users size={16} className="text-blue-500" />
+                </div>
+                <span className="text-sm font-bold text-foreground">Groups</span>
+              </div>
+              <button
+                onClick={() => toggleSubMenu('groups')}
+                className="p-1 hover:bg-muted rounded transition-all duration-300 group"
+              >
+                <X size={18} className="text-muted-foreground group-hover:text-blue-500 transition-colors" />
+              </button>
+            </div>
+
+            {/* Submenu Content */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden">
+              <GroupsSubmenuContent />
             </div>
           </div>
         )}
 
         {expandedSubMenu === 'entities' && (
-          <div className="w-72 bg-background border-r border-border flex flex-col h-full overflow-hidden sidebar-enter">
+          <div className="hidden md:flex w-72 bg-background border-r border-border flex-col h-full overflow-hidden sidebar-enter">
             {/* Submenu Header */}
             <div className="h-[72px] sm:h-[84px] border-b border-border px-4 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-2">
@@ -554,14 +649,14 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
             </div>
 
             {/* Submenu Content */}
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden">
               <EntitiesSubmenuContent />
             </div>
           </div>
         )}
 
         {expandedSubMenu === 'locations' && (
-          <div className="w-72 bg-background border-r border-border flex flex-col h-full overflow-hidden sidebar-enter">
+          <div className="hidden md:flex w-72 bg-background border-r border-border flex-col h-full overflow-hidden sidebar-enter">
             {/* Submenu Header */}
             <div className="h-[72px] sm:h-[84px] border-b border-border px-4 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-2">
@@ -579,7 +674,7 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
             </div>
 
             {/* Submenu Content */}
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden">
               <LocationsSubmenuContent />
             </div>
           </div>
@@ -607,6 +702,18 @@ function DualSidebarWrapper() {
   })
 
   const [expandedSubMenu, setExpandedSubMenu] = useState<string | null>(null)
+
+  // Auto-close mobile menu on resize to desktop
+  React.useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) { // lg breakpoint
+        setMobileOpen(false)
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [setMobileOpen])
 
   // Auto-expand submenu based on current path
   React.useEffect(() => {
@@ -639,7 +746,7 @@ function DualSidebarWrapper() {
 
       {/* Mobile Sidebar */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="p-0 w-80">
+        <SheetContent side="left" className="p-0 w-[85vw] sm:w-80 max-w-sm overflow-y-auto">
           <DualSidebarContent
             activeNavItem={activeNavItem}
             setActiveNavItem={setActiveNavItem}

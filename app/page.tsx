@@ -244,16 +244,17 @@ export default function Page() {
         title="Intelligence Dashboard"
         description="Real-time insights on narratives, opponents, and public sentiment"
         actions={
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
             <GlobalSearch />
             <Button
               variant={isCustomizing ? "default" : "outline"}
               size="sm"
               onClick={() => setIsCustomizing(!isCustomizing)}
-              className="flex items-center gap-2"
+              className="flex items-center justify-center gap-2 flex-shrink-0"
             >
               <Settings className="w-4 h-4" />
-              {isCustomizing ? 'Exit Customize' : 'Customize'}
+              <span className="hidden sm:inline">{isCustomizing ? 'Exit Customize' : 'Customize'}</span>
+              <span className="sm:hidden">Edit</span>
             </Button>
           </div>
         }
@@ -262,84 +263,102 @@ export default function Page() {
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-[1800px] mx-auto px-4 sm:px-6 py-4 sm:py-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="flex items-center justify-between mb-6">
-              <TabsList>
-                <TabsTrigger value="overview">📊 Overview</TabsTrigger>
-                <TabsTrigger value="analytics">📈 Analytics</TabsTrigger>
-                <TabsTrigger value="monitoring">🔍 Monitoring</TabsTrigger>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-6">
+              <TabsList className="w-full sm:w-auto overflow-x-auto">
+                <TabsTrigger value="overview" className="text-xs sm:text-sm whitespace-nowrap">
+                  <span className="hidden sm:inline">📊 Overview</span>
+                  <span className="sm:hidden">📊</span>
+                </TabsTrigger>
+                <TabsTrigger value="analytics" className="text-xs sm:text-sm whitespace-nowrap">
+                  <span className="hidden sm:inline">📈 Analytics</span>
+                  <span className="sm:hidden">📈</span>
+                </TabsTrigger>
+                <TabsTrigger value="monitoring" className="text-xs sm:text-sm whitespace-nowrap">
+                  <span className="hidden sm:inline">🔍 Monitoring</span>
+                  <span className="sm:hidden">🔍</span>
+                </TabsTrigger>
               </TabsList>
               <Tabs value={range} onValueChange={setRange}>
-                <TabsList>
-                  <TabsTrigger value="24h">24 Hours</TabsTrigger>
-                  <TabsTrigger value="7d">7 Days</TabsTrigger>
-                  <TabsTrigger value="30d">30 Days</TabsTrigger>
+                <TabsList className="w-full sm:w-auto">
+                  <TabsTrigger value="24h" className="text-xs sm:text-sm flex-1 sm:flex-none">
+                    <span className="hidden sm:inline">24 Hours</span>
+                    <span className="sm:hidden">24h</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="7d" className="text-xs sm:text-sm flex-1 sm:flex-none">
+                    <span className="hidden sm:inline">7 Days</span>
+                    <span className="sm:hidden">7d</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="30d" className="text-xs sm:text-sm flex-1 sm:flex-none">
+                    <span className="hidden sm:inline">30 Days</span>
+                    <span className="sm:hidden">30d</span>
+                  </TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
 
             {/* Customization Panel - Global for all tabs */}
             {isCustomizing && (
-              <div className="mb-6 p-6 bg-blue-50 dark:bg-blue-950/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <Grid3X3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                    <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">Customize Dashboard</h3>
-                    <Badge variant="secondary" className="text-xs">
-                      {Object.values(enabledCards).filter(Boolean).length} of {Object.keys(enabledCards).length} enabled
+              <div className="mb-6 p-3 sm:p-6 bg-blue-50 dark:bg-blue-950/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <Grid3X3 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                    <h3 className="text-sm sm:text-lg font-semibold text-blue-900 dark:text-blue-100">Customize Dashboard</h3>
+                    <Badge variant="secondary" className="text-[10px] sm:text-xs whitespace-nowrap">
+                      {Object.values(enabledCards).filter(Boolean).length}/{Object.keys(enabledCards).length}
                     </Badge>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={toggleAllCards}
-                    className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-100"
+                    className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-100 w-full sm:w-auto justify-center"
                   >
                     {Object.values(enabledCards).every(Boolean) ? (
                       <>
                         <EyeOff className="w-4 h-4" />
-                        Hide All
+                        <span className="text-xs sm:text-sm">Hide All</span>
                       </>
                     ) : (
                       <>
                         <Eye className="w-4 h-4" />
-                        Show All
+                        <span className="text-xs sm:text-sm">Show All</span>
                       </>
                     )}
                   </Button>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                   {dashboardCards.map((card) => {
                     const isEnabled = enabledCards[card.id as keyof typeof enabledCards]
                     return (
                     <div
                       key={card.id}
-                      className={`p-4 border-2 rounded-lg transition-all duration-200 cursor-pointer hover:shadow-md ${
+                      className={`p-3 sm:p-4 border-2 rounded-lg transition-all duration-200 cursor-pointer hover:shadow-md ${
                           isEnabled
                           ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30 shadow-md'
                           : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800/50 hover:border-blue-300'
                       }`}
                       onClick={() => toggleCard(card.id)}
                     >
-                      <div className="flex items-start gap-3">
+                      <div className="flex items-start gap-2 sm:gap-3">
                         <Checkbox
                           id={card.id}
                             checked={isEnabled}
                           onCheckedChange={() => toggleCard(card.id)}
-                          className="mt-0.5"
+                          className="mt-0.5 flex-shrink-0"
                         />
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                              <card.icon className={`w-4 h-4 ${isEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
-                              <span className={`text-sm font-medium ${isEnabled ? 'text-blue-900 dark:text-blue-100' : 'text-foreground'}`}>
+                          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                              <card.icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 ${isEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                              <span className={`text-xs sm:text-sm font-medium ${isEnabled ? 'text-blue-900 dark:text-blue-100' : 'text-foreground'}`}>
                               {card.title}
                             </span>
                               {isEnabled && (
-                              <Badge variant="default" className="text-xs bg-blue-600 text-white">
+                              <Badge variant="default" className="text-[10px] sm:text-xs bg-blue-600 text-white">
                                 Active
                               </Badge>
                             )}
                           </div>
-                            <p className={`text-xs mt-1 ${isEnabled ? 'text-blue-700 dark:text-blue-300' : 'text-muted-foreground'}`}>
+                            <p className={`text-[10px] sm:text-xs mt-1 ${isEnabled ? 'text-blue-700 dark:text-blue-300' : 'text-muted-foreground'}`}>
                             {card.description}
                           </p>
                         </div>
