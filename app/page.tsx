@@ -40,7 +40,8 @@ import {
   useOpponentNarratives,
   useSupportBaseEnergy 
 } from '@/hooks/use-api'
-// import { AnimatedPage, div, Card } from '@/components/ui/animated'
+import { motion } from 'framer-motion'
+import { staggerContainerVariants, listItemVariants, fadeInUpVariants } from '@/lib/motion'
 
 // Helper function to format numbers
 const formatNumber = (num: number): string => {
@@ -240,29 +241,29 @@ export default function Page() {
   return (
     <ProtectedRoute>
       <PageLayout>
-      <PageHeader
-        title="Intelligence Dashboard"
-        description="Real-time insights on narratives, opponents, and public sentiment"
-        actions={
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-            <GlobalSearch />
-            <Button
-              variant={isCustomizing ? "default" : "outline"}
-              size="sm"
-              onClick={() => setIsCustomizing(!isCustomizing)}
-              className="flex items-center justify-center gap-2 flex-shrink-0"
-            >
-              <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">{isCustomizing ? 'Exit Customize' : 'Customize'}</span>
-              <span className="sm:hidden">Edit</span>
-            </Button>
-          </div>
-        }
-      />
+        <PageHeader
+          title="Intelligence Dashboard"
+          description="Real-time insights on narratives, opponents, and public sentiment"
+          actions={
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+              <GlobalSearch />
+              <Button
+                variant={isCustomizing ? "default" : "outline"}
+                size="sm"
+                onClick={() => setIsCustomizing(!isCustomizing)}
+                className="flex items-center justify-center gap-2 flex-shrink-0"
+              >
+                <Settings className="w-4 h-4" />
+                <span className="hidden sm:inline">{isCustomizing ? 'Exit Customize' : 'Customize'}</span>
+                <span className="sm:hidden">Edit</span>
+              </Button>
+            </div>
+          }
+        />
 
-      <main className="flex-1 overflow-y-auto">
-        <div className="max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-8">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <main className="flex-1 overflow-y-auto">
+          <div className="max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-8">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-6">
               <TabsList className="w-full sm:w-auto overflow-x-auto">
                 <TabsTrigger value="overview" className="text-xs sm:text-sm whitespace-nowrap">
@@ -374,22 +375,36 @@ export default function Page() {
             <div className="animate-in fade-in duration-200">
 
               {/* CRITICAL ALERT BAR - Highest Priority */}
-              <div className="mb-6 p-4 bg-red-950/20 border border-red-900/50 rounded-lg">
+              <motion.div 
+                className="mb-6 p-4 bg-red-950/20 border border-red-900/50 rounded-lg"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              >
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  <motion.div 
+                    className="w-2 h-2 bg-red-500 rounded-full"
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
                   <div className="flex-1">
                     <p className="text-red-400 font-semibold text-sm">⚠️ CRITICAL ALERT</p>
                     <p className="text-red-300 text-xs">Traffic Management sentiment dropped 15% this week - Immediate attention required</p>
                   </div>
                   <Button variant="destructive" size="sm">View Details</Button>
                 </div>
-              </div>
+              </motion.div>
 
               {/* CUSTOMIZABLE 3x3 DASHBOARD GRID */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+              <motion.div 
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8"
+                variants={staggerContainerVariants}
+                initial="hidden"
+                animate="visible"
+              >
                 {/* Row 1 - Small Cards */}
                 {enabledCards['total-mentions'] && (
-                  <Card>
+                  <motion.div variants={listItemVariants}>
                     <Card className="border-2 border-blue-500/30 bg-gradient-to-br from-blue-950/40 to-blue-900/20 shadow-lg">
                       <CardContent className="p-4 sm:p-6">
                         {statsLoading ? (
@@ -419,11 +434,11 @@ export default function Page() {
                         )}
                       </CardContent>
                     </Card>
-                  </Card>
+                  </motion.div>
                 )}
 
                 {enabledCards['sentiment-score'] && (
-                  <Card>
+                  <motion.div variants={listItemVariants}>
                     <Card className="border-2 border-green-500/30 bg-gradient-to-br from-green-950/40 to-green-900/20 shadow-lg">
                       <CardContent className="p-4 sm:p-6">
                         {statsLoading ? (
@@ -453,11 +468,11 @@ export default function Page() {
                         )}
                       </CardContent>
                     </Card>
-                  </Card>
+                  </motion.div>
                 )}
 
                 {enabledCards['active-campaigns'] && (
-                  <Card>
+                  <motion.div variants={listItemVariants}>
                     <Card className="border border-border/50 bg-card/50">
                       <CardContent className="p-4 sm:p-6">
                         {themesLoading ? (
@@ -485,13 +500,13 @@ export default function Page() {
                         )}
                       </CardContent>
                     </Card>
-                  </Card>
+                  </motion.div>
                 )}
 
                 {/* Row 2 - Large Cards */}
                 {enabledCards['trending-topics'] && (
-                  <Card className="lg:col-span-2">
-                    <Card className="border-2 border-orange-500/30 bg-gradient-to-br from-orange-950/20 to-orange-900/10">
+                  <motion.div variants={listItemVariants} className="lg:col-span-2">
+                    <Card className="lg:col-span-2 border-2 border-orange-500/30 bg-gradient-to-br from-orange-950/20 to-orange-900/10">
                       <CardHeader className="pb-4">
                         <CardTitle className="flex items-center gap-2 text-orange-300">
                           <TrendingUp className="w-5 h-5" />
@@ -514,13 +529,21 @@ export default function Page() {
                             <p className="text-muted-foreground">No trending topics available</p>
                           </div>
                         ) : (
-                        <div className="space-y-3">
+                        <motion.div 
+                          className="space-y-3"
+                          variants={staggerContainerVariants}
+                          initial="hidden"
+                          animate="visible"
+                        >
                           {trendingTopics.map((topic, index) => {
                               const isHighVolume = topic.mentions > 100
                             const isNegative = topic.sentiment === 'negative'
                             return (
-                              <div 
+                              <motion.div 
                                 key={index} 
+                                variants={listItemVariants}
+                                whileHover={{ scale: 1.02, x: 4 }}
+                                whileTap={{ scale: 0.98 }}
                                 className={`flex items-center justify-between cursor-pointer p-3 rounded-lg transition-all duration-200 ${
                                   isHighVolume 
                                     ? 'bg-orange-500/10 border border-orange-400/30 hover:bg-orange-500/20' 
@@ -559,18 +582,18 @@ export default function Page() {
                                   </span>
                                     )}
                                 </div>
-                              </div>
+                              </motion.div>
                             )
                           })}
-                        </div>
+                        </motion.div>
                         )}
                       </CardContent>
                     </Card>
-                  </Card>
+                  </motion.div>
                 )}
 
                 {enabledCards['threat-level'] && (
-                  <Card>
+                  <motion.div variants={listItemVariants}>
                     <Card className="border border-border/30 bg-muted/20">
                       <CardContent className="p-6">
                         <div className="flex items-center justify-between">
@@ -588,46 +611,46 @@ export default function Page() {
                         </div>
                       </CardContent>
                     </Card>
-                  </Card>
+                  </motion.div>
                 )}
 
                 {/* Row 3 - Large Components */}
                 {enabledCards['topic-sentiment'] && (
-                  <Card className="lg:col-span-2">
+                  <motion.div variants={listItemVariants} className="lg:col-span-2">
                     <TopicSentimentHeatmap />
-                  </Card>
+                  </motion.div>
                 )}
 
                 {enabledCards['influencer-tracker'] && (
-                  <Card>
+                  <motion.div variants={listItemVariants}>
                     <InfluencerTracker 
                       data={influencerData} 
                       loading={influencerLoading} 
                       error={influencerError} 
                     />
-                  </Card>
+                  </motion.div>
                 )}
 
                 {enabledCards['opponent-narrative'] && (
-                  <Card className="lg:col-span-2">
+                  <motion.div variants={listItemVariants} className="lg:col-span-2">
                     <OpponentNarrativeWatch 
                       data={opponentData} 
                       loading={opponentLoading} 
                       error={opponentError} 
                     />
-                  </Card>
+                  </motion.div>
                 )}
 
                 {enabledCards['support-base'] && (
-                  <Card>
+                  <motion.div variants={listItemVariants}>
                     <SupportBaseEnergy 
                       data={supportBaseData} 
                       loading={supportLoading} 
                       error={supportError} 
                     />
-                  </Card>
+                  </motion.div>
                 )}
-              </div>
+              </motion.div>
 
             </div>
           </TabsContent>
@@ -636,16 +659,16 @@ export default function Page() {
             <div className="space-y-6 animate-in fade-in duration-200">
               <StatsGrid />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                <Card>
+                <div>
                   <TopicSentimentHeatmap />
-                </Card>
-                <Card>
+                </div>
+                <div>
                   <InfluencerTracker 
                     data={influencerData} 
                     loading={influencerLoading} 
                     error={influencerError} 
                   />
-                </Card>
+                </div>
               </div>
             </div>
           </TabsContent>
@@ -752,27 +775,27 @@ export default function Page() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                <Card>
+                <div>
                   <OpponentNarrativeWatch 
                     data={opponentData} 
                     loading={opponentLoading} 
                     error={opponentError} 
                   />
-                </Card>
-                <Card>
+                </div>
+                <div>
                   <SupportBaseEnergy 
                     data={supportBaseData} 
                     loading={supportLoading} 
                     error={supportError} 
                   />
-                </Card>
+                </div>
               </div>
             </div>
           </TabsContent>
-        </Tabs>
-        </div>
-      </main>
-    </PageLayout>
+          </Tabs>
+          </div>
+        </main>
+      </PageLayout>
     </ProtectedRoute>
   )
 }

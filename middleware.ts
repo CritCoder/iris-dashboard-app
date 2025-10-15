@@ -10,6 +10,8 @@ const publicRoutes = [
   '/signup/verify-otp',
   '/forgot-password/verify-otp',
   '/forgot-password/reset',
+  '/test-animations',
+  '/page-test',
 ]
 
 // Define static assets and Next.js internals to exclude from middleware

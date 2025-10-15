@@ -1,13 +1,30 @@
 'use client'
 
+import { motion, AnimatePresence } from 'framer-motion'
 import { usePathname } from 'next/navigation'
+import { scaleFadeVariants } from '@/lib/motion'
 
-export function PageTransition({ children }: { children: React.ReactNode }) {
+interface PageTransitionProps {
+  children: React.ReactNode
+  className?: string
+}
+
+export function PageTransition({ children, className }: PageTransitionProps) {
   const pathname = usePathname()
+  
   return (
-    <div key={pathname} className="animate-in fade-in-50 duration-150">
-      {children}
-    </div>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={pathname}
+        variants={scaleFadeVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        className={className}
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
   )
 }
 

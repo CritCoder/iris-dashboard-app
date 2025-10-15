@@ -38,7 +38,8 @@ import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 import { api } from '@/lib/api'
 import { ensureAuthToken } from '@/lib/auth-utils'
-import { AnimatedPage, AnimatedGrid, AnimatedCard } from '@/components/ui/animated'
+import { FadeInUp, StaggerList, StaggerItem } from '@/components/ui/animated'
+import { motion } from 'framer-motion'
 import {
   Empty,
   EmptyContent,
@@ -578,82 +579,59 @@ function SocialFeedContent() {
     return allFilters.find(f => f.id === filterId)?.label || 'All Posts'
   }
 
+  const [showSearch, setShowSearch] = useState(false)
+
   return (
     <PageLayout>
       <div className="h-screen flex flex-col overflow-hidden">
-        {/* Header */}
-        <PageHeader
-          title={getFilterLabel(activeFilter)}
-          description={
-            loading 
-              ? 'Loading posts...' 
-              : error 
-                ? 'Using sample data - API unavailable' 
-                : `${filteredPosts.length} posts loaded${hasMore ? ' (scroll for more)' : ''}`
-          }
-        />
-
-        {/* Filters Section - Compact Layout */}
+        {/* Ultra Compact Single Row Header */}
         <div className="border-b border-border bg-background">
-          <div className="p-3">
-            {/* Search Bar */}
-            <div className="relative w-full mb-3">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search posts..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 h-9 w-full text-sm bg-background/80"
-              />
-            </div>
-
-            {/* Quick Filter Buttons */}
-            <div className="flex flex-wrap items-center gap-1.5 mb-3">
+          <div className="px-3 py-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Title */}
+              <h1 className="text-base font-semibold mr-2">{getFilterLabel(activeFilter)}</h1>
+              
+              {/* Quick Filters */}
               <Button
-                variant={activeFilter === 'latest-posts' ? 'default' : 'outline'}
+                variant={activeFilter === 'latest-posts' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => handleFilterChange('latest-posts')}
-                className="h-8 px-3 rounded-full text-xs"
+                className="h-7 px-2 text-xs"
               >
                 Latest
               </Button>
               <Button
-                variant={activeFilter === 'high-impact' ? 'default' : 'outline'}
+                variant={activeFilter === 'high-impact' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => handleFilterChange('high-impact')}
-                className="h-8 px-3 rounded-full text-xs"
+                className="h-7 px-2 text-xs"
               >
-                Top Posts
+                Top
               </Button>
               <Button
-                variant={activeFilter === 'positive' ? 'default' : 'outline'}
+                variant={activeFilter === 'positive' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => handleFilterChange('positive')}
-                className="h-8 px-3 rounded-full text-xs"
+                className="h-7 px-2 text-xs"
               >
                 Positive
               </Button>
               <Button
-                variant={activeFilter === 'negative' ? 'default' : 'outline'}
+                variant={activeFilter === 'negative' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => handleFilterChange('negative')}
-                className="h-8 px-3 rounded-full text-xs"
+                className="h-7 px-2 text-xs"
               >
                 Negative
               </Button>
-            </div>
 
-            {/* Advanced Filters - Compact Row */}
-            <div className="flex flex-wrap items-center gap-2">
-              <select className="appearance-none bg-background border border-border text-foreground text-xs rounded-md px-3 py-1.5 h-8 cursor-pointer hover:bg-accent/20 transition-colors min-w-[120px]">
-                <option>All Campaigns</option>
-              </select>
+              <div className="h-4 w-px bg-border mx-1" />
 
+              {/* Compact Dropdowns */}
               <select 
                 value={selectedPlatform}
                 onChange={(e) => setSelectedPlatform(e.target.value)}
-                className="appearance-none bg-background border border-border text-foreground text-xs rounded-md px-3 py-1.5 h-8 cursor-pointer hover:bg-accent/20 transition-colors min-w-[120px]"
+                className="h-7 text-xs border-border rounded px-2 bg-transparent cursor-pointer hover:bg-accent/50"
               >
                 <option value="all">All Platforms</option>
                 <option value="facebook">Facebook</option>
@@ -665,48 +643,86 @@ function SocialFeedContent() {
               <select 
                 value={selectedMediaType}
                 onChange={(e) => setSelectedMediaType(e.target.value)}
-                className="appearance-none bg-background border border-border text-foreground text-xs rounded-md px-3 py-1.5 h-8 cursor-pointer hover:bg-accent/20 transition-colors min-w-[110px]"
+                className="h-7 text-xs border-border rounded px-2 bg-transparent cursor-pointer hover:bg-accent/50"
               >
                 <option value="all">All Media</option>
-                <option value="images">With Images</option>
-                <option value="videos">With Videos</option>
-                <option value="text">Text Only</option>
+                <option value="images">Images</option>
+                <option value="videos">Videos</option>
+                <option value="text">Text</option>
               </select>
 
               <select 
                 value={selectedTimeRange}
                 onChange={(e) => setSelectedTimeRange(e.target.value)}
-                className="appearance-none bg-background border border-border text-foreground text-xs rounded-md px-3 py-1.5 h-8 cursor-pointer hover:bg-accent/20 transition-colors min-w-[110px]"
+                className="h-7 text-xs border-border rounded px-2 bg-transparent cursor-pointer hover:bg-accent/50"
               >
                 <option value="all">All Time</option>
-                <option value="1h">Last Hour</option>
-                <option value="24h">Last 24 Hours</option>
-                <option value="7d">Last 7 Days</option>
-                <option value="30d">Last 30 Days</option>
+                <option value="1h">1h</option>
+                <option value="24h">24h</option>
+                <option value="7d">7d</option>
+                <option value="30d">30d</option>
               </select>
 
-              <Button variant="outline" size="sm" className="gap-1.5 h-8 ml-auto text-xs px-3">
-                <Download className="w-3 h-3" />
-                <span className="hidden sm:inline">Export</span>
-              </Button>
+              {/* Right Side Actions */}
+              <div className="ml-auto flex items-center gap-2">
+                <span className="text-xs text-muted-foreground hidden sm:inline">
+                  {filteredPosts.length} posts
+                </span>
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-7 w-7 p-0"
+                  onClick={() => setShowSearch(!showSearch)}
+                >
+                  <Search className="w-3.5 h-3.5" />
+                </Button>
+
+                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1">
+                  <Download className="w-3.5 h-3.5" />
+                  <span className="hidden md:inline">Export</span>
+                </Button>
+              </div>
             </div>
+
+            {/* Expandable Search */}
+            {showSearch && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="mt-2"
+              >
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Search posts..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-8 pr-4 h-8 text-xs"
+                    autoFocus
+                  />
+                </div>
+              </motion.div>
+            )}
           </div>
         </div>
 
         {/* Posts Grid */}
         <div className="flex-1 overflow-y-auto">
-          <AnimatedPage className="p-2 sm:p-3">
+          <FadeInUp className="p-2 sm:p-3">
             {loading ? (
               <FeedSkeleton />
             ) : (filteredPosts || []).length > 0 ? (
               <>
-                <AnimatedGrid stagger={0.03} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3">
+                <StaggerList speed="fast" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3">
                   {(filteredPosts || []).map((post) => (
-                    <AnimatedCard key={post.id}>
+                    <StaggerItem key={post.id}>
                       <PostCard post={post} />
-                    </AnimatedCard>
+                    </StaggerItem>
                   ))}
-                </AnimatedGrid>
+                </StaggerList>
                 
                 {/* Infinite Scroll Trigger & Load More Button */}
                 {hasMore && (
@@ -755,7 +771,7 @@ function SocialFeedContent() {
                 </EmptyHeader>
               </Empty>
             )}
-          </AnimatedPage>
+          </FadeInUp>
         </div>
       </div>
     </PageLayout>

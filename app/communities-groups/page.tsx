@@ -498,8 +498,8 @@ export default function CommunitiesGroupsPage() {
 
           {/* Entities Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(filteredEntities || []).map((entity) => (
-              <SocialEntityCard key={entity.id} entity={entity} />
+            {(filteredEntities || []).map((entity, index) => (
+              <SocialEntityCard key={`${entity.id}-${index}`} entity={entity} />
             ))}
           </div>
 
