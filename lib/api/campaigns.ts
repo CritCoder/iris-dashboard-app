@@ -71,7 +71,7 @@ export interface ApiError {
 // Get auth token from localStorage
 const getAuthToken = (): string | null => {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('auth_token');
+  return localStorage.getItem('token');
 };
 
 // Generic API request handler

@@ -29,6 +29,7 @@ import { useCampaigns } from '@/hooks/use-campaigns'
 import { usePosts, convertToPostCardFormat } from '@/hooks/use-posts'
 import { useProfiles, convertToProfileCardFormat } from '@/hooks/use-profiles'
 import { ProfileList } from '@/components/profiles/profile-list'
+import { startMonitoring, stopMonitoring } from '@/lib/api/campaigns'
 
 const samplePosts: Post[] = [
   {
@@ -173,6 +174,7 @@ export default function CampaignDetailPage() {
   })
 
   const [isMonitoring, setIsMonitoring] = useState(true)
+  const [isTogglingMonitoring, setIsTogglingMonitoring] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [activeAnalysisTab, setActiveAnalysisTab] = useState<'social-feed' | 'profiles' | 'entities' | 'locations' | 'notifications'>('social-feed')
   const [expandedTabs, setExpandedTabs] = useState<Set<string>>(new Set())
@@ -181,6 +183,9 @@ export default function CampaignDetailPage() {
 
   // Find the current campaign from the campaigns list
   const currentCampaign = campaigns?.find(campaign => campaign.id === campaignId)
+  
+  // Initialize monitoring state based on campaign data
+  const actualMonitoringStatus = currentCampaign?.monitoringStatus === 'ACTIVE'
 
   // Convert API posts to PostCard format and apply filters
   const allPosts = postsData ? postsData.map(convertToPostCardFormat) : []
@@ -425,6 +430,43 @@ export default function CampaignDetailPage() {
     setExpandedTabs(newExpanded)
   }
 
+  // Handle monitoring toggle
+  const handleToggleMonitoring = async () => {
+    if (!campaignId) return
+    
+    setIsTogglingMonitoring(true)
+    try {
+      if (isMonitoring) {
+        await stopMonitoring(campaignId)
+        setIsMonitoring(false)
+      } else {
+        await startMonitoring(campaignId, 5) // Default interval of 5 minutes
+        setIsMonitoring(true)
+      }
+    } catch (error) {
+      console.error('Monitoring toggle failed:', error)
+      alert(error instanceof Error ? error.message : 'Failed to update monitoring status')
+    } finally {
+      setIsTogglingMonitoring(false)
+    }
+  }
+
+  // Handle stop monitoring
+  const handleStopMonitoring = async () => {
+    if (!campaignId) return
+    
+    setIsTogglingMonitoring(true)
+    try {
+      await stopMonitoring(campaignId)
+      setIsMonitoring(false)
+    } catch (error) {
+      console.error('Stop monitoring failed:', error)
+      alert(error instanceof Error ? error.message : 'Failed to stop monitoring')
+    } finally {
+      setIsTogglingMonitoring(false)
+    }
+  }
+
   const handleExportPDF = async () => {
     if (!contentRef.current) return
 
@@ -500,7 +542,7 @@ export default function CampaignDetailPage() {
                     currentCampaign?.name || 'Campaign Not Found'
                   )}
                 </h1>
-                {isMonitoring && (
+                {actualMonitoringStatus && (
                   <div className="flex items-center gap-1.5 px-2 py-1 bg-green-500/10 border border-green-500/20 rounded-md">
                     <div className="relative flex items-center justify-center">
                       <div className="absolute w-1.5 h-1.5 bg-green-500 rounded-full animate-ping opacity-75"></div>
@@ -626,10 +668,20 @@ export default function CampaignDetailPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1.5 bg-yellow-900/20 border-yellow-800 text-yellow-400 hover:bg-yellow-900/30 h-8 px-3"
-                onClick={() => setIsMonitoring(!isMonitoring)}
+                className={`gap-1.5 h-8 px-3 transition-colors ${
+                  isMonitoring 
+                    ? 'bg-cyan-900/20 border-cyan-800 text-cyan-400 hover:bg-cyan-900/30' 
+                    : 'bg-gray-900/20 border-gray-800 text-gray-400 hover:bg-gray-900/30'
+                }`}
+                onClick={handleToggleMonitoring}
+                disabled={isTogglingMonitoring}
               >
-                {isMonitoring ? (
+                {isTogglingMonitoring ? (
+                  <>
+                    <RefreshCw className="w-3 h-3 animate-spin" />
+                    {isMonitoring ? 'Pausing...' : 'Starting...'}
+                  </>
+                ) : isMonitoring ? (
                   <>
                     <Square className="w-3 h-3" />
                     Pause
@@ -637,7 +689,7 @@ export default function CampaignDetailPage() {
                 ) : (
                   <>
                     <Play className="w-3 h-3" />
-                    Resume
+                    Start
                   </>
                 )}
               </Button>
@@ -645,9 +697,14 @@ export default function CampaignDetailPage() {
                 variant="outline"
                 size="sm"
                 className="gap-1.5 bg-red-900/20 border-red-800 text-red-400 hover:bg-red-900/30 h-8 px-3"
-                onClick={() => setIsMonitoring(false)}
+                onClick={handleStopMonitoring}
+                disabled={isTogglingMonitoring}
               >
-                <Square className="w-3 h-3" />
+                {isTogglingMonitoring ? (
+                  <RefreshCw className="w-3 h-3 animate-spin" />
+                ) : (
+                  <Square className="w-3 h-3" />
+                )}
                 Stop
               </Button>
               <Link href="/analysis-history">
@@ -774,8 +831,8 @@ export default function CampaignDetailPage() {
                                   // Handle post filtering (existing logic)
                                   let newFilters = {}
 
-                                  if (subItem.params?.sentiment) {
-                                    newFilters = { sentiment: subItem.params.sentiment }
+                                  if (subItem.params && 'sentiment' in subItem.params) {
+                                    newFilters = { sentiment: (subItem.params as any).sentiment }
                                   } else if (subItem.name === 'High Impact') {
                                     newFilters = { minLikesCount: 1000, minSharesCount: 500 }
                                   } else if (subItem.name === 'Viral Negative') {

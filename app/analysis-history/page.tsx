@@ -85,7 +85,7 @@ function CampaignRow({
   const displayStatus = campaign.status.toLowerCase() as 'active' | 'inactive' | 'completed'
 
   const handleRowClick = () => {
-    router.push(`/analysis-history/${campaign.id}`)
+    router.push(`/campaign/${campaign.id}`)
   }
 
   const handleDelete = async (e: React.MouseEvent) => {
@@ -115,7 +115,7 @@ function CampaignRow({
   return (
     <div
       onClick={handleRowClick}
-      className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border-b border-border hover:bg-accent/20 transition-colors gap-3 cursor-pointer"
+      className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border-b border-border hover:bg-accent/20 transition-colors gap-3 cursor-pointer group"
     >
       <div className="flex-1 min-w-0">
         <h3 className="text-foreground font-medium mb-1 hover:text-blue-400 transition-colors">
@@ -163,41 +163,40 @@ function CampaignRow({
               <Eye className="w-4 sm:w-5 h-4 sm:h-5" />
               <span className="text-sm font-medium">View</span>
             </button>
+            {/* Monitor Toggle Icon */}
             <button
               onClick={handleToggleMonitoring}
               disabled={isToggling}
-              className={`px-3 py-2 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${
-                isMonitoring
-                  ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
-                  : 'bg-gray-500/20 text-gray-400 hover:bg-gray-500/30'
-              }`}
-              title={isMonitoring ? 'Active - Click to pause' : 'Paused - Click to activate'}
+              title={isMonitoring ? 'Stop Monitoring' : 'Start Monitoring'}
+              className="p-1 rounded transition-colors hover:bg-gray-700/40 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isToggling ? (
-                <Loader2 className="w-4 sm:w-5 h-4 sm:h-5 animate-spin" />
+                <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
               ) : isMonitoring ? (
-                <>
-                  <Pause className="w-4 sm:w-5 h-4 sm:h-5" />
-                  <span className="text-sm font-medium">Pause</span>
-                </>
+                <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
               ) : (
-                <>
-                  <svg className="w-4 sm:w-5 h-4 sm:h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z"/>
-                  </svg>
-                  <span className="text-sm font-medium">Start</span>
-                </>
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.269-2.944-9.543-7a9.966 9.966 0 012.164-3.338m3.086-2.14A9.953 9.953 0 0112 5c4.478 0 8.269 2.943 9.543 7a9.965 9.965 0 01-1.249 2.592M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3l18 18" />
+                </svg>
               )}
             </button>
-            <button 
+            {/* Delete Button - Hidden by default, shows on hover */}
+            <button
               onClick={handleDelete}
               disabled={isDeleting}
-              className="p-2 hover:bg-accent/30 rounded-lg transition-colors text-foreground/70 hover:text-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-400/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Delete Campaign"
             >
               {isDeleting ? (
-                <Loader2 className="w-4 sm:w-5 h-4 sm:h-5 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <Trash2 className="w-4 sm:w-5 h-4 sm:h-5" />
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
               )}
             </button>
           </div>
@@ -286,12 +285,15 @@ export default function AnalysisHistoryPage() {
     try {
       if (isActive) {
         await stopMonitoring(id)
+        // Update local state immediately
+        setCampaigns(prev => prev.map(c => c.id === id ? { ...c, monitoringStatus: 'INACTIVE' } : c))
       } else {
-        await startMonitoring(id)
+        await startMonitoring(id, 5) // Default interval of 5 minutes
+        // Update local state immediately
+        setCampaigns(prev => prev.map(c => c.id === id ? { ...c, monitoringStatus: 'ACTIVE' } : c))
       }
-      // Refresh the list
-      await fetchCampaigns()
     } catch (err) {
+      console.error('Monitoring toggle failed:', err)
       alert(err instanceof Error ? err.message : 'Failed to update monitoring status')
     }
   }
@@ -418,7 +420,7 @@ export default function AnalysisHistoryPage() {
               </div>
             </div>
           ) : campaigns.length > 0 ? (
-            <AnimatedList stagger={0.03} className="divide-y divide-border list-animate-in">
+            <AnimatedList className="divide-y divide-border list-animate-in">
               {campaigns.map((campaign) => (
                 <AnimatedItem key={campaign.id}>
                   <CampaignRow 

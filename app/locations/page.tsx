@@ -9,16 +9,23 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
-import { useLocationAnalytics, useTopLocations } from '@/hooks/use-api'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { useLocationAnalytics } from '@/hooks/use-api'
 // import { AnimatedPage, div, Card } from '@/components/ui/animated'
 
 interface Location {
   id: string
   name: string
-  type: 'LOCATION'
-  mentions: number
+  type: string
+  category?: string
+  totalMentions: number
   lastSeen: string
-  sentiment?: 'positive' | 'negative' | 'neutral'
+  sentiment?: {
+    positive: number
+    negative: number
+    neutral: number
+    mixed?: number
+  }
   trend?: 'up' | 'down' | 'stable'
   incidents?: number
   engagement?: number
@@ -27,8 +34,19 @@ interface Location {
 
 
 function LocationCard({ location, onClick }: { location: Location; onClick: () => void }) {
-  const getSentimentColor = (sentiment?: string) => {
-    switch (sentiment) {
+  // Calculate dominant sentiment from sentiment object
+  const getDominantSentiment = (sentiment?: Location['sentiment']) => {
+    if (!sentiment) return 'neutral'
+    const { positive = 0, negative = 0, neutral = 0 } = sentiment
+    const max = Math.max(positive, negative, neutral)
+    if (max === positive) return 'positive'
+    if (max === negative) return 'negative'
+    return 'neutral'
+  }
+
+  const getSentimentColor = (sentiment?: Location['sentiment']) => {
+    const dominant = getDominantSentiment(sentiment)
+    switch (dominant) {
       case 'positive': return 'text-green-600 bg-green-50 dark:bg-green-950/20'
       case 'negative': return 'text-red-600 bg-red-50 dark:bg-red-950/20'
       default: return 'text-gray-600 bg-gray-50 dark:bg-gray-950/20'
@@ -80,7 +98,7 @@ function LocationCard({ location, onClick }: { location: Location; onClick: () =
         <div className="flex items-center gap-1">
           {getTrendIcon(location.trend)}
           <span className="text-xs text-muted-foreground">
-            {location.mentions} mentions
+            {location.totalMentions} mentions
           </span>
         </div>
       </div>
@@ -113,7 +131,7 @@ function LocationCard({ location, onClick }: { location: Location; onClick: () =
         <div className="flex items-center gap-2">
           {location.sentiment && (
             <span className={`text-xs px-2 py-1 rounded-full font-medium ${getSentimentColor(location.sentiment)}`}>
-              {location.sentiment.toUpperCase()}
+              {getDominantSentiment(location.sentiment).toUpperCase()}
             </span>
           )}
           {location.trend && (
@@ -124,7 +142,7 @@ function LocationCard({ location, onClick }: { location: Location; onClick: () =
           )}
         </div>
         <div className="text-xs text-muted-foreground">
-          {location.lastSeen}
+          {new Date(location.lastSeen).toLocaleDateString()}
         </div>
       </div>
 
@@ -165,6 +183,7 @@ function FilterItem({
   isActive = false, 
   hasSubmenu = false, 
   onClick,
+  onSelect,
   count,
   submenuItems
 }: { 
@@ -172,6 +191,7 @@ function FilterItem({
   isActive?: boolean
   hasSubmenu?: boolean
   onClick?: () => void
+  onSelect?: (value?: string) => void
   count?: number
   submenuItems?: { label: string; value: string }[]
 }) {
@@ -209,7 +229,7 @@ function FilterItem({
           {submenuItems.map((item) => (
             <button
               key={item.value}
-              onClick={onClick}
+              onClick={() => onSelect ? onSelect(item.value) : onClick && onClick()}
               className="w-full flex items-start px-3 py-1.5 rounded-lg text-xs transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
             >
               {item.label}
@@ -226,28 +246,32 @@ export default function LocationsPage() {
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [activeFilter, setActiveFilter] = useState('all-locations')
+  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({})
 
   const handleLocationClick = (location: Location) => {
-    // Convert location name to URL-friendly format
-    const locationSlug = location.name.toLowerCase().replace(/\s+/g, '-')
-    router.push(`/locations/${locationSlug}`)
+    // Use location ID for navigation
+    router.push(`/locations/${location.id}`)
   }
 
   // Build API params based on search and filter
   const apiParams = useMemo(() => {
-    const params: any = {
-      limit: 50,
-      timeRange: '7d', // Default to 7 days
-    }
+    const params: any = {}
 
-    if (searchQuery) {
-      params.q = searchQuery
-    }
+    // Add search query if present
+    if (searchQuery) params.q = searchQuery
+    if (activeFilters.query) params.q = activeFilters.query
+
+    // Add active filters to params
+    Object.keys(activeFilters).forEach(key => {
+      if (activeFilters[key]) {
+        params[key] = activeFilters[key]
+      }
+    })
 
     return params
-  }, [searchQuery])
+  }, [searchQuery, activeFilters])
 
-  const { data: apiLocations, loading, error } = useTopLocations(apiParams)
+  const { data: apiLocations, loading, error, refetch } = useLocationAnalytics(apiParams)
 
   const filteredLocations = useMemo(() => {
     // Use API data only
@@ -275,13 +299,23 @@ export default function LocationsPage() {
 
   const locationsForCounts = apiLocations || []
 
+  // Calculate dominant sentiment for filtering
+  const getDominantSentimentForLocation = (location: Location) => {
+    if (!location.sentiment) return 'neutral'
+    const { positive = 0, negative = 0, neutral = 0 } = location.sentiment
+    const max = Math.max(positive, negative, neutral)
+    if (max === positive) return 'positive'
+    if (max === negative) return 'negative'
+    return 'neutral'
+  }
+
   const filterOptions = [
     { id: 'all-locations', label: 'All Locations', count: locationsForCounts.length },
-    { id: 'high-impact', label: 'High Impact Locations', count: locationsForCounts.filter(l => l.mentions > 100).length },
+    { id: 'high-impact', label: 'High Impact Locations', count: locationsForCounts.filter(l => l.totalMentions > 100).length },
     { id: 'trending', label: 'Trending Locations', count: locationsForCounts.filter(l => l.trend === 'up').length },
-    { id: 'frequently-mentioned', label: 'Frequently Mentioned', count: locationsForCounts.filter(l => l.mentions > 50).length },
-    { id: 'negative', label: 'Negative Locations', count: locationsForCounts.filter(l => l.sentiment === 'negative').length },
-    { id: 'positive', label: 'Positive Locations', count: locationsForCounts.filter(l => l.sentiment === 'positive').length },
+    { id: 'frequently-mentioned', label: 'Frequently Mentioned', count: locationsForCounts.filter(l => l.totalMentions > 50).length },
+    { id: 'negative', label: 'Negative Locations', count: locationsForCounts.filter(l => getDominantSentimentForLocation(l) === 'negative').length },
+    { id: 'positive', label: 'Positive Locations', count: locationsForCounts.filter(l => getDominantSentimentForLocation(l) === 'positive').length },
     { id: 'controversial', label: 'Controversial', count: 0 }
   ]
 
@@ -312,6 +346,44 @@ export default function LocationsPage() {
                     All Locations
                     <X className="w-3 h-3 cursor-pointer" />
                   </Badge>
+
+                  {/* Platform filter */}
+                  <div className="relative">
+                    <FilterItem
+                      label={activeFilters.platform ? `Platform: ${activeFilters.platform}` : 'Platform'}
+                      hasSubmenu
+                      onSelect={(value?: string) => {
+                        setActiveFilters(prev => ({ ...prev, platform: value || '' }))
+                        setActiveFilter('platform')
+                      }}
+                      submenuItems={[
+                        { label: 'All', value: '' },
+                        { label: 'twitter', value: 'twitter' },
+                        { label: 'facebook', value: 'facebook' },
+                        { label: 'instagram', value: 'instagram' },
+                        { label: 'youtube', value: 'youtube' },
+                      ]}
+                    />
+                  </div>
+
+                  {/* Sentiment filter */}
+                  <div className="relative">
+                    <FilterItem
+                      label={activeFilters.sentiment ? `Sentiment: ${activeFilters.sentiment}` : 'Sentiment'}
+                      hasSubmenu
+                      onSelect={(value?: string) => {
+                        setActiveFilters(prev => ({ ...prev, sentiment: value || '' }))
+                        setActiveFilter('sentiment')
+                      }}
+                      submenuItems={[
+                        { label: 'All', value: '' },
+                        { label: 'POSITIVE', value: 'POSITIVE' },
+                        { label: 'NEGATIVE', value: 'NEGATIVE' },
+                        { label: 'NEUTRAL', value: 'NEUTRAL' },
+                        { label: 'MIXED', value: 'MIXED' },
+                      ]}
+                    />
+                  </div>
                 </div>
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -323,10 +395,135 @@ export default function LocationsPage() {
                     className="pl-10 w-full"
               />
                 </div>
+                {/* Mobile Filters */}
+                <div className="flex items-center gap-2">
+                  <Sheet>
+                    <SheetTrigger asChild>
+                      <Button variant="outline" size="sm" className="lg:hidden">Filters</Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="p-0 w-[85%] max-w-sm">
+                      <div className="p-4 sm:p-6 overflow-y-auto h-full">
+                        <SheetHeader>
+                          <SheetTitle>Filters</SheetTitle>
+                        </SheetHeader>
+                        <div className="mt-4">
+                          <FilterSection title="PRIMARY">
+                            <FilterItem label="All Locations" isActive={activeFilter === 'all-locations'} onClick={() => { setActiveFilter('all-locations'); setActiveFilters({}) }} />
+                            <FilterItem label="High Impact Locations" isActive={activeFilter === 'high-impact'} onClick={() => { setActiveFilter('high-impact'); setActiveFilters({ minMentions: '100' }) }} />
+                            <FilterItem label="Trending Locations" isActive={activeFilter === 'trending'} onClick={() => { setActiveFilter('trending'); setActiveFilters({ timeRange: '24h' }) }} />
+                            <FilterItem label="Frequently Mentioned" isActive={activeFilter === 'frequently-mentioned'} onClick={() => { setActiveFilter('frequently-mentioned'); setActiveFilters({ sortBy: 'totalMentions', order: 'desc' }) }} />
+                          </FilterSection>
+
+                          <FilterSection title="SENTIMENT BASED">
+                            <FilterItem label="Negative Locations" isActive={activeFilter === 'negative'} onClick={() => { setActiveFilter('negative'); setActiveFilters({ sentiment: 'NEGATIVE' }) }} />
+                            <FilterItem label="Positive Locations" isActive={activeFilter === 'positive'} onClick={() => { setActiveFilter('positive'); setActiveFilters({ sentiment: 'POSITIVE' }) }} />
+                            <FilterItem label="Controversial" isActive={activeFilter === 'controversial'} onClick={() => { setActiveFilter('controversial'); setActiveFilters({ sentiment: 'MIXED' }) }} />
+                          </FilterSection>
+
+                          <FilterSection title="POLICE DIVISIONS">
+                            {['Whitefield Division','South East Division','Central Division','Northeast Division','East Division','North Division'].map((division) => (
+                              <FilterItem key={division} label={division} onClick={() => { setActiveFilter(division); setActiveFilters({ division }) }} />
+                            ))}
+                          </FilterSection>
+                        </div>
+                      </div>
+                    </SheetContent>
+                  </Sheet>
+                </div>
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6">
+            <div className="flex-1 overflow-hidden">
+              <div className="h-full w-full grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-0">
+                {/* Left Sidebar Filters */}
+                <div className="hidden lg:block border-r border-border overflow-y-auto p-4 pt-2">
+                  <div className="space-y-6">
+                    <FilterSection title="PRIMARY">
+                      <FilterItem 
+                        label="All Locations" 
+                        isActive={activeFilter === 'all-locations'}
+                        onClick={() => {
+                          setActiveFilter('all-locations')
+                          setActiveFilters({})
+                        }}
+                      />
+                      <FilterItem 
+                        label="High Impact Locations"
+                        isActive={activeFilter === 'high-impact'}
+                        onClick={() => {
+                          setActiveFilter('high-impact')
+                          setActiveFilters({ minMentions: '100' })
+                        }}
+                      />
+                      <FilterItem 
+                        label="Trending Locations"
+                        isActive={activeFilter === 'trending'}
+                        onClick={() => {
+                          setActiveFilter('trending')
+                          setActiveFilters({ timeRange: '24h' })
+                        }}
+                      />
+                      <FilterItem 
+                        label="Frequently Mentioned"
+                        isActive={activeFilter === 'frequently-mentioned'}
+                        onClick={() => {
+                          setActiveFilter('frequently-mentioned')
+                          setActiveFilters({ sortBy: 'totalMentions' })
+                        }}
+                      />
+                    </FilterSection>
+
+                    <FilterSection title="SENTIMENT BASED">
+                      <FilterItem 
+                        label="Negative Locations"
+                        isActive={activeFilter === 'negative'}
+                        onClick={() => {
+                          setActiveFilter('negative')
+                          setActiveFilters({ sentiment: 'NEGATIVE' })
+                        }}
+                      />
+                      <FilterItem 
+                        label="Positive Locations"
+                        isActive={activeFilter === 'positive'}
+                        onClick={() => {
+                          setActiveFilter('positive')
+                          setActiveFilters({ sentiment: 'POSITIVE' })
+                        }}
+                      />
+                      <FilterItem 
+                        label="Controversial"
+                        isActive={activeFilter === 'controversial'}
+                        onClick={() => {
+                          setActiveFilter('controversial')
+                          setActiveFilters({ sentiment: 'MIXED' })
+                        }}
+                      />
+                    </FilterSection>
+
+                    <FilterSection title="POLICE DIVISIONS">
+                      {[
+                        'Whitefield Division',
+                        'South East Division',
+                        'Central Division',
+                        'Northeast Division',
+                        'East Division',
+                        'North Division',
+                      ].map((division) => (
+                        <FilterItem
+                          key={division}
+                          label={division}
+                          onClick={() => {
+                            setActiveFilter(division)
+                            setActiveFilters({ division })
+                          }}
+                        />
+                      ))}
+                    </FilterSection>
+                  </div>
+                </div>
+
+                {/* Main grid */}
+                <div className="overflow-y-auto p-3 sm:p-4 lg:p-6">
               {filteredLocations.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center">
                   <MapPin className="w-16 h-16 text-muted-foreground/50 mb-4" />
@@ -349,6 +546,8 @@ export default function LocationsPage() {
                   ))}
                 </div>
               )}
+                </div>
+              </div>
             </div>
         </div>
       </div>

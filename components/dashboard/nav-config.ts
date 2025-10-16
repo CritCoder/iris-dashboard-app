@@ -1,7 +1,6 @@
 import {
   Home, Mail, Play, BarChart3, Globe, Users, Hash, MapPin, Building2,
-  Search, TrendingUp, TrendingDown, Eye, MessageSquare, ThumbsDown, ThumbsUp,
-  Twitter, Facebook, Instagram, Shield
+  Search, Shield
 } from 'lucide-react'
 
 export interface NavItem {
@@ -70,44 +69,21 @@ export const navConfig: NavSection[] = [
         label: 'Profiles',
         icon: Users,
         href: '/profiles',
-        description: 'Who is talking',
-        submenu: [
-          { id: 'all-authors', label: 'All Authors', icon: Users, href: '/profiles' },
-          { id: 'high-impact', label: 'High Impact', icon: TrendingUp, href: '/profiles?filter=high-impact' },
-          { id: 'high-reach', label: 'High Reach', icon: Eye, href: '/profiles?filter=high-reach' },
-          { id: 'engaged-posters', label: 'Engaged Posters', icon: MessageSquare, href: '/profiles?filter=engaged' },
-          { id: 'negative-influencers', label: 'Negative', icon: ThumbsDown, href: '/profiles?filter=negative' },
-          { id: 'positive-influencers', label: 'Positive', icon: ThumbsUp, href: '/profiles?filter=positive' },
-          { id: 'twitter', label: 'Twitter', icon: Twitter, href: '/profiles?platform=twitter' },
-          { id: 'facebook', label: 'Facebook', icon: Facebook, href: '/profiles?platform=facebook' },
-          { id: 'instagram', label: 'Instagram', icon: Instagram, href: '/profiles?platform=instagram' }
-        ]
+        description: 'Who is talking'
       },
       {
         id: 'entities',
         label: 'Entities',
         icon: Hash,
         href: '/entities',
-        description: 'What is being talked about',
-        submenu: [
-          { id: 'all-entities', label: 'All Entities', icon: Hash, href: '/entities' },
-          { id: 'trending-entities', label: 'Trending', icon: TrendingUp, href: '/entities?filter=trending' },
-          { id: 'positive-entities', label: 'Positive', icon: ThumbsUp, href: '/entities?sentiment=positive' },
-          { id: 'negative-entities', label: 'Negative', icon: ThumbsDown, href: '/entities?sentiment=negative' }
-        ]
+        description: 'What is being talked about'
       },
       {
         id: 'locations',
         label: 'Locations',
         icon: MapPin,
         href: '/locations',
-        description: 'Where things are happening',
-        submenu: [
-          { id: 'all-locations', label: 'All Locations', icon: MapPin, href: '/locations' },
-          { id: 'high-activity-locations', label: 'High Activity', icon: TrendingUp, href: '/locations?activity=high' },
-          { id: 'medium-activity-locations', label: 'Medium Activity', icon: BarChart3, href: '/locations?activity=medium' },
-          { id: 'low-activity-locations', label: 'Low Activity', icon: TrendingDown, href: '/locations?activity=low' }
-        ]
+        description: 'Where things are happening'
       },
       {
         id: 'groups',

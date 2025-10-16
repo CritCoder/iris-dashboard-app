@@ -168,13 +168,16 @@ export default function SignupPage() {
       } else {
         // For mobile signup, use the OTP endpoint
         const phoneNumber = `${formData.countryCode}${formData.mobile}`
+        // Remove the + sign from the beginning of the phone number if present
+        const cleanPhoneNumber = phoneNumber.startsWith('+') ? phoneNumber.substring(1) : phoneNumber;
+        
         const response = await fetch(`${API_URL}/api/auth/otpLogin`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            phoneNumber: phoneNumber
+            phoneNumber: cleanPhoneNumber
           })
         })
 

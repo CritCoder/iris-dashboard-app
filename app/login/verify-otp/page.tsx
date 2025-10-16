@@ -101,12 +101,9 @@ export default function VerifyOTPPage() {
         
         if (contactInfo.method === 'mobile') {
           // Use AuthProvider's otpLogin method
-          const success = await otpLogin({
-            phoneNumber: contactInfo.value,
-            otp: otpCode
-          })
+          const result = await otpLogin(contactInfo.value, otpCode)
           
-          if (success) {
+          if (result.success) {
             // Clear session storage
             sessionStorage.removeItem('otpContactInfo')
             // AuthProvider will handle the redirect automatically
@@ -115,12 +112,9 @@ export default function VerifyOTPPage() {
           }
         } else {
           // For email OTP, use AuthProvider's login method
-          const success = await login({
-            email: contactInfo.value,
-            password: 'temp_password' // This might need to be adjusted based on actual API
-          })
+          const result = await login(contactInfo.value, 'temp_password') // This might need to be adjusted based on actual API
           
-          if (success) {
+          if (result.success) {
             // Clear session storage
             sessionStorage.removeItem('otpContactInfo')
             // AuthProvider will handle the redirect automatically
@@ -129,9 +123,9 @@ export default function VerifyOTPPage() {
           }
         }
       }
-    } catch (error) {
+    } catch (err) {
       error('Network error. Please try again.')
-      console.error('OTP verification error:', error)
+      console.error('OTP verification error:', err)
     } finally {
       setIsVerifying(false)
     }
@@ -147,13 +141,16 @@ export default function VerifyOTPPage() {
     try {
       if (contactInfo.method === 'mobile') {
         // Use the same API endpoint as port 3008 for resending OTP
+        // Remove the + sign from the beginning of the phone number if present
+        const cleanPhoneNumber = contactInfo.value.startsWith('+') ? contactInfo.value.substring(1) : contactInfo.value;
+        
         const response = await fetch(`${API_URL}/api/auth/otpLogin`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            phoneNumber: contactInfo.value
+            phoneNumber: cleanPhoneNumber
           })
         })
 
@@ -169,7 +166,7 @@ export default function VerifyOTPPage() {
         await new Promise(resolve => setTimeout(resolve, 1000))
         success('OTP resent successfully!')
       }
-    } catch (error) {
+    } catch (err) {
       error('Failed to resend OTP. Please try again.')
     }
   }

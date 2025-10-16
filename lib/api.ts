@@ -21,7 +21,7 @@ export interface PaginatedResponse<T = any> {
   }
 }
 
-// Auth token management
+// Auth token management - Using 'token' key to match osint-fe
 export class AuthManager {
   private static token: string | null = null
   private static initialized: boolean = false
@@ -29,7 +29,7 @@ export class AuthManager {
   // Initialize token from localStorage on first access
   private static initialize(): void {
     if (!this.initialized && typeof window !== 'undefined') {
-      const storedToken = localStorage.getItem('auth_token')
+      const storedToken = localStorage.getItem('token')
       if (storedToken) {
         this.token = storedToken
         console.log('AuthManager: Token loaded from localStorage')
@@ -42,7 +42,7 @@ export class AuthManager {
     this.initialize()
     if (typeof window !== 'undefined') {
       // Always check localStorage as source of truth
-      return localStorage.getItem('auth_token') || this.token
+      return localStorage.getItem('token') || this.token
     }
     return this.token
   }
@@ -50,7 +50,8 @@ export class AuthManager {
   static setToken(token: string): void {
     this.token = token
     if (typeof window !== 'undefined') {
-      localStorage.setItem('auth_token', token)
+      localStorage.setItem('token', token)
+      localStorage.setItem('user', JSON.stringify({ token }))
       console.log('AuthManager: Token saved to localStorage')
     }
   }
@@ -58,8 +59,38 @@ export class AuthManager {
   static clearToken(): void {
     this.token = null
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token')
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      localStorage.removeItem('organization')
       console.log('AuthManager: Token cleared from localStorage')
+    }
+  }
+
+  static getUser(): any {
+    if (typeof window !== 'undefined') {
+      const userStr = localStorage.getItem('user')
+      return userStr ? JSON.parse(userStr) : null
+    }
+    return null
+  }
+
+  static setUser(user: any): void {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('user', JSON.stringify(user))
+    }
+  }
+
+  static getOrganization(): any {
+    if (typeof window !== 'undefined') {
+      const orgStr = localStorage.getItem('organization')
+      return orgStr ? JSON.parse(orgStr) : null
+    }
+    return null
+  }
+
+  static setOrganization(org: any): void {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('organization', JSON.stringify(org))
     }
   }
 }
@@ -78,19 +109,11 @@ class ApiClient {
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`
     
-    // ALWAYS get token fresh from localStorage
+    // ALWAYS get token fresh from localStorage - using 'token' key to match osint-fe
     let token: string | null = null
     if (typeof window !== 'undefined') {
-      token = localStorage.getItem('auth_token')
+      token = localStorage.getItem('token')
     }
-
-    // Debug logging
-    console.log(`API Request: ${endpoint}`, {
-      hasToken: !!token,
-      tokenLength: token?.length || 0,
-      tokenPreview: token ? `${token.substring(0, 20)}...` : 'none',
-      localStorageCheck: typeof window !== 'undefined' ? localStorage.getItem('auth_token')?.substring(0, 20) : 'SSR'
-    })
 
     const config: RequestInit = {
       headers: {
@@ -101,41 +124,37 @@ class ApiClient {
       ...options,
     }
 
+    // Remove Content-Type for FormData
+    if (options.body instanceof FormData) {
+      const headers = config.headers as Record<string, string>
+      delete headers['Content-Type']
+    }
+
     try {
       const response = await fetch(url, config)
-      const data = await response.json()
-
+      
       if (!response.ok) {
-        // Handle authentication errors gracefully
+        const data = await response.json().catch(() => ({ 
+          message: response.status === 401 ? 'Authentication failed' : 'Network error' 
+        }))
+        
+        // Handle authentication errors - clear token and notify
         if (response.status === 401) {
-          console.warn(`Authentication required for ${endpoint}`)
-          // Clear invalid token if it exists
-          if (token) {
-            console.warn('Clearing invalid authentication token')
-            AuthManager.clearToken()
-          }
-          return { success: false, data: null, message: 'Authentication required. Please login again.' }
+          console.warn('Authentication failed - clearing token')
+          AuthManager.clearToken()
+          throw new Error(data.message || 'Authentication failed')
         }
-        // Handle route not found errors
-        if (response.status === 404) {
-          console.warn(`Endpoint not found: ${endpoint}`)
-          return { success: false, data: null, message: 'Endpoint not found' }
-        }
-        // Handle bad request errors gracefully
-        if (response.status === 400) {
-          console.warn(`Bad request for ${endpoint}:`, data.message || 'Invalid parameters')
-          return { success: false, data: null, message: data.message || 'Invalid request parameters' }
-        }
-        // For other errors, return gracefully instead of throwing
-        console.warn(`API error for ${endpoint}:`, data.message || `HTTP ${response.status}`)
-        return { success: false, data: null, message: data.message || `HTTP error! status: ${response.status}` }
+        
+        throw new Error(data.message || `HTTP error! status: ${response.status}`)
       }
 
-      return data
+      return await response.json()
     } catch (error) {
-      console.error('API request failed:', error)
-      // Return a graceful error response instead of throwing
-      return { success: false, data: null, message: error instanceof Error ? error.message : 'Network error' }
+      // For network errors, provide helpful message
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network connection failed. Please check your internet connection.')
+      }
+      throw error
     }
   }
 
@@ -177,6 +196,16 @@ class ApiClient {
       method: 'DELETE',
     })
   }
+
+  async uploadFile<T>(endpoint: string, file: File): Promise<ApiResponse<T>> {
+    const formData = new FormData()
+    formData.append('file', file)
+    
+    return this.request<T>(endpoint, {
+      method: 'POST',
+      body: formData,
+    })
+  }
 }
 
 const apiClient = new ApiClient()
@@ -186,8 +215,11 @@ export const authApi = {
   login: (credentials: { email: string; password: string }) =>
     apiClient.post('/api/auth/login', credentials),
 
-  otpLogin: (data: { phoneNumber: string; otp: string }) =>
-    apiClient.post('/api/auth/otpLogin', data),
+  otpLogin: (data: { phoneNumber: string; otp: string }) => {
+    // Remove the + sign from the beginning of the phone number if present
+    const cleanPhoneNumber = data.phoneNumber.startsWith('+') ? data.phoneNumber.substring(1) : data.phoneNumber;
+    return apiClient.post('/api/auth/otpLogin', { ...data, phoneNumber: cleanPhoneNumber });
+  },
 
   getProfile: () => apiClient.get('/api/auth/me'),
 
@@ -259,6 +291,35 @@ export const campaignApi = {
     timeRange?: string
   }) => apiClient.post('/api/campaigns/campaign-search', data),
 
+  // Create Campaign for Post Analysis
+  createSearch: (data: {
+    topic: string
+    timeRange: {
+      startDate: string
+      endDate: string
+    }
+    platforms: string[]
+    campaignType: string
+    personDetails?: {
+      username: string
+      name: string
+      profileId: string
+    }
+    postDetails?: {
+      originalPostId?: string
+      postId: string
+      platformPostId: string
+      url?: string
+      platform?: string
+      tweetId?: string
+      tweet_id?: string
+      instagramPostId?: string
+      facebookPostId?: string
+      youtubeVideoId?: string
+      redditPostId?: string
+    }
+  }) => apiClient.post('/api/campaigns/campaign-search', data),
+
   diagnose: (id: string, data: { analysisType: string; parameters?: any }) =>
     apiClient.post(`/campaigns/${id}/diagnose`, data),
 
@@ -280,8 +341,13 @@ export const campaignApi = {
 
   checkPerson: (personId: string) => apiClient.get(`/campaigns/check-person/${personId}`),
 
-  checkPost: (params: { postId: string; platformPostId: string; platform: string }) =>
+  // Check if a campaign exists for a specific post
+  checkPost: (params: { postId?: string; platformPostId?: string; platform?: string }) =>
     apiClient.get('/api/campaigns/check-post', params),
+
+  // Alias for checkPost - checks if campaign exists for a post
+  checkPostCampaign: (postId?: string, platformPostId?: string, platform?: string) =>
+    apiClient.get('/api/campaigns/check-post', { postId, platformPostId, platform }),
 
   getOriginalPost: (campaignId: string) => apiClient.get(`/campaigns/${campaignId}/original-post`),
 
@@ -461,19 +527,19 @@ export const profileApi = {
   search: (params: { query: string; limit?: number }) =>
     apiClient.get('/api/social/profiles/search', params),
 
-  getById: (id: string) => apiClient.get(`/social/profiles/${id}`),
+  getById: (id: string) => apiClient.get(`/api/social/profiles/${id}`),
 
   getDetails: (id: string, params?: { page?: number; limit?: number }) =>
     apiClient.get(`/social/profiles/${id}/details`, params),
 
-  getAIAnalysis: (id: string) => apiClient.get(`/social/profiles/${id}/aianalysis`),
+  getAIAnalysis: (id: string) => apiClient.get(`/api/social/profiles/${id}/aianalysis`),
 
   getPosts: (id: string, params?: {
     page?: number
     limit?: number
     sort?: string
     sentiment?: string
-  }) => apiClient.get(`/social/profiles/${id}/posts`, params),
+  }) => apiClient.get(`/api/social/profiles/${id}/posts`, params),
 
   create: (data: { username: string; platform: string; displayName: string }) =>
     apiClient.post('/api/social/profiles', data),
@@ -510,23 +576,24 @@ export const entityApi = {
 
 // Locations API
 export const locationApi = {
-  getAnalytics: (params?: { timeRange?: string; platform?: string }) =>
+  // Get Location Analytics - Retrieves aggregated analytics for all locations
+  getAnalytics: (params?: Record<string, any>) =>
     apiClient.get('/api/social/locations/analytics', params),
 
-  getTop: (params?: { timeRange?: string; limit?: number }) =>
-    apiClient.get('/api/social/locations/top', params),
-
+  // Search Locations - Searches for locations by name or other criteria
   search: (params: { q: string; limit?: number }) =>
     apiClient.get('/api/social/locations/search', params),
 
-  getDetails: (id: string, params?: { page?: number; limit?: number; filter?: string }) =>
-    apiClient.get(`/social/locations/${id}`, params),
+  // Get Location Details by ID - Retrieves detailed information and posts for a specific location
+  getById: (id: string, params?: { page?: number; limit?: number; filter?: string }) =>
+    apiClient.get(`/api/social/locations/${id}`, params),
 
-  getMultipleDetails: (params: {
+  // Get Posts from Multiple Locations - Retrieves posts that mention any of the specified locations
+  getByMultipleNames: (params: {
+    locations: string // Comma-separated list of location names
     page?: number
     limit?: number
     filter?: string
-    locations: string
   }) => apiClient.get('/api/social/locations/multiple', params),
 }
 
@@ -693,17 +760,7 @@ export const incidentApi = {
 
 // Reports API
 export const reportApi = {
-  uploadFile: (file: File) => {
-    const formData = new FormData()
-    formData.append('file', file)
-    return apiClient.request('/reports/upload', {
-      method: 'POST',
-      body: formData,
-      headers: {
-        // Don't set Content-Type, let browser set it with boundary
-      },
-    })
-  },
+  uploadFile: (file: File) => apiClient.uploadFile('/api/reports/upload', file),
 }
 
 // Notifications API
@@ -759,12 +816,55 @@ const communitiesApi = {
 }
 
 // Groups API
-const groupsApi = {
-  getGroups: (params?: any) =>
+export const groupApi = {
+  getAll: (params?: { page?: number; limit?: number }) =>
     apiClient.get('/api/groups', params),
   
-  getGroup: (id: string) =>
+  getById: (id: string) =>
     apiClient.get(`/api/groups/${id}`),
+  
+  create: (data: { name: string; platform: string; url: string; description?: string }) =>
+    apiClient.post('/api/groups', data),
+  
+  update: (id: string, data: { name?: string; description?: string }) =>
+    apiClient.put(`/api/groups/${id}`, data),
+  
+  delete: (id: string) =>
+    apiClient.delete(`/api/groups/${id}`),
+  
+  getPosts: (id: string, params?: { searchQuery?: string; page?: number; limit?: number }) =>
+    apiClient.get(`/api/groups/${id}/posts`, params),
+  
+  getCampaign: (id: string) =>
+    apiClient.get(`/api/groups/${id}/campaign`),
+  
+  refreshPosts: (id: string, platform: string) =>
+    apiClient.post(`/api/groups/${id}/refresh-posts`, { platform }),
+  
+  getCampaignPosts: (id: string, params?: { page?: number; limit?: number; platform?: string }) =>
+    apiClient.get(`/api/groups/${id}/campaign-posts`, params),
+  
+  facebook: {
+    getGroupId: (url: string) =>
+      apiClient.get('/api/groups/facebook/group-id', { url }),
+    
+    getGroupDetails: (url: string) =>
+      apiClient.get('/api/groups/facebook/group-details', { url }),
+    
+    getGroupPosts: (groupId: string, params?: { cursor?: string; sortingOrder?: string }) =>
+      apiClient.get('/api/groups/facebook/group-posts', { groupId, ...params }),
+    
+    getGroupEvents: (groupId: string, params?: { cursor?: string }) =>
+      apiClient.get('/api/groups/facebook/group-events', { groupId, ...params }),
+  },
+  
+  instagram: {
+    getProfileData: (url: string) =>
+      apiClient.get('/api/groups/instagram/profile-data', { url }),
+    
+    getPosts: (url: string) =>
+      apiClient.get('/api/groups/instagram/posts', { url }),
+  },
 }
 
 // Export all APIs
@@ -785,8 +885,9 @@ export const api = {
   incident: incidentApi,
   report: reportApi,
   notification: notificationApi,
-  communities: communitiesApi,
-  groups: groupsApi,
+  group: groupApi,
+  community: communitiesApi,
 }
 
-export default api
+// Export default client for backward compatibility
+export default apiClient

@@ -24,7 +24,7 @@ export function PageLayout({ children }: PageLayoutProps) {
       <MainSidebar />
       
       {/* Main Content Area */}
-      <div className="ml-80 flex-1 flex flex-col overflow-hidden w-full min-w-0">
+      <div className="ml-80 flex-1 flex flex-col overflow-y-auto w-full min-w-0">
         {children}
       </div>
       

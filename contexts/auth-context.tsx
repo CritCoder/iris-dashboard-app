@@ -2,261 +2,376 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { useToast } from '@/hooks/use-toast'
-import { authApi, AuthManager } from '@/lib/api'
+import { AuthManager } from '@/lib/api'
 
 interface User {
   id: string
-  email: string
   name: string
+  email: string
   role: string
+  [key: string]: any
+}
+
+interface Organization {
+  id: string
+  name: string
+  [key: string]: any
 }
 
 interface AuthContextType {
   user: User | null
-  loading: boolean
+  organization: Organization | null
+  token: string | null
+  isLoading: boolean
   isAuthenticated: boolean
-  login: (credentials: { email: string; password: string }) => Promise<boolean>
-  otpLogin: (data: { phoneNumber: string; otp: string }) => Promise<boolean>
+  hasVerificationIssues: boolean
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
+  otpLogin: (phoneNumber: string, otp?: string) => Promise<{ success: boolean; data?: any; error?: string }>
   logout: () => void
-  checkAuth: () => Promise<void>
+  addUser: (userData: any) => Promise<{ success: boolean; user?: any; error?: string }>
+  getOrganizationUsers: () => Promise<{ success: boolean; users?: any[]; error?: string }>
+  apiCall: (endpoint: string, options?: any) => Promise<any>
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const AuthContext = createContext<AuthContextType | null>(null)
 
-export function useAuth() {
+export const useAuth = () => {
   const context = useContext(AuthContext)
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider')
   }
   return context
 }
 
-interface AuthProviderProps {
-  children: ReactNode
-}
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://irisnet.wiredleap.com'
 
-export function AuthProvider({ children }: AuthProviderProps) {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [organization, setOrganization] = useState<Organization | null>(null)
+  const [token, setToken] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [verificationAttempts, setVerificationAttempts] = useState(0)
   const router = useRouter()
   const pathname = usePathname()
-  const { toast, success, error } = useToast()
 
-  const checkAuth = async () => {
-    try {
-      // Check if we're in the browser before accessing localStorage
-      if (typeof window === 'undefined') {
-        setLoading(false)
+  // Define public routes that don't require authentication
+  const publicRoutes = ['/login', '/signup', '/forgot-password', '/privacy', '/verify-otp']
+  const isPublicRoute = publicRoutes.some(route => pathname?.startsWith(route))
+
+  useEffect(() => {
+    // Skip authentication checks for public routes
+    if (isPublicRoute) {
+      setIsLoading(false)
         return
       }
 
-      const token = localStorage.getItem('auth_token')
-      console.log('AuthContext: Checking auth, token exists:', !!token)
+    // Check for stored auth data on mount
+    const storedToken = localStorage.getItem('token')
+    const storedUser = localStorage.getItem('user')
+    const storedOrganization = localStorage.getItem('organization')
+
+    if (storedToken && storedUser && storedOrganization) {
+      try {
+        setToken(storedToken)
+        setUser(JSON.parse(storedUser))
+        setOrganization(JSON.parse(storedOrganization))
+        
+        // Also restore cookie for middleware
+        document.cookie = `auth_token=${storedToken}; path=/; max-age=${7 * 24 * 60 * 60}; secure; samesite=strict`
+        
+        // Verify token is still valid
+        verifyTokenWithRetry(storedToken)
+      } catch (error) {
+        console.warn('Error parsing stored auth data:', error)
+        logout()
+        return
+      }
+    } else {
+      setIsLoading(false)
+    }
+  }, [pathname, isPublicRoute])
+
+  // Redirect authenticated users away from login pages
+  useEffect(() => {
+    if (!isLoading && user && token && isPublicRoute) {
+      console.log('User is authenticated, redirecting from', pathname, 'to dashboard')
+      router.push('/')
+    }
+  }, [isLoading, user, token, isPublicRoute, pathname, router])
+
+  const verifyTokenWithRetry = async (tokenToVerify: string, attempt = 1) => {
+    const maxAttempts = 3
+    const retryDelay = Math.min(1000 * Math.pow(2, attempt - 1), 5000)
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${tokenToVerify}`
+        },
+        signal: AbortSignal.timeout(10000)
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setUser(data.data)
+        setIsLoading(false)
+        setVerificationAttempts(0)
+        console.log('Token verification successful')
+      } else if (response.status === 401) {
+        console.log('Token is invalid or expired, logging out')
+        logout()
+      } else {
+        throw new Error(`Server error: ${response.status}`)
+      }
+    } catch (error: any) {
+      console.warn(`Token verification attempt ${attempt} failed:`, error.message)
       
-      if (!token) {
-        console.log('AuthContext: No token found, user not authenticated')
-        setUser(null)
-        setLoading(false)
-        return
-      }
-
-      // Always set token in AuthManager first
-      AuthManager.setToken(token)
-      console.log('AuthContext: Token set in AuthManager')
-
-      // Handle test tokens for local development (fallback only)
-      if (token.startsWith('test_token_')) {
-        console.log('Using test authentication - API not available')
-        // Ensure cookie is set for middleware
-        document.cookie = `auth_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}` // 7 days
-        const testUser = {
-          id: '1',
-          email: 'test@test.com',
-          name: 'Test User',
-          role: 'user'
-        }
-        setUser(testUser)
-        setLoading(false)
-        return
-      }
-
-      // Use centralized API client
-      const result = await authApi.getProfile()
-
-      console.log('Auth check response:', result) // Debug log
-
-      if (result.success && result.data) {
-        // Ensure cookie is set for middleware
-        document.cookie = `auth_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}` // 7 days
-        setUser(result.data)
+      if (attempt < maxAttempts) {
+        setTimeout(() => {
+          verifyTokenWithRetry(tokenToVerify, attempt + 1)
+        }, retryDelay)
       } else {
-        console.log('Auth check failed:', result.message)
-        localStorage.removeItem('auth_token')
-        AuthManager.clearToken()
-        document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;'
-        setUser(null)
+        console.warn('Token verification failed after maximum attempts.')
+        setIsLoading(false)
+        setVerificationAttempts(maxAttempts)
       }
-    } catch (error) {
-      console.error('Auth check failed:', error)
-      localStorage.removeItem('auth_token')
-      AuthManager.clearToken()
-      document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;'
-      setUser(null)
-    } finally {
-      setLoading(false)
     }
   }
 
-  const login = async (credentials: { email: string; password: string }): Promise<boolean> => {
+  const login = async (email: string, password: string) => {
     try {
-      // Use centralized API client
-      const result = await authApi.login(credentials)
-      console.log('Login response:', result) // Debug log
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      })
 
-      if (result.success && result.data?.token) {
-        const token = result.data.token
-        localStorage.setItem('auth_token', token)
-        AuthManager.setToken(token)
-        // Set cookie for middleware authentication check
-        document.cookie = `auth_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}` // 7 days
-        setUser(result.data.user)
-        success('Login successful!')
-        
-        // Check for redirect parameter in URL or sessionStorage
-        const urlParams = new URLSearchParams(window.location.search)
-        let redirectPath = urlParams.get('redirect')
-        
-        // If no redirect in URL, check sessionStorage (from ProtectedRoute)
-        if (!redirectPath) {
-          redirectPath = sessionStorage.getItem('redirectPath')
-          sessionStorage.removeItem('redirectPath')
-        }
-        
-        // Redirect to original page or dashboard
-        console.log('Login: Redirecting to', redirectPath || '/')
-        router.push(redirectPath || '/')
-        return true
-      } else {
-        error(result.error?.message || result.message || 'Login failed')
-        return false
+      const data = await response.json()
+
+      if (!data.success) {
+        throw new Error(data.message || 'Login failed')
       }
-    } catch (error) {
-      console.error('Login error:', error)
-      error('Login failed. Please try again.')
-      return false
+
+      const { token: newToken, user: userData, organization: orgData } = data.data
+      
+      localStorage.setItem('token', newToken)
+      localStorage.setItem('user', JSON.stringify(userData))
+      localStorage.setItem('organization', JSON.stringify(orgData))
+
+      // Also set cookie for middleware
+      document.cookie = `auth_token=${newToken}; path=/; max-age=${7 * 24 * 60 * 60}; secure; samesite=strict`
+
+      AuthManager.setToken(newToken)
+      AuthManager.setUser(userData)
+      AuthManager.setOrganization(orgData)
+
+      setToken(newToken)
+      setUser(userData)
+      setOrganization(orgData)
+      setVerificationAttempts(0)
+      setIsLoading(false)
+
+      return { success: true }
+    } catch (error: any) {
+      return { success: false, error: error.message }
     }
   }
 
-  const otpLogin = async (data: { phoneNumber: string; otp: string }): Promise<boolean> => {
+  const otpLogin = async (phoneNumber: string, otp: string = '') => {
     try {
-      // Use centralized API client
-      const result = await authApi.otpLogin(data)
-      console.log('OTP Login Response:', result) // Debug log
+      // Remove the + sign from the beginning of the phone number if present
+      const cleanPhoneNumber = phoneNumber.startsWith('+') ? phoneNumber.substring(1) : phoneNumber;
+      
+      const response = await fetch(`${API_BASE_URL}/api/auth/otpLogin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phoneNumber: cleanPhoneNumber, otp }),
+      })
 
-      if (result.success) {
-        // Handle different possible response structures
-        const token = result.data?.token || result.token || result.accessToken
-        const user = result.data?.user || result.user || result.data
-        
-        if (token) {
-          localStorage.setItem('auth_token', token)
-          AuthManager.setToken(token)
-          // Set cookie for middleware authentication check
-          document.cookie = `auth_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}` // 7 days
-          
-          if (user) {
-            setUser(user)
-          } else {
-            // If no user data, create a basic user object
-            setUser({
-              id: '1',
-              email: data.phoneNumber + '@example.com',
-              name: 'User',
-              role: 'user'
-            })
-          }
-          success('Login successful!')
-          
-          // Check for redirect parameter in URL or sessionStorage
-          const urlParams = new URLSearchParams(window.location.search)
-          let redirectPath = urlParams.get('redirect')
-          
-          // If no redirect in URL, check sessionStorage (from ProtectedRoute)
-          if (!redirectPath) {
-            redirectPath = sessionStorage.getItem('redirectPath')
-            sessionStorage.removeItem('redirectPath')
-          }
-          
-          // Redirect to original page or dashboard
-          console.log('OTP Login: Redirecting to', redirectPath || '/')
-          router.push(redirectPath || '/')
-          return true
-        } else {
-          error('No authentication token received')
-          return false
-        }
-      } else {
-        error(result.error?.message || result.message || 'OTP verification failed')
-        return false
+      const data = await response.json()
+
+      if (!data.success) {
+        throw new Error(data.message || 'You are not authorized to login.')
       }
-    } catch (error) {
-      console.error('OTP login error:', error)
-      error('OTP verification failed. Please try again.')
-      return false
+
+      // If OTP was provided and verification successful, store auth data
+      if (otp && data.data.token) {
+        const { token: newToken, user: userData, organization: orgData } = data.data
+        
+        localStorage.setItem('token', newToken)
+        localStorage.setItem('user', JSON.stringify(userData))
+        localStorage.setItem('organization', JSON.stringify(orgData))
+
+        // Also set cookie for middleware
+        document.cookie = `auth_token=${newToken}; path=/; max-age=${7 * 24 * 60 * 60}; secure; samesite=strict`
+
+        AuthManager.setToken(newToken)
+        AuthManager.setUser(userData)
+        AuthManager.setOrganization(orgData)
+
+        setToken(newToken)
+        setUser(userData)
+        setOrganization(orgData)
+        setVerificationAttempts(0)
+        setIsLoading(false)
+      }
+
+      return { success: true, data: data.data }
+    } catch (error: any) {
+      const isNetworkError = error?.name === 'TypeError' || /Failed to fetch/i.test(error?.message || '')
+      if (isNetworkError) {
+        return { 
+          success: false, 
+          error: `Cannot reach API at ${API_BASE_URL}. Is the backend running and accessible?`
+        }
+      }
+      return { success: false, error: error.message }
     }
   }
 
   const logout = () => {
-    try {
-      console.log('Logout: Starting logout process...')
-      
-      // Clear authentication data
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('user')
-      sessionStorage.clear()
-      AuthManager.clearToken()
-      
-      console.log('Logout: Cleared localStorage and AuthManager')
-      
-      // Clear all cookies including auth_token
-      document.cookie.split(";").forEach((c) => {
-        document.cookie = c
-          .replace(/^ +/, "")
-          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-      })
-
-      console.log('Logout: Cleared cookies')
-
-      setUser(null)
-      console.log('Logout: User state cleared')
-      
-      success('Logged out successfully')
-      console.log('Logout: Redirecting to login...')
-      
-      router.push('/login')
-    } catch (error) {
-      console.error('Logout error:', error)
-      error('Error during logout')
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    localStorage.removeItem('organization')
+    
+    // Also clear cookie for middleware
+    document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+    
+    AuthManager.clearToken()
+    
+    setToken(null)
+    setUser(null)
+    setOrganization(null)
+    setIsLoading(false)
+    setVerificationAttempts(0)
+    
+    if (typeof window !== 'undefined' && !isPublicRoute) {
+      window.location.href = '/login'
     }
   }
 
-  useEffect(() => {
-    checkAuth()
-  }, [])
+  const addUser = async (userData: any) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/add-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(userData),
+      })
 
-  // Note: Redirect logic is now handled by ProtectedRoute component
-  // This allows authentication pages to render without interference
+      const data = await response.json()
 
-  const value: AuthContextType = {
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to add user')
+      }
+
+      return { success: true, user: data.data.user }
+    } catch (error: any) {
+      return { success: false, error: error.message }
+    }
+  }
+
+  const getOrganizationUsers = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/organization-users`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      const data = await response.json()
+
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to fetch users')
+      }
+
+      return { success: true, users: data.data.users }
+    } catch (error: any) {
+      return { success: false, error: error.message }
+    }
+  }
+
+  const apiCall = async (endpoint: string, options: any = {}) => {
+    const url = `${API_BASE_URL}${endpoint}`
+    const config = {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        ...options.headers
+      },
+      ...options
+    }
+
+    try {
+      const response = await fetch(url, config)
+      const data = await response.json()
+
+      if (response.status === 401) {
+        logout()
+        throw new Error('Session expired')
+      }
+
+      return data
+    } catch (error: any) {
+      if (error.message === 'Session expired') {
+        throw error
+      }
+      throw new Error('Network error')
+    }
+  }
+
+  const value = {
     user,
-    loading,
-    isAuthenticated: !!user,
+    organization,
+    token,
+    isLoading,
+    isAuthenticated: !!user && !!token,
+    hasVerificationIssues: verificationAttempts >= 3,
     login,
     otpLogin,
     logout,
-    checkAuth,
+    addUser,
+    getOrganizationUsers,
+    apiCall
   }
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  )
+}
+
+// Higher-order component for protecting routes
+export const withAuth = (WrappedComponent: React.ComponentType<any>) => {
+  return function AuthenticatedComponent(props: any) {
+    const { isAuthenticated, isLoading, hasVerificationIssues } = useAuth()
+    const router = useRouter()
+
+    useEffect(() => {
+      if (!isLoading && !isAuthenticated && !hasVerificationIssues) {
+        router.push('/login')
+      }
+    }, [isAuthenticated, isLoading, hasVerificationIssues, router])
+
+    if (isLoading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+        </div>
+      )
+    }
+
+    if (!isAuthenticated && !hasVerificationIssues) {
+      return null
+    }
+
+    return <WrappedComponent {...props} />
+  }
 }

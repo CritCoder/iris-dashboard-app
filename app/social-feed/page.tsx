@@ -36,7 +36,7 @@ import { Search, Download, Heart, MessageCircle, Share2, Eye, X, Loader2, ArrowR
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
-import { api } from '@/lib/api'
+import { api, campaignApi } from '@/lib/api'
 import { ensureAuthToken } from '@/lib/auth-utils'
 import { FadeInUp, StaggerList, StaggerItem } from '@/components/ui/animated'
 import { motion } from 'framer-motion'
@@ -73,11 +73,19 @@ interface Post {
   impact: 'high' | 'medium' | 'low'
   isViral: boolean
   isTrending: boolean
+  platformPostId?: string
+  url?: string
 }
 
 // All data will be fetched from APIs - no hard-coded data
 
-function PostCard({ post }: { post: Post }) {
+interface PostCardProps {
+  post: Post
+  onClick: (post: Post) => void
+  isCreatingCampaign: boolean
+}
+
+function PostCard({ post, onClick, isCreatingCampaign }: PostCardProps) {
   const platformIcons = {
     facebook: '📘',
     twitter: '🐦',
@@ -121,42 +129,52 @@ function PostCard({ post }: { post: Post }) {
   const authorInfo = getAuthorInfo()
 
   return (
-    <Link href={`/analysis-history/1/post/${post.id}`}>
-      <div className="bg-card border border-border rounded-lg p-4 card-hover pressable cursor-pointer h-full flex flex-col">
-        <div className="flex items-start gap-3 mb-3">
-          <div className={`w-8 h-8 rounded-full ${platformColors[post.platform]} flex items-center justify-center text-white text-sm font-semibold flex-shrink-0`}>
-            {authorInfo.initial}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-foreground font-medium text-sm mb-0.5 truncate">
-              {authorInfo.name}
-            </div>
-            <div className="text-muted-foreground text-xs">
-              {post.platform.charAt(0).toUpperCase() + post.platform.slice(1)} · {post.timestamp}
-            </div>
+    <div 
+      onClick={() => !isCreatingCampaign && onClick(post)}
+      className="bg-card border border-border rounded-lg p-4 card-hover pressable cursor-pointer h-full flex flex-col relative"
+    >
+      {isCreatingCampaign && (
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
+          <div className="flex items-center gap-2 text-primary">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="text-sm font-medium">Creating campaign...</span>
           </div>
         </div>
-
-        <p className="text-foreground/90 text-sm mb-4 line-clamp-4 flex-1">{post.content}</p>
-
-        <div className="flex items-center justify-between pt-3 border-t border-border text-xs text-muted-foreground">
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1">
-              <Heart className="w-3.5 h-3.5" /> {post.likes}
-            </span>
-            <span className="flex items-center gap-1">
-              <MessageCircle className="w-3.5 h-3.5" /> {post.comments}
-            </span>
-            <span className="flex items-center gap-1">
-              <Share2 className="w-3.5 h-3.5" /> {post.shares}
-            </span>
+      )}
+      
+      <div className="flex items-start gap-3 mb-3">
+        <div className={`w-8 h-8 rounded-full ${platformColors[post.platform]} flex items-center justify-center text-white text-sm font-semibold flex-shrink-0`}>
+          {authorInfo.initial}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-foreground font-medium text-sm mb-0.5 truncate">
+            {authorInfo.name}
           </div>
-          <button className="flex items-center gap-1 text-blue-400 hover:text-blue-300 interactive">
-            View <Eye className="w-3.5 h-3.5" /> {post.views}
-          </button>
+          <div className="text-muted-foreground text-xs">
+            {post.platform.charAt(0).toUpperCase() + post.platform.slice(1)} · {post.timestamp}
+          </div>
         </div>
       </div>
-    </Link>
+
+      <p className="text-foreground/90 text-sm mb-4 line-clamp-4 flex-1">{post.content}</p>
+
+      <div className="flex items-center justify-between pt-3 border-t border-border text-xs text-muted-foreground">
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-1">
+            <Heart className="w-3.5 h-3.5" /> {post.likes}
+          </span>
+          <span className="flex items-center gap-1">
+            <MessageCircle className="w-3.5 h-3.5" /> {post.comments}
+          </span>
+          <span className="flex items-center gap-1">
+            <Share2 className="w-3.5 h-3.5" /> {post.shares}
+          </span>
+        </div>
+        <span className="flex items-center gap-1 text-blue-400">
+          View <Eye className="w-3.5 h-3.5" /> {post.views}
+        </span>
+      </div>
+    </div>
   )
 }
 
@@ -179,11 +197,102 @@ function SocialFeedContent() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [totalCount, setTotalCount] = useState<number>(0)
+  
+  // Post campaign creation state
+  const [creatingCampaign, setCreatingCampaign] = useState<string | null>(null)
 
   // Ensure auth token is loaded on mount
   useEffect(() => {
     ensureAuthToken()
   }, [])
+
+  // Function to create a post campaign
+  const createPostCampaign = useCallback(async (post: any, redirectToPostCampaignView = true, openInNewTab = false) => {
+    try {
+      setCreatingCampaign(`post-${post.id}`)
+      
+      const platform = post.platform || 'unknown'
+      
+      // First, check if a post campaign already exists for this post
+      console.log('Checking for existing post campaign...')
+      console.log('🔍 Post data for campaign check:', {
+        postId: post.id,
+        platformPostId: post.platformPostId,
+        platform: platform,
+        post
+      })
+      
+      const existingCampaignResponse = await campaignApi.checkPostCampaign(
+        post.id, 
+        post.platformPostId, 
+        platform
+      )
+      
+      let campaignId: string | undefined
+      
+      if (existingCampaignResponse.success && (existingCampaignResponse.data as any).exists) {
+        // Existing campaign found
+        const existingCampaign = (existingCampaignResponse.data as any).campaign
+        campaignId = existingCampaign.id
+        console.log('✅ Found existing campaign:', campaignId)
+      } else {
+        // No existing campaign found, create a new one
+        console.log('📝 Creating new post campaign...')
+        const postDetails: any = {
+          originalPostId: post.id,
+          postId: post.id,
+          platformPostId: post.platformPostId || post.id,
+          url: post.url || ''
+        }
+
+        if (platform === 'twitter') {
+          postDetails.tweetId = post.platformPostId || post.id
+          postDetails.tweet_id = post.platformPostId || post.id
+        }
+
+        const response = await campaignApi.createSearch({
+          topic: `Post Analysis: ${post.content?.substring(0, 50) || 'Post'}...`,
+          timeRange: {
+            startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            endDate: new Date().toISOString().split('T')[0]
+          },
+          platforms: [platform],
+          campaignType: 'POST',
+          postDetails
+        })
+
+        if (response.success) {
+          campaignId = (response.data as any).campaignId
+          console.log('✅ Created new campaign:', campaignId)
+        } else {
+          throw new Error(response.message || 'Failed to create post campaign')
+        }
+      }
+
+      // Small delay to allow backend to finish processing
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      // Persist the full post so the post-campaign page can render it instantly
+      if (campaignId) {
+        sessionStorage.setItem(`originalPost_${campaignId}`, JSON.stringify(post))
+
+        const url = redirectToPostCampaignView
+          ? `/post-campaign/${campaignId}`
+          : `/campaign/${campaignId}`
+
+        if (openInNewTab) {
+          window.open(url, '_blank')
+        } else {
+          router.push(url)
+        }
+      }
+    } catch (error) {
+      console.error('Error creating post campaign:', error)
+      alert('Failed to access post campaign: ' + (error as Error).message)
+    } finally {
+      setCreatingCampaign(null)
+    }
+  }, [router])
 
   // Debounce search query
   useEffect(() => {
@@ -296,11 +405,11 @@ function SocialFeedContent() {
       const response = await api.social.getPosts(params)
       console.log('API response:', {
         success: response.success,
-        dataLength: response.data?.length,
+        dataLength: Array.isArray(response.data) ? response.data.length : 0,
         pagination: (response as any).pagination
       })
       
-      if (response.success && response.data) {
+      if (response.success && response.data && Array.isArray(response.data)) {
         const newPosts = response.data.map(transformApiPost)
         console.log('Transformed posts:', newPosts.length)
         
@@ -418,6 +527,8 @@ function SocialFeedContent() {
               : 'low',
       isViral: (apiPost.likesCount || 0) > 1000 && (apiPost.sharesCount || 0) > 100,
       isTrending: apiPost.isFlagged || apiPost.needsAttention || false,
+      platformPostId: apiPost.platformPostId || apiPost.id,
+      url: apiPost.url || '',
     }
   }
 
@@ -726,7 +837,11 @@ function SocialFeedContent() {
                 <StaggerList speed="fast" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3">
                   {(filteredPosts || []).map((post) => (
                     <StaggerItem key={post.id}>
-                      <PostCard post={post} />
+                      <PostCard 
+                        post={post} 
+                        onClick={createPostCampaign}
+                        isCreatingCampaign={creatingCampaign === `post-${post.id}`}
+                      />
                     </StaggerItem>
                   ))}
                 </StaggerList>

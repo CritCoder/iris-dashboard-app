@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
 import { Search, Heart, MessageCircle, Share2, Eye, Plus, FolderPlus, Flag, CheckCircle, Archive, X, Loader2 } from 'lucide-react'
@@ -119,6 +120,9 @@ function PostListItem({ post, isSelected, onClick }: { post: Post; isSelected: b
 }
 
 export default function SocialInboxPage() {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
   const [showAddNote, setShowAddNote] = useState(false)
   const [noteText, setNoteText] = useState('')
@@ -138,12 +142,55 @@ export default function SocialInboxPage() {
     return String(value)
   }
 
-  // Fetch posts that need attention/review - using production API
-  // Removed needsAttention and reviewStatus filters to get all posts
-  const { data: apiPosts, loading, error } = useSocialPosts({
-    page: 1,
-    limit: 100 // Increased limit to fetch more posts
-  })
+  // Derive API params from filters
+  const apiParams = useMemo(() => {
+    const params: any = {
+      page: 1,
+      limit: 100,
+    }
+
+    if (searchQuery.trim()) params.search = searchQuery.trim()
+    if (selectedSentiment !== 'all') params.sentiment = selectedSentiment
+    if (selectedPlatform !== 'all') params.platform = selectedPlatform
+    if (selectedCampaign !== 'all') params.campaignId = selectedCampaign
+    if (selectedTimeRange) params.timeRange = selectedTimeRange
+    if (sortBy) params.sortBy = sortBy
+
+    return params
+  }, [searchQuery, selectedSentiment, selectedPlatform, selectedCampaign, selectedTimeRange, sortBy])
+
+  // Sync URL with filters (non-destructive replace)
+  useEffect(() => {
+    const sp = new URLSearchParams()
+    if (searchQuery.trim()) sp.set('search', searchQuery.trim())
+    if (selectedSentiment !== 'all') sp.set('sentiment', selectedSentiment)
+    if (selectedPlatform !== 'all') sp.set('platform', selectedPlatform)
+    if (selectedCampaign !== 'all') sp.set('campaignId', selectedCampaign)
+    if (selectedTimeRange) sp.set('timeRange', selectedTimeRange)
+    if (sortBy) sp.set('sortBy', sortBy)
+    const qs = sp.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname)
+  }, [searchQuery, selectedSentiment, selectedPlatform, selectedCampaign, selectedTimeRange, sortBy, pathname, router])
+
+  // Initial state from URL on mount
+  useEffect(() => {
+    const s = searchParams.get('search') || ''
+    const sen = searchParams.get('sentiment') || 'all'
+    const plat = searchParams.get('platform') || 'all'
+    const camp = searchParams.get('campaignId') || 'all'
+    const tr = searchParams.get('timeRange') || '24h'
+    const sb = searchParams.get('sortBy') || 'date'
+    setSearchQuery(s)
+    setSelectedSentiment(sen)
+    setSelectedPlatform(plat)
+    setSelectedCampaign(camp)
+    setSelectedTimeRange(tr)
+    setSortBy(sb)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Fetch posts using current params
+  const { data: apiPosts, loading, error } = useSocialPosts(apiParams)
 
   const { data: inboxStats } = useInboxStats({ timeRange: '7d' })
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/contexts/auth-context'
 
 interface Campaign {
   id: string
@@ -128,12 +129,13 @@ export function useCampaigns({
   limit = 10,
   enabled = true
 }: UseCampaignsParams = {}) {
+  const { token } = useAuth()
   const [data, setData] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!enabled) return
+    if (!enabled || !token) return
 
     const fetchCampaigns = async () => {
       setLoading(true)
@@ -145,7 +147,7 @@ export function useCampaigns({
           {
             headers: {
               'Accept': '*/*',
-              'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbWY1Mmx5NWQwMDAyejI2aHBjYTd6aHQ1Iiwib3JnYW5pemF0aW9uSWQiOiJjbWRpcmpxcjIwMDAwejI4cG8yZW9uMHlmIiwiaWF0IjoxNzYwNDYxOTI5LCJleHAiOjE3NjA1NDgzMjl9.0ENbbqq1_ENPbW0xoc3TnQ4B5bmqfkdIfdFEZvX84t4',
+              'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json',
             },
           }
@@ -170,7 +172,7 @@ export function useCampaigns({
     }
 
     fetchCampaigns()
-  }, [page, limit, enabled])
+  }, [page, limit, enabled, token])
 
   return {
     data,

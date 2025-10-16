@@ -70,13 +70,16 @@ export default function ForgotPasswordPage() {
       } else {
         // For mobile reset, use the OTP endpoint
         const phoneNumber = `${formData.countryCode}${formData.mobile}`
+        // Remove the + sign from the beginning of the phone number if present
+        const cleanPhoneNumber = phoneNumber.startsWith('+') ? phoneNumber.substring(1) : phoneNumber;
+        
         const response = await fetch(`${API_URL}/api/auth/otpLogin`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            phoneNumber: phoneNumber
+            phoneNumber: cleanPhoneNumber
           })
         })
 
@@ -97,9 +100,9 @@ export default function ForgotPasswordPage() {
           error(result.error?.message || 'Failed to send reset code')
         }
       }
-    } catch (error) {
+    } catch (err) {
       error('Failed to send reset code. Please try again.')
-      console.error('Reset password error:', error)
+      console.error('Reset password error:', err)
     } finally {
       setIsLoading(false)
     }

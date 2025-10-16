@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   Home, Mail, Play, BarChart3, Globe, Users, Hash, MapPin, Building2,
-  TrendingUp, Eye, MessageSquare, ThumbsDown, ThumbsUp, Twitter, Facebook, Instagram,
   Search, Shield
 } from 'lucide-react'
 import {
@@ -32,40 +31,9 @@ const analyzeItems = [
 
 const exploreItems = [
   { id: 'social-feed', label: 'Social Feed', icon: Globe, href: '/social-feed', description: 'What\'s happening (feed)' },
+  { id: 'profiles', label: 'Profiles', icon: Users, href: '/profiles', description: 'Who is talking' },
   { id: 'entities', label: 'Entities', icon: Hash, href: '/entities', description: 'What is being talked about' },
   { id: 'locations', label: 'Locations', icon: MapPin, href: '/locations', description: 'Where things are happening' },
-]
-
-const profilesSubmenuItems = [
-  {
-    category: 'PRIMARY',
-    items: [
-      { id: 'all-authors', label: 'All Authors', icon: Users, href: '/profiles' },
-    ]
-  },
-  {
-    category: 'ENGAGEMENT & IMPACT',
-    items: [
-      { id: 'high-impact', label: 'High Impact Authors', icon: TrendingUp, href: '/profiles?filter=high-impact' },
-      { id: 'high-reach', label: 'High Reach Authors', icon: Eye, href: '/profiles?filter=high-reach' },
-      { id: 'frequent-posters', label: 'Frequent Posters', icon: MessageSquare, href: '/profiles?filter=frequent-posters' },
-    ]
-  },
-  {
-    category: 'SENTIMENT BASED',
-    items: [
-      { id: 'negative-influencers', label: 'Negative Influencers', icon: ThumbsDown, href: '/profiles?filter=negative' },
-      { id: 'positive-influencers', label: 'Positive Influencers', icon: ThumbsUp, href: '/profiles?filter=positive' },
-    ]
-  },
-  {
-    category: 'PLATFORMS',
-    items: [
-      { id: 'twitter-influencers', label: 'Twitter Influencers', icon: Twitter, href: '/profiles?platform=twitter' },
-      { id: 'facebook-pages', label: 'Facebook Pages', icon: Facebook, href: '/profiles?platform=facebook' },
-      { id: 'instagram-influencers', label: 'Instagram Influencers', icon: Instagram, href: '/profiles?platform=instagram' },
-    ]
-  }
 ]
 
 const communitiesSubmenuItems = [
@@ -288,19 +256,6 @@ export function HeaderNav() {
                     </Link>
                   </NavigationMenuLink>
                 </div>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-
-            {/* Profiles Submenu */}
-            <NavigationMenuItem>
-              <NavigationMenuTrigger className="h-10">
-                <div className="flex items-center gap-2">
-                  <Users size={16} />
-                  <span>Profiles</span>
-                </div>
-              </NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <SubmenuContent items={profilesSubmenuItems} />
               </NavigationMenuContent>
             </NavigationMenuItem>
 

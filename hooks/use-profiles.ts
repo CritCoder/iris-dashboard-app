@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/contexts/auth-context'
 
 interface SocialProfile {
   id: string
@@ -82,13 +83,14 @@ export function useProfiles({
   accountType,
   enabled = true
 }: UseProfilesParams) {
+  const { token } = useAuth()
   const [data, setData] = useState<SocialProfile[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [total, setTotal] = useState<number>(0)
 
   useEffect(() => {
-    if (!enabled) return
+    if (!enabled || !token) return
 
     const fetchProfiles = async () => {
       setLoading(true)
@@ -116,7 +118,7 @@ export function useProfiles({
           {
             headers: {
               'Accept': '*/*',
-              'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbWY1Mmx5NWQwMDAyejI2aHBjYTd6aHQ1Iiwib3JnYW5pemF0aW9uSWQiOiJjbWRpcmpxcjIwMDAwejI4cG8yZW9uMHlmIiwiaWF0IjoxNzYwNDYxOTI5LCJleHAiOjE3NjA1NDgzMjl9.0ENbbqq1_ENPbW0xoc3TnQ4B5bmqfkdIfdFEZvX84t4',
+              'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json',
             },
           }
@@ -153,7 +155,8 @@ export function useProfiles({
     maxPosts,
     isVerified,
     accountType,
-    enabled
+    enabled,
+    token
   ])
 
   return {
