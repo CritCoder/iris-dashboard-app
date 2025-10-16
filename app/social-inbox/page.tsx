@@ -344,8 +344,9 @@ export default function SocialInboxPage() {
                     <option value="cmgjz4l4k0001z2cknnhlna63">Karnataka</option>
                     <option value="cmghzsbzu0001z2ks8m3lkqwy">Karnataka</option>
                     <option value="cmghlcu8i00b1z2ulan0hltsc">Person: Namma Karnataka Sene</option>
-                    <option value="cmggordtg00ahz2ulvpwmh2c2">https://www.facebook.com/share/17Uviu2NRS/</option>
-                    <option value="cmggomfez00adz2ulbx65o7ta">[8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/15hQEYpsJg/ [8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/19QKn8syac/ [8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/1A6jV8udxm/ [8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/17Uviu2NRS/</option>
+                    {/* Facebook tracking links hidden - experimental feature */}
+                    {/* <option value="cmggordtg00ahz2ulvpwmh2c2">https://www.facebook.com/share/17Uviu2NRS/</option> */}
+                    {/* <option value="cmggomfez00adz2ulbx65o7ta">[8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/15hQEYpsJg/ [8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/19QKn8syac/ [8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/1A6jV8udxm/ [8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/17Uviu2NRS/</option> */}
                     <option value="cmgf1njtx000hz2ulnb7tt1o5">Namma Karnataka Sene</option>
                     <option value="cmgf1hd160003z2ul846zyil1">Namma Karnataka Sene</option>
                     <option value="cmgf0cqjl006tz21oqzh47ko2">Person: kiran_murthy_</option>
