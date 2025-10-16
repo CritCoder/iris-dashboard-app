@@ -177,6 +177,7 @@ function SocialFeedContent() {
   const [allPosts, setAllPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [totalCount, setTotalCount] = useState<number>(0)
 
   // Ensure auth token is loaded on mount
   useEffect(() => {
@@ -301,6 +302,11 @@ function SocialFeedContent() {
       if (response.success && response.data) {
         const newPosts = response.data.map(transformApiPost)
         console.log('Transformed posts:', newPosts.length)
+        
+        // Capture total count from API response
+        const apiTotalCount = (response as any).pagination?.total || (response as any).total || newPosts.length
+        setTotalCount(apiTotalCount)
+        console.log('Total count from API:', apiTotalCount)
         
         if (isLoadMore) {
           // Append new posts

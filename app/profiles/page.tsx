@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { PageLayout } from '@/components/layout/page-layout'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import { PageHeader } from '@/components/layout/page-header'
@@ -140,9 +141,24 @@ function ProfileCard({ profile }: { profile: Profile }) {
 }
 
 export default function ProfilesPage() {
+  const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState('')
   const [activeFilter, setActiveFilter] = useState('all')
   const [sortBy, setSortBy] = useState('followers')
+
+  // Read filter and platform from URL params
+  useEffect(() => {
+    const filterParam = searchParams.get('filter')
+    const platformParam = searchParams.get('platform')
+    
+    if (filterParam) {
+      setActiveFilter(filterParam)
+    } else if (platformParam) {
+      setActiveFilter(platformParam)
+    } else {
+      setActiveFilter('all')
+    }
+  }, [searchParams])
 
   // Build API params based on search and filter
   const apiParams = useMemo(() => {
@@ -154,8 +170,33 @@ export default function ProfilesPage() {
       params.search = searchQuery
     }
 
-    // Apply filter-based params
+    // Apply filter-based params from sidebar
     switch (activeFilter) {
+      case 'high-impact':
+        params.minFollowers = 50000
+        params.minEngagement = 5000
+        break
+      case 'high-reach':
+        params.minFollowers = 100000
+        break
+      case 'engaged':
+        params.minEngagement = 10000
+        break
+      case 'negative':
+        params.sentiment = 'NEGATIVE'
+        break
+      case 'positive':
+        params.sentiment = 'POSITIVE'
+        break
+      case 'twitter':
+        params.platform = 'twitter'
+        break
+      case 'facebook':
+        params.platform = 'facebook'
+        break
+      case 'instagram':
+        params.platform = 'instagram'
+        break
       case 'verified':
         params.isVerified = true
         break
@@ -167,15 +208,6 @@ export default function ProfilesPage() {
         break
       case 'active':
         params.personStatus = 'active'
-        break
-      case 'twitter':
-        params.platform = 'twitter'
-        break
-      case 'facebook':
-        params.platform = 'facebook'
-        break
-      case 'instagram':
-        params.platform = 'instagram'
         break
     }
 
@@ -290,12 +322,32 @@ export default function ProfilesPage() {
     )
   }
 
+  // Get filter label for display
+  const getFilterLabel = () => {
+    const filterLabels: Record<string, string> = {
+      'all': 'All Authors',
+      'high-impact': 'High Impact',
+      'high-reach': 'High Reach',
+      'engaged': 'Engaged Posters',
+      'negative': 'Negative Influencers',
+      'positive': 'Positive Influencers',
+      'twitter': 'Twitter Profiles',
+      'facebook': 'Facebook Profiles',
+      'instagram': 'Instagram Profiles',
+      'verified': 'Verified Profiles',
+      'blue-verified': 'Blue Verified',
+      'high-followers': 'High Followers',
+      'active': 'Active Profiles'
+    }
+    return filterLabels[activeFilter] || 'All Authors'
+  }
+
   return (
     <ProtectedRoute>
       <PageLayout>
       <div className="h-screen flex flex-col overflow-hidden">
       <PageHeader
-        title="Social Profiles"
+        title={`${getFilterLabel()} (${filteredProfiles.length})`}
           description={error ? "Unable to load profiles from the API" : "Manage and analyze social media profiles"}
         actions={
           <div className="flex items-center gap-2">

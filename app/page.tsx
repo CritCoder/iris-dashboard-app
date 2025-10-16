@@ -376,22 +376,22 @@ export default function Page() {
 
               {/* CRITICAL ALERT BAR - Highest Priority */}
               <motion.div 
-                className="mb-6 p-4 bg-red-950/20 border border-red-900/50 rounded-lg"
+                className="mb-6 p-4 bg-red-600 dark:bg-red-950/20 border border-red-700 dark:border-red-900/50 rounded-lg shadow-lg"
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ type: "spring", stiffness: 300, damping: 25 }}
               >
                 <div className="flex items-center gap-3">
                   <motion.div 
-                    className="w-2 h-2 bg-red-500 rounded-full"
+                    className="w-2 h-2 bg-white dark:bg-red-500 rounded-full"
                     animate={{ scale: [1, 1.2, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   />
                   <div className="flex-1">
-                    <p className="text-red-400 font-semibold text-sm">⚠️ CRITICAL ALERT</p>
-                    <p className="text-red-300 text-xs">Traffic Management sentiment dropped 15% this week - Immediate attention required</p>
+                    <p className="text-white dark:text-red-400 font-semibold text-sm">⚠️ CRITICAL ALERT</p>
+                    <p className="text-red-50 dark:text-red-300 text-xs">Traffic Management sentiment dropped 15% this week - Immediate attention required</p>
                   </div>
-                  <Button variant="destructive" size="sm">View Details</Button>
+                  <Button variant="destructive" size="sm" className="bg-red-800 hover:bg-red-900 dark:bg-red-900 dark:hover:bg-red-950 text-white border-none">View Details</Button>
                 </div>
               </motion.div>
 
