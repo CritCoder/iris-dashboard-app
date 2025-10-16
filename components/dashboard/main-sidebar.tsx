@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ChevronRight, Clock } from 'lucide-react'
@@ -18,16 +18,25 @@ export function MainSidebar({ className }: MainSidebarProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null)
   const [recentProfiles, setRecentProfiles] = useState<any[]>([])
+  const [isInitialized, setIsInitialized] = useState(false)
 
-  // Restore scroll position
+  // Initialize once - restore expanded menu and scroll position
   useEffect(() => {
-    if (scrollRef.current) {
-      const position = ScrollPersistence.restore('main-sidebar')
-      scrollRef.current.scrollTop = position
+    if (!isInitialized) {
+      const saved = SidebarPersistence.restoreExpanded()
+      if (saved) setExpandedMenu(saved)
+      
+      if (scrollRef.current) {
+        const position = ScrollPersistence.restore('main-sidebar')
+        scrollRef.current.scrollTop = position
+      }
+      
+      setRecentProfiles(RecentItems.get('profile').slice(0, 5))
+      setIsInitialized(true)
     }
-  }, [])
+  }, [isInitialized])
 
-  // Save scroll position
+  // Save scroll position on scroll
   useEffect(() => {
     const handleScroll = () => {
       if (scrollRef.current) {
@@ -36,26 +45,17 @@ export function MainSidebar({ className }: MainSidebarProps) {
     }
 
     const ref = scrollRef.current
-    ref?.addEventListener('scroll', handleScroll)
+    ref?.addEventListener('scroll', handleScroll, { passive: true })
     return () => ref?.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Restore expanded menu
-  useEffect(() => {
-    const saved = SidebarPersistence.restoreExpanded()
-    if (saved) setExpandedMenu(saved)
+  const toggleMenu = useCallback((menuId: string) => {
+    setExpandedMenu(prev => {
+      const newExpanded = prev === menuId ? null : menuId
+      SidebarPersistence.saveExpanded(newExpanded)
+      return newExpanded
+    })
   }, [])
-
-  // Load recent items
-  useEffect(() => {
-    setRecentProfiles(RecentItems.get('profile').slice(0, 5))
-  }, [pathname])
-
-  const toggleMenu = (menuId: string) => {
-    const newExpanded = expandedMenu === menuId ? null : menuId
-    setExpandedMenu(newExpanded)
-    SidebarPersistence.saveExpanded(newExpanded)
-  }
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/'
