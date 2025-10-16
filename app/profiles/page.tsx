@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { PageLayout } from '@/components/layout/page-layout'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import { PageHeader } from '@/components/layout/page-header'
-import { Search, Users, MapPin, Calendar, MessageSquare, Heart, Share2, Eye, Download, Filter } from 'lucide-react'
+import { Search, Users, MapPin, Calendar, MessageSquare, Heart, Share2, Eye, Download, Filter, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -51,89 +51,105 @@ function ProfileCard({ profile }: { profile: Profile }) {
     }
   }
 
+  const getPlatformIcon = (platform: string) => {
+    switch (platform.toLowerCase()) {
+      case 'twitter': return '𝕏'
+      case 'facebook': return '📘'
+      case 'instagram': return '📷'
+      case 'youtube': return '▶️'
+      default: return '🌐'
+    }
+  }
+
   const getSentimentColor = (sentiment?: string) => {
     switch (sentiment) {
-      case 'positive': return 'text-green-600 bg-green-50 border-green-200'
-      case 'negative': return 'text-red-600 bg-red-50 border-red-200'
-      case 'neutral': return 'text-gray-600 bg-gray-50 border-gray-200'
-      default: return 'text-gray-600 bg-gray-50 border-gray-200'
+      case 'positive': return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30'
+      case 'negative': return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30'
+      case 'neutral': return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-950/30'
+      default: return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-950/30'
     }
   }
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-6">
-        <div className="flex items-start gap-4">
-          <div className="relative">
-            <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-foreground font-semibold">
-              {profile.avatar || profile.displayName[0]}
-            </div>
-            <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full ${getPlatformColor(profile.platform)} border-2 border-background`} />
-          </div>
-          
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold text-foreground truncate">{profile.displayName}</h3>
-              {profile.verified && (
-                <Badge variant="secondary" className="text-xs">
-                  ✓
-                </Badge>
-              )}
-              {profile.blueVerified && (
-                <Badge variant="default" className="text-xs">
-                  Blue
-                </Badge>
-              )}
+    <Card className="hover:shadow-lg transition-all hover:border-primary/50 group cursor-pointer">
+      <CardContent className="p-4">
+        {/* Header Row */}
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="relative flex-shrink-0">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-foreground font-bold text-lg border-2 border-primary/20">
+                {profile.avatar || profile.displayName[0].toUpperCase()}
+              </div>
+              <div className={`absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full ${getPlatformColor(profile.platform)} border-2 border-background flex items-center justify-center text-[10px]`}>
+                {getPlatformIcon(profile.platform)}
+              </div>
             </div>
             
-            <div className="text-sm text-muted-foreground mb-2">
-              @{profile.username} · {profile.platform}
-            </div>
-            
-            {profile.bio && (
-              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{profile.bio}</p>
-            )}
-            
-            <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-              <span className="flex items-center gap-1">
-                <Users className="w-3 h-3" />
-                {profile.followers.toLocaleString()}
-              </span>
-              <span className="flex items-center gap-1">
-                <MessageSquare className="w-3 h-3" />
-                {profile.posts.toLocaleString()}
-              </span>
-              {profile.engagement && (
-                <span className="flex items-center gap-1">
-                  <Heart className="w-3 h-3" />
-                  {profile.engagement.toLocaleString()}
-                </span>
-              )}
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {profile.location && (
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <MapPin className="w-3 h-3" />
-                    {profile.location}
-                  </span>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <h3 className="font-semibold text-foreground truncate text-sm">{profile.displayName}</h3>
+                {profile.verified && (
+                  <span className="text-blue-500 flex-shrink-0" title="Verified">✓</span>
                 )}
-                {profile.lastActive && (
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Calendar className="w-3 h-3" />
-                    {profile.lastActive}
-                  </span>
+                {profile.blueVerified && (
+                  <Badge variant="default" className="text-[10px] h-4 px-1">Blue</Badge>
                 )}
               </div>
-              
-              {profile.sentiment && (
-                <Badge className={`text-xs ${getSentimentColor(profile.sentiment)}`}>
-                  {profile.sentiment}
-                </Badge>
-              )}
+              <div className="text-xs text-muted-foreground truncate">@{profile.username}</div>
             </div>
           </div>
+
+          {profile.sentiment && (
+            <Badge variant="outline" className={`text-[10px] h-5 px-1.5 flex-shrink-0 ${getSentimentColor(profile.sentiment)}`}>
+              {profile.sentiment}
+            </Badge>
+          )}
+        </div>
+
+        {/* Bio */}
+        {profile.bio && (
+          <p className="text-xs text-muted-foreground line-clamp-2 mb-3 leading-relaxed">
+            {profile.bio}
+          </p>
+        )}
+
+        {/* Stats Grid - Compact 3 columns */}
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          <div className="text-center p-2 rounded-md bg-muted/50 hover:bg-muted transition-colors">
+            <div className="text-xs font-semibold text-foreground">{profile.followers.toLocaleString()}</div>
+            <div className="text-[10px] text-muted-foreground">Followers</div>
+          </div>
+          <div className="text-center p-2 rounded-md bg-muted/50 hover:bg-muted transition-colors">
+            <div className="text-xs font-semibold text-foreground">{profile.posts.toLocaleString()}</div>
+            <div className="text-[10px] text-muted-foreground">Posts</div>
+          </div>
+          <div className="text-center p-2 rounded-md bg-muted/50 hover:bg-muted transition-colors">
+            <div className="text-xs font-semibold text-foreground">{(profile.engagement || 0).toLocaleString()}</div>
+            <div className="text-[10px] text-muted-foreground">Engagement</div>
+          </div>
+        </div>
+
+        {/* Footer Meta */}
+        <div className="flex items-center justify-between pt-2 border-t border-border">
+          <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+            {profile.location && (
+              <span className="flex items-center gap-1 truncate max-w-[120px]">
+                <MapPin className="w-3 h-3 flex-shrink-0" />
+                {profile.location}
+              </span>
+            )}
+            {profile.lastActive && (
+              <span className="flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                {profile.lastActive}
+              </span>
+            )}
+          </div>
+          
+          <Button size="sm" variant="ghost" className="h-6 px-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+            View
+            <ArrowRight className="w-3 h-3 ml-1" />
+          </Button>
         </div>
       </CardContent>
     </Card>
