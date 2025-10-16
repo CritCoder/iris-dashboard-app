@@ -22,10 +22,10 @@ export function ThemeToggle() {
   return (
     <div 
       role="tablist" 
-      aria-orientation="horizontal" 
-      className="inline-flex items-center justify-center rounded-lg bg-muted/50 p-1 text-muted-foreground h-auto gap-1"
+      aria-orientation="vertical" 
+      className="inline-flex flex-col items-center justify-center rounded-lg bg-muted/50 p-1 text-muted-foreground h-auto gap-1"
       tabIndex={0}
-      data-orientation="horizontal"
+      data-orientation="vertical"
       style={{ outline: 'none' }}
     >
       <button
@@ -41,7 +41,7 @@ export function ThemeToggle() {
             : 'text-muted-foreground hover:text-foreground'
         }`}
         tabIndex={-1}
-        data-orientation="horizontal"
+        data-orientation="vertical"
         onClick={() => theme !== 'dark' && toggleTheme()}
       >
         <Moon className="w-4 h-4" />
@@ -59,7 +59,7 @@ export function ThemeToggle() {
             : 'text-muted-foreground hover:text-foreground'
         }`}
         tabIndex={-1}
-        data-orientation="horizontal"
+        data-orientation="vertical"
         onClick={() => theme !== 'light' && toggleTheme()}
       >
         <Sun className="w-4 h-4" />
