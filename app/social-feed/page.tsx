@@ -48,6 +48,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/components/ui/empty'
+import { SocialFeedSkeleton } from '@/components/skeletons/social-feed-skeleton'
 
 export const dynamic = 'force-dynamic'
 
@@ -802,25 +803,5 @@ export default function SocialFeedPage() {
 }
 
 function FeedSkeleton() {
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3">
-      {Array.from({ length: 12 }).map((_, i) => (
-        <div key={i} className="bg-card border border-border rounded-lg p-4 animate-pulse">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-full bg-secondary" />
-            <div className="flex-1">
-              <div className="h-3 w-32 bg-secondary rounded mb-2" />
-              <div className="h-2 w-24 bg-secondary rounded" />
-            </div>
-          </div>
-          <div className="space-y-2 mb-4">
-            <div className="h-3 w-full bg-secondary rounded" />
-            <div className="h-3 w-5/6 bg-secondary rounded" />
-            <div className="h-3 w-2/3 bg-secondary rounded" />
-          </div>
-          <div className="h-8 w-full bg-secondary rounded" />
-        </div>
-      ))}
-    </div>
-  )
+  return <SocialFeedSkeleton />
 }

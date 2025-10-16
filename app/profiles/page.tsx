@@ -21,6 +21,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/components/ui/empty'
+import { ProfilesGridSkeleton } from '@/components/skeletons/profile-card-skeleton'
 
 interface Profile {
   id: string
@@ -313,26 +314,10 @@ export default function ProfilesPage() {
       <PageLayout>
         <PageHeader
           title="Social Profiles"
-          description="Manage and analyze social media profiles"
+          description="Loading profiles..."
         />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 9 }).map((_, i) => (
-              <Card key={i} className="animate-pulse">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-full bg-secondary" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 w-3/4 bg-secondary rounded" />
-                      <div className="h-3 w-1/2 bg-secondary rounded" />
-                      <div className="h-3 w-full bg-secondary rounded" />
-                      <div className="h-3 w-2/3 bg-secondary rounded" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <ProfilesGridSkeleton count={12} />
         </div>
       </PageLayout>
     )
