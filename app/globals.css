@@ -279,6 +279,12 @@
   .pressable {
     @apply active:scale-[0.98];
   }
+  
+  /* Button span styling for secondary text */
+  button .button-muted,
+  button .text-muted {
+    @apply text-muted-foreground/60;
+  }
 }
 
 /* Reduced motion respect */
