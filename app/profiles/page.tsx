@@ -233,6 +233,13 @@ export default function ProfilesPage() {
 
   const { data: profiles, loading, error } = useProfiles(apiParams)
   
+  // Log for debugging
+  useEffect(() => {
+    if (error) {
+      console.error('Profiles error:', error)
+    }
+  }, [error])
+  
   // Normalize API response into a flat array of Profile objects
   const allProfiles: Profile[] = useMemo(() => {
     const raw: any = profiles
@@ -318,6 +325,31 @@ export default function ProfilesPage() {
         />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
           <ProfilesGridSkeleton count={12} />
+        </div>
+      </PageLayout>
+    )
+  }
+
+  // Show error state with retry option
+  if (error) {
+    return (
+      <PageLayout>
+        <PageHeader
+          title="Social Profiles"
+          description="Unable to load profiles"
+        />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-foreground mb-2">Failed to load profiles</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                {error.includes('401') ? 'Authentication failed. Please try logging in again.' : error}
+              </p>
+              <Button onClick={() => window.location.reload()}>
+                Retry
+              </Button>
+            </div>
+          </div>
         </div>
       </PageLayout>
     )
