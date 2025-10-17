@@ -51,9 +51,22 @@ const config: Config = {
         ring: 'hsl(var(--ring))',
       },
       borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)'
+        // Base radius system - all based on --radius variable
+        none: '0px',
+        xs: 'calc(var(--radius) / 4)',     // 2px
+        sm: 'calc(var(--radius) / 2)',     // 4px  
+        DEFAULT: 'var(--radius)',          // 8px (base)
+        md: 'calc(var(--radius) + 2px)',   // 10px
+        lg: 'calc(var(--radius) + 4px)',   // 12px
+        xl: 'calc(var(--radius) + 6px)',   // 14px
+        '2xl': 'calc(var(--radius) + 8px)', // 16px
+        '3xl': 'calc(var(--radius) + 12px)', // 20px
+        full: '9999px',                    // Fully rounded
+        
+        // Legacy support (deprecated - use new system)
+        'legacy-sm': 'calc(var(--radius) - 4px)',
+        'legacy-md': 'calc(var(--radius) - 2px)',
+        'legacy-lg': 'var(--radius)',
       }
     }
   },

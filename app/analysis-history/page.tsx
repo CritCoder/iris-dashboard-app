@@ -116,66 +116,50 @@ function CampaignCard({
   return (
     <Card
       onClick={handleCardClick}
-      className="group cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-primary/50 card-hover h-full flex flex-col"
+      className="group cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-muted-foreground/30 h-full flex flex-col"
     >
-      <CardContent className="p-6 flex flex-col h-full">
-        {/* Header with title and monitoring status */}
-        <div className="flex items-start justify-between mb-4">
+      <CardContent className="p-5 flex flex-col h-full">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-5 pb-4 border-b border-border">
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-semibold text-foreground mb-1 group-hover:text-primary transition-colors truncate">
+            <h3 className="text-base font-semibold text-foreground mb-1 truncate">
               {campaign.name}
             </h3>
-            <p className="text-sm text-muted-foreground">{formatDate(campaign.createdAt)}</p>
+            <p className="text-xs text-muted-foreground">{displayDate}</p>
           </div>
           <Badge
-            variant={isMonitoring ? "default" : "secondary"}
-            className={`ml-2 ${isMonitoring ? 'bg-green-500 hover:bg-green-600' : ''}`}
+            variant={isMonitoring ? "default" : "outline"}
+            className={`ml-2 text-xs ${isMonitoring ? '' : 'text-muted-foreground'}`}
           >
             {isMonitoring ? 'Active' : 'Paused'}
           </Badge>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-3 mb-4 flex-1">
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
-            <div className="text-blue-400 font-bold text-2xl mb-1">{formatNumber(campaign.metrics?.totalPosts)}</div>
-            <div className="text-xs text-blue-300 uppercase tracking-wide">Posts</div>
+        {/* Stats Grid - Clean & Minimal */}
+        <div className="grid grid-cols-4 gap-4 mb-5 flex-1">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-foreground mb-1">{formatNumber(campaign.metrics?.totalPosts)}</div>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Posts</div>
           </div>
-          <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-lg p-3">
-            <div className="text-cyan-400 font-bold text-2xl mb-1">{formatNumber(campaign.metrics?.totalEngagement)}</div>
-            <div className="text-xs text-cyan-300 uppercase tracking-wide">Engagement</div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-foreground mb-1">{formatNumber(campaign.metrics?.totalEngagement)}</div>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Engagement</div>
           </div>
-          <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
-            <div className="text-green-400 font-bold text-2xl mb-1">{formatNumber(campaign.metrics?.reach)}</div>
-            <div className="text-xs text-green-300 uppercase tracking-wide">Reach</div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-foreground mb-1">{formatNumber(campaign.metrics?.reach)}</div>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Reach</div>
           </div>
-          <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-3">
-            <div className="text-purple-400 font-bold text-2xl mb-1">{(campaign.metrics?.engagementRate || 0).toFixed(1)}%</div>
-            <div className="text-xs text-purple-300 uppercase tracking-wide">Eng. Rate</div>
-          </div>
-        </div>
-
-        {/* Sentiment Score */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-muted-foreground">Sentiment Score</span>
-            <div className={`${getSentimentColor(sentimentScore)} text-white text-xl font-bold px-4 py-1 rounded-lg`}>
-              {sentimentScore}
-            </div>
-          </div>
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
-            <div
-              className={`h-full ${getSentimentColor(sentimentScore)} transition-all duration-300`}
-              style={{ width: `${sentimentScore}%` }}
-            />
+          <div className="text-center">
+            <div className="text-2xl font-bold text-foreground mb-1">{(campaign.metrics?.engagementRate || 0).toFixed(1)}%</div>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Eng. Rate</div>
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons - Simplified */}
         <div className="flex gap-2 pt-4 border-t border-border" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={handleCardClick}
-            className="flex-1 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-colors flex items-center justify-center gap-2 font-medium"
+            className="flex-1 px-3 py-2 bg-foreground/5 hover:bg-foreground/10 text-foreground rounded transition-colors flex items-center justify-center gap-2 text-sm font-medium"
           >
             <Eye className="w-4 h-4" />
             View
@@ -183,32 +167,22 @@ function CampaignCard({
           <button
             onClick={handleToggleMonitoring}
             disabled={isToggling}
-            className={`flex-1 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed ${
-              isMonitoring
-                ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30 border border-green-500/30'
-                : 'bg-gray-500/20 text-gray-400 hover:bg-gray-500/30 border border-gray-500/30'
-            }`}
+            className="px-3 py-2 bg-foreground/5 hover:bg-foreground/10 text-foreground rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isToggling ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : isMonitoring ? (
-              <>
-                <Pause className="w-4 h-4" />
-                Pause
-              </>
+              <Pause className="w-4 h-4" />
             ) : (
-              <>
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
-                Start
-              </>
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
             )}
           </button>
           <button
             onClick={handleDelete}
             disabled={isDeleting}
-            className="p-2 hover:bg-red-500/20 text-red-500 hover:text-red-400 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-red-500/30"
+            className="px-3 py-2 bg-foreground/5 hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isDeleting ? (
               <Loader2 className="w-4 h-4 animate-spin" />

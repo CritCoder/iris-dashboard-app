@@ -94,8 +94,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Redirect authenticated users away from login pages
   useEffect(() => {
     if (!isLoading && user && token && isPublicRoute) {
-      console.log('User is authenticated, redirecting from', pathname, 'to dashboard')
-      router.push('/')
+      // Check if there's a stored redirect path
+      const redirectPath = sessionStorage.getItem('redirectPath')
+      
+      if (redirectPath) {
+        console.log('User is authenticated, redirecting to stored path:', redirectPath)
+        sessionStorage.removeItem('redirectPath')
+        router.push(redirectPath)
+      } else {
+        console.log('User is authenticated, redirecting from', pathname, 'to dashboard')
+        router.push('/')
+      }
     }
   }, [isLoading, user, token, isPublicRoute, pathname, router])
 

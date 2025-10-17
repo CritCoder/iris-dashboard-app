@@ -2,26 +2,19 @@
 // All animations use GPU-accelerated properties (transform, opacity) for 60fps performance
 
 import { Variants, Transition } from 'framer-motion'
+import { motionConfig } from './performance'
 
 // Smooth, quick transitions optimized for performance
-export const quickTransition: Transition = {
-  type: 'spring',
-  stiffness: 400,
-  damping: 30,
-  mass: 0.8,
-}
+export const quickTransition: Transition = motionConfig.quickResponse
 
-export const smoothTransition: Transition = {
-  type: 'spring',
-  stiffness: 300,
-  damping: 25,
-  mass: 1,
-}
+export const smoothTransition: Transition = motionConfig.ultraSmooth
 
 export const inertiaTransition: Transition = {
   type: 'inertia',
   velocity: 50,
   power: 0.8,
+  min: 0,
+  max: 1000,
 }
 
 // Page-level animations for route transitions

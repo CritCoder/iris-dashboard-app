@@ -1,15 +1,16 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { PageLayout } from '@/components/layout/page-layout'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import { PageHeader } from '@/components/layout/page-header'
-import { Search, Building2, TrendingUp, TrendingDown, BarChart3, Download, Filter, Users, MessageSquare, Calendar, Users2, Shield, Globe } from 'lucide-react'
+import { Search, Building2, TrendingUp, TrendingDown, BarChart3, Download, Filter, Users, MessageSquare, Calendar, Users2, Shield, Globe, Eye, EyeOff, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCommunities, useGroups } from '@/hooks/use-api'
+import { useToast } from '@/hooks/use-toast'
 import {
   Empty,
   EmptyContent,
@@ -54,7 +55,15 @@ interface Group {
 
 type SocialEntity = Community | Group
 
-function SocialEntityCard({ entity }: { entity: SocialEntity }) {
+function SocialEntityCard({ 
+  entity, 
+  isMonitored, 
+  onToggleMonitor 
+}: { 
+  entity: SocialEntity
+  isMonitored: boolean
+  onToggleMonitor: (id: string) => void
+}) {
   const getTypeColor = (type: string, category?: string) => {
     if (category === 'community') {
       switch (type) {
@@ -176,11 +185,34 @@ function SocialEntityCard({ entity }: { entity: SocialEntity }) {
                 )}
               </div>
               
-              {entity.sentiment && (
-                <Badge className={`text-xs ${getSentimentColor(entity.sentiment)}`}>
-                  {entity.sentiment}
-                </Badge>
-              )}
+              <div className="flex items-center gap-2">
+                {entity.sentiment && (
+                  <Badge className={`text-xs ${getSentimentColor(entity.sentiment)}`}>
+                    {entity.sentiment}
+                  </Badge>
+                )}
+                <Button
+                  size="sm"
+                  variant={isMonitored ? "default" : "outline"}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onToggleMonitor(entity.id)
+                  }}
+                  className="h-7 px-3 gap-1.5 text-xs"
+                >
+                  {isMonitored ? (
+                    <>
+                      <Check className="w-3 h-3" />
+                      Monitoring
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="w-3 h-3" />
+                      Monitor
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -194,6 +226,50 @@ export default function CommunitiesGroupsPage() {
   const [activeFilter, setActiveFilter] = useState('all')
   const [sortBy, setSortBy] = useState('members')
   const [viewType, setViewType] = useState<'all' | 'communities' | 'groups'>('all')
+  const [monitoredIds, setMonitoredIds] = useState<Set<string>>(new Set())
+  const { toast } = useToast()
+
+  // Load monitored groups from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('monitored-groups')
+    if (saved) {
+      try {
+        const ids = JSON.parse(saved)
+        setMonitoredIds(new Set(ids))
+      } catch (e) {
+        console.error('Failed to load monitored groups:', e)
+      }
+    }
+  }, [])
+
+  // Save monitored groups to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('monitored-groups', JSON.stringify(Array.from(monitoredIds)))
+  }, [monitoredIds])
+
+  const toggleMonitor = (id: string) => {
+    setMonitoredIds(prev => {
+      const newSet = new Set(prev)
+      const isAdding = !newSet.has(id)
+      
+      if (isAdding) {
+        newSet.add(id)
+        toast({
+          title: "Added to Watchlist",
+          description: "This group is now being monitored.",
+        })
+      } else {
+        newSet.delete(id)
+        toast({
+          title: "Removed from Watchlist",
+          description: "This group is no longer being monitored.",
+          variant: "destructive"
+        })
+      }
+      
+      return newSet
+    })
+  }
 
   // Build API params based on search and filter
   const communitiesParams = useMemo(() => {
@@ -343,6 +419,14 @@ export default function CommunitiesGroupsPage() {
 
     let filtered = [...allEntities]
 
+    // Apply monitored filter
+    if (activeFilter === 'monitored') {
+      filtered = filtered.filter(e => monitoredIds.has(e.id))
+    } else if (activeFilter !== 'all') {
+      // Apply other filters (existing logic)
+      // Filter by type, platform, etc.
+    }
+
     // Apply sorting
     switch (sortBy) {
       case 'members':
@@ -360,10 +444,11 @@ export default function CommunitiesGroupsPage() {
     }
 
     return filtered
-  }, [allEntities, sortBy])
+  }, [allEntities, sortBy, activeFilter, monitoredIds])
 
   const filterOptions = [
     { id: 'all', label: 'All', count: allEntities.length },
+    { id: 'monitored', label: '👁️ Watchlist', count: allEntities.filter(e => monitoredIds.has(e.id)).length },
     { id: 'communities', label: 'Communities', count: allCommunities.length },
     { id: 'groups', label: 'Groups', count: allGroups.length },
     { id: 'political', label: 'Political', count: allEntities.filter(e => e.type === 'political').length },
@@ -387,7 +472,7 @@ export default function CommunitiesGroupsPage() {
           title="Communities & Groups"
           description="Manage and analyze social media communities and groups"
         />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div className="max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 9 }).map((_, i) => (
               <Card key={i} className="animate-pulse">
@@ -430,7 +515,7 @@ export default function CommunitiesGroupsPage() {
           }
         />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div className="max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-8">
           {/* View Type Toggle */}
           <div className="mb-6">
             <div className="flex gap-2">
@@ -499,7 +584,12 @@ export default function CommunitiesGroupsPage() {
           {/* Entities Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {(filteredEntities || []).map((entity, index) => (
-              <SocialEntityCard key={`${entity.id}-${index}`} entity={entity} />
+              <SocialEntityCard 
+                key={`${entity.id}-${index}`} 
+                entity={entity} 
+                isMonitored={monitoredIds.has(entity.id)}
+                onToggleMonitor={toggleMonitor}
+              />
             ))}
           </div>
 

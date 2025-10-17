@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { PageLayout } from '@/components/layout/page-layout'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import { PageHeader } from '@/components/layout/page-header'
@@ -42,6 +42,8 @@ interface Profile {
 }
 
 function ProfileCard({ profile }: { profile: Profile }) {
+  const router = useRouter()
+  
   const getPlatformColor = (platform: string) => {
     switch (platform.toLowerCase()) {
       case 'twitter': return 'bg-sky-500'
@@ -72,7 +74,10 @@ function ProfileCard({ profile }: { profile: Profile }) {
   }
 
   return (
-    <Card className="hover:shadow-lg transition-all hover:border-primary/50 group cursor-pointer">
+    <Card 
+      className="hover:shadow-lg transition-all hover:border-primary/50 group cursor-pointer"
+      onClick={() => router.push(`/profiles/${profile.id}`)}
+    >
       <CardContent className="p-4">
         {/* Header Row */}
         <div className="flex items-start justify-between gap-3 mb-3">
@@ -84,6 +89,9 @@ function ProfileCard({ profile }: { profile: Profile }) {
                     src={profile.avatar}
                     alt={profile.displayName}
                     className="w-full h-full object-cover"
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    crossOrigin="anonymous"
                     onError={(e) => {
                       // Fallback to initials on image error
                       const target = e.target as HTMLImageElement
@@ -254,7 +262,10 @@ export default function ProfilesPage() {
     if (error) {
       console.error('Profiles error:', error)
     }
-  }, [error])
+    if (profiles) {
+      console.log('Profiles data sample:', profiles?.slice?.(0, 2) || profiles)
+    }
+  }, [error, profiles])
   
   // Normalize API response into a flat array of Profile objects
   const allProfiles: Profile[] = useMemo(() => {
@@ -270,12 +281,29 @@ export default function ProfilesPage() {
           : []
 
     // Best-effort field normalization
-    return list.map((p: any) => {
+    return list.map((p: any, index: number) => {
       const platformGuess = p?.platform
         || (p?.twitterUrl ? 'twitter'
             : p?.facebookUrl ? 'facebook'
             : p?.instagramUrl ? 'instagram'
             : 'twitter')
+
+      const avatarUrl = p?.avatar || p?.profileImageUrl || p?.profile_image_url || p?.image
+      
+      // Debug log for first 3 profiles to check avatar URLs
+      if (index < 3) {
+        console.log(`Profile ${index} avatar check:`, {
+          username: p?.username,
+          hasAvatar: !!avatarUrl,
+          avatarUrl: avatarUrl,
+          rawFields: {
+            avatar: p?.avatar,
+            profileImageUrl: p?.profileImageUrl,
+            profile_image_url: p?.profile_image_url,
+            image: p?.image
+          }
+        })
+      }
 
       return {
         id: String(p?.id || p?._id || p?.username || p?.userName || Math.random()),
@@ -289,7 +317,7 @@ export default function ProfilesPage() {
         blueVerified: !!(p?.blueVerified ?? p?.isBlueVerified),
         location: p?.location,
         bio: p?.bio || p?.description || p?.profile_bio,
-        avatar: p?.avatar,
+        avatar: avatarUrl,
         lastActive: p?.lastActive,
         engagement: p?.engagement,
         sentiment: p?.sentiment,

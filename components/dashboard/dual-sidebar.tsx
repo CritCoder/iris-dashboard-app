@@ -150,7 +150,7 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
         { id: 'viral-negative', label: 'Viral Negative', icon: AlertTriangle, href: '/social-feed?filter=viral-negative' },
         { id: 'trending', label: 'Trending Discussions', icon: MessageCircle, href: '/social-feed?filter=trending' },
         { id: 'high-engagement', label: 'High Engagement', icon: BarChart3, href: '/social-feed?filter=high-engagement' },
-        { id: 'high-reach', label: 'High Reach, Low Engagement', icon: Eye, href: '/social-feed?filter=high-reach' },
+        { id: 'high-reach', label: 'High Reach/Low Engage', icon: Eye, href: '/social-feed?filter=high-reach' },
         { id: 'viral-potential', label: 'Viral Potential', icon: Activity, href: '/social-feed?filter=viral-potential' },
       ]
     },

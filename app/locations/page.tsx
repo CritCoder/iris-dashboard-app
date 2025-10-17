@@ -2,9 +2,12 @@
 
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
 import { Search, MapPin, TrendingUp, ChevronRight, X, Download, Eye, Users, MessageSquare, AlertTriangle, Calendar, TrendingDown, BarChart3, Map, Grid3X3 } from 'lucide-react'
+import { OSMLocationMap } from '@/components/ui/osm-location-map'
+import { responsive } from '@/lib/performance'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -169,9 +172,9 @@ function LocationCard({ location, onClick }: { location: Location; onClick: () =
 
 function FilterSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="mb-6">
-      <h3 className="text-sm font-semibold text-foreground mb-3">{title}</h3>
-      <div className="space-y-2">
+    <div>
+      <h3 className="text-xs font-semibold text-foreground mb-2 uppercase tracking-wide">{title}</h3>
+      <div className="space-y-0.5">
         {children}
       </div>
     </div>
@@ -182,6 +185,7 @@ function FilterItem({
   label, 
   isActive = false, 
   hasSubmenu = false, 
+  isOpen = false,
   onClick,
   onSelect,
   count,
@@ -190,53 +194,107 @@ function FilterItem({
   label: string
   isActive?: boolean
   hasSubmenu?: boolean
+  isOpen?: boolean
   onClick?: () => void
   onSelect?: (value?: string) => void
   count?: number
   submenuItems?: { label: string; value: string }[]
 }) {
-  const [isOpen, setIsOpen] = useState(false)
-
   const handleClick = () => {
-    if (hasSubmenu && submenuItems) {
-      setIsOpen(!isOpen)
-    } else if (onClick) {
+    if (onClick) {
       onClick()
     }
   }
 
   return (
     <div>
-      <button
+      <motion.button
         onClick={handleClick}
-        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
-          isActive 
-            ? 'bg-primary text-primary-foreground' 
-            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+        className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-xs transition-colors ${
+          hasSubmenu 
+            ? isActive
+              ? 'bg-primary text-primary-foreground font-semibold' 
+              : 'text-foreground hover:text-foreground hover:bg-accent font-semibold'
+            : isActive 
+              ? 'bg-primary/80 text-primary-foreground' 
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
         }`}
+        whileHover={{ x: 2 }}
+        whileTap={{ scale: 0.98 }}
       >
-        <span>{label}</span>
-        <div className="flex items-center gap-2">
-          {count !== undefined && <span className="text-xs text-muted-foreground">{count}</span>}
+        <span className={`truncate ${hasSubmenu ? 'flex items-center gap-1.5' : ''}`}>
+          {hasSubmenu && <span className="text-xs">📍</span>}
+          {label}
+        </span>
+        <motion.div 
+          className="flex items-center gap-1 flex-shrink-0"
+          animate={{ rotate: isOpen ? 90 : 0 }}
+          transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+        >
+          {count !== undefined && <span className="text-[10px] text-muted-foreground">{count}</span>}
           {hasSubmenu && (
-            <ChevronRight className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
+            <ChevronRight className="w-3 h-3" />
           )}
-        </div>
-      </button>
+        </motion.div>
+      </motion.button>
       
-      {hasSubmenu && isOpen && submenuItems && (
-        <div className="ml-4 mt-1 space-y-1">
-          {submenuItems.map((item) => (
-            <button
-              key={item.value}
-              onClick={() => onSelect ? onSelect(item.value) : onClick && onClick()}
-              className="w-full flex items-start px-3 py-1.5 rounded-lg text-xs transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {hasSubmenu && isOpen && submenuItems && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ 
+              height: 'auto', 
+              opacity: 1,
+              transition: {
+                height: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+                opacity: { duration: 0.25, ease: 'easeOut' }
+              }
+            }}
+            exit={{ 
+              height: 0, 
+              opacity: 0,
+              transition: {
+                height: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
+                opacity: { duration: 0.2, ease: 'easeIn' }
+              }
+            }}
+            className="overflow-hidden"
+          >
+            <div className="ml-3 mt-0.5 space-y-0.5 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent border-l border-border/50 pl-2">
+              {submenuItems.map((item, index) => (
+                <motion.button
+                  key={item.value}
+                  initial={{ x: -10, opacity: 0 }}
+                  animate={{ 
+                    x: 0, 
+                    opacity: 1,
+                    transition: {
+                      delay: index * 0.03,
+                      duration: 0.2,
+                      ease: 'easeOut'
+                    }
+                  }}
+                  exit={{ 
+                    x: -10, 
+                    opacity: 0,
+                    transition: {
+                      duration: 0.15,
+                      ease: 'easeIn'
+                    }
+                  }}
+                  whileHover={{ x: 2, backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => onSelect && onSelect(item.value)}
+                  className="w-full flex items-center gap-1.5 px-2 py-1 rounded text-[11px] transition-colors text-muted-foreground hover:text-foreground text-left"
+                >
+                  <span className="w-1 h-1 rounded-full bg-muted-foreground/50 flex-shrink-0"></span>
+                  {item.label}
+                </motion.button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
@@ -247,6 +305,41 @@ export default function LocationsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeFilter, setActiveFilter] = useState('all-locations')
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({})
+  const [viewMode, setViewMode] = useState<'grid' | 'map'>('map')
+  const [expandedDivision, setExpandedDivision] = useState<string>('Whitefield Division')
+
+  // Police Divisions with their areas
+  const policeDivisions = {
+    'Whitefield Division': [
+      'Whitefield', 'Kadugodi', 'Avalahalli', 'Mahadevapura', 'Krishnarajapura',
+      'Marathahalli', 'Bellandur', 'Varthur', 'HAL'
+    ],
+    'South East Division': [
+      'HSR Layout', 'Koramangala', 'Madivala', 'Adugodi', 'Bommanahalli',
+      'Sudduguntepalya', 'Thilakanagara', 'South East Woman', 'Mico Layout'
+    ],
+    'Central Division': [
+      'Halsurugate', 'S.R.Nagar', 'SJ.Park', 'Wilsongarden', 'Vidhansoudha',
+      'Viveknagar', 'Ashoknagar', 'Sheshadripuram', 'Vyalikaval', 'Highground',
+      'Shadashivnagar'
+    ],
+    'Northeast Division': [
+      'Amruthahalli', 'Bagaluru', 'Chikkajala', 'Devanahalli',
+      'Kempegowda International Airport', 'Kothanur', 'Kodigehalli',
+      'Sampigehalli', 'Vidyaranyapura', 'Yelahanka', 'Yelahanka New Town',
+      'Tindlu', 'Manyata Tech Park', 'Sahakar Nagara', 'Hegade nagara', 'M S Palya'
+    ],
+    'East Division': [
+      'Shivaji nagar', 'Bharati nagar', 'Commercial street', 'Pulikeshi nagar',
+      'Ram murthy nagar', 'Banasawadi', 'Kg halli', 'Dg halli', 'Halasuru',
+      'Indira Nagar', 'Jb nagar', 'Baiyappanahalli'
+    ],
+    'North Division': [
+      'Hebbal', 'Jalahalli', 'JC Nagar', 'Mahalakshmi Layout', 'Malleshwaram',
+      'Nandini layout', 'Rajaji nagar', 'RMC Yard', 'RT Nagar', 'Sanjaynagar',
+      'Srirapura', 'Subramanya nagar', 'Yeshwanthapura'
+    ]
+  }
 
   const handleLocationClick = (location: Location) => {
     // Use location ID for navigation
@@ -343,6 +436,26 @@ export default function LocationsPage() {
           description="Location Explorer"
         actions={
             <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={viewMode === 'grid' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                  className="gap-2"
+                >
+                  <Grid3X3 className="w-4 h-4" />
+                  Grid
+                </Button>
+                <Button
+                  variant={viewMode === 'map' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('map')}
+                  className="gap-2"
+                >
+                  <Map className="w-4 h-4" />
+                  Map
+                </Button>
+              </div>
               <span className="text-sm text-muted-foreground">
                 {filteredLocations.length} locations found
               </span>
@@ -437,8 +550,31 @@ export default function LocationsPage() {
                           </FilterSection>
 
                           <FilterSection title="POLICE DIVISIONS">
-                            {['Whitefield Division','South East Division','Central Division','Northeast Division','East Division','North Division'].map((division) => (
-                              <FilterItem key={division} label={division} onClick={() => { setActiveFilter(division); setActiveFilters({ division }) }} />
+                            {Object.entries(policeDivisions).map(([division, areas]) => (
+                              <FilterItem
+                                key={division}
+                                label={division}
+                                hasSubmenu
+                                isOpen={expandedDivision === division}
+                                isActive={activeFilter === division}
+                                onClick={() => {
+                                  if (expandedDivision === division) {
+                                    setExpandedDivision('')
+                                  } else {
+                                    setExpandedDivision(division)
+                                  }
+                                }}
+                                onSelect={(area?: string) => {
+                                  if (area) {
+                                    setActiveFilter(area)
+                                    setActiveFilters({ location: area })
+                                  }
+                                }}
+                                submenuItems={areas.map(area => ({
+                                  label: area,
+                                  value: area
+                                }))}
+                              />
                             ))}
                           </FilterSection>
                         </div>
@@ -452,8 +588,8 @@ export default function LocationsPage() {
             <div className="flex-1 overflow-hidden">
               <div className="h-full w-full grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-0">
                 {/* Left Sidebar Filters */}
-                <div className="hidden lg:block border-r border-border overflow-y-auto p-4 pt-2">
-                  <div className="space-y-6">
+                <div className="hidden lg:flex flex-col border-r border-border overflow-hidden">
+                  <div className="flex-1 overflow-y-auto p-3 pt-2 space-y-4">
                     <FilterSection title="PRIMARY">
                       <FilterItem 
                         label="All Locations" 
@@ -517,51 +653,70 @@ export default function LocationsPage() {
                     </FilterSection>
 
                     <FilterSection title="POLICE DIVISIONS">
-                      {[
-                        'Whitefield Division',
-                        'South East Division',
-                        'Central Division',
-                        'Northeast Division',
-                        'East Division',
-                        'North Division',
-                      ].map((division) => (
+                      {Object.entries(policeDivisions).map(([division, areas]) => (
                         <FilterItem
                           key={division}
                           label={division}
+                          hasSubmenu
+                          isOpen={expandedDivision === division}
+                          isActive={activeFilter === division}
                           onClick={() => {
-                            setActiveFilter(division)
-                            setActiveFilters({ division })
+                            if (expandedDivision === division) {
+                              setExpandedDivision('')
+                            } else {
+                              setExpandedDivision(division)
+                            }
                           }}
+                          onSelect={(area?: string) => {
+                            if (area) {
+                              setActiveFilter(area)
+                              setActiveFilters({ location: area })
+                            }
+                          }}
+                          submenuItems={areas.map(area => ({
+                            label: area,
+                            value: area
+                          }))}
                         />
                       ))}
                     </FilterSection>
                   </div>
                 </div>
 
-                {/* Main grid */}
-                <div className="overflow-y-auto p-3 sm:p-4 lg:p-6">
-              {filteredLocations.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <MapPin className="w-16 h-16 text-muted-foreground/50 mb-4" />
-                  <h3 className="text-lg font-semibold text-foreground mb-2">No locations found</h3>
-                  <p className="text-muted-foreground max-w-md">
-                    {searchQuery 
-                      ? `No locations match "${searchQuery}". Try adjusting your search.`
-                      : 'No locations available at the moment. Check back later.'}
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4">
-                  {filteredLocations.map((location) => (
-                    <Card key={location.id}>
-                      <LocationCard
-                        location={location}
-                        onClick={() => handleLocationClick(location)}
-                      />
-                    </Card>
-                  ))}
-                </div>
-              )}
+                {/* Main content area */}
+                <div className="overflow-hidden p-3 sm:p-4 lg:p-6">
+                  {filteredLocations.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full text-center">
+                      <MapPin className="w-16 h-16 text-muted-foreground/50 mb-4" />
+                      <h3 className="text-lg font-semibold text-foreground mb-2">No locations found</h3>
+                      <p className="text-muted-foreground max-w-md">
+                        {searchQuery 
+                          ? `No locations match "${searchQuery}". Try adjusting your search.`
+                          : 'No locations available at the moment. Check back later.'}
+                      </p>
+                    </div>
+                  ) : viewMode === 'map' ? (
+                    <OSMLocationMap
+                      locations={filteredLocations}
+                      selectedLocation={selectedLocation}
+                      onLocationSelect={setSelectedLocation}
+                      height="100%"
+                      className="w-full"
+                    />
+                  ) : (
+                    <div className="overflow-y-auto h-full">
+                      <div className={responsive.getGrid('cards', 'medium')}>
+                        {filteredLocations.map((location) => (
+                          <Card key={location.id}>
+                            <LocationCard
+                              location={location}
+                              onClick={() => handleLocationClick(location)}
+                            />
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

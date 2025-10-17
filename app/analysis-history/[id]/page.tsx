@@ -6,7 +6,7 @@ import {
   ChatBubbleLeftRightIcon, UserGroupIcon, CubeIcon, MapPinIcon, BellIcon,
   GlobeAltIcon, SparklesIcon, FireIcon, ShieldExclamationIcon, ChartBarIcon,
   EyeIcon, ArrowTrendingUpIcon, NewspaperIcon, VideoCameraIcon, FaceSmileIcon,
-  MinusCircleIcon, FaceFrownIcon, ChevronRightIcon, ChevronDownIcon,
+  MinusCircleIcon, FaceFrownIcon, ChevronRightIcon,
   UsersIcon, ChatBubbleBottomCenterTextIcon, HandThumbUpIcon, UserIcon,
   BuildingOfficeIcon, ExclamationTriangleIcon, MagnifyingGlassIcon,
   FlagIcon, BuildingLibraryIcon
@@ -30,6 +30,7 @@ import { usePosts, convertToPostCardFormat } from '@/hooks/use-posts'
 import { useProfiles, convertToProfileCardFormat } from '@/hooks/use-profiles'
 import { ProfileList } from '@/components/profiles/profile-list'
 import { startMonitoring, stopMonitoring } from '@/lib/api/campaigns'
+import ErrorBoundary from '@/components/ui/error-boundary'
 
 const samplePosts: Post[] = [
   {
@@ -106,7 +107,7 @@ const samplePosts: Post[] = [
   }
 ]
 
-export default function CampaignDetailPage() {
+function CampaignDetailPage() {
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -182,13 +183,13 @@ export default function CampaignDetailPage() {
   const contentRef = useRef<HTMLDivElement>(null)
 
   // Find the current campaign from the campaigns list
-  const currentCampaign = campaigns?.find(campaign => campaign.id === campaignId)
+  const currentCampaign = campaigns?.find(campaign => campaign.id === campaignId) || null
   
   // Initialize monitoring state based on campaign data
   const actualMonitoringStatus = currentCampaign?.monitoringStatus === 'ACTIVE'
 
   // Convert API posts to PostCard format and apply filters
-  const allPosts = postsData ? postsData.map(convertToPostCardFormat) : []
+  const allPosts = postsData && Array.isArray(postsData) ? postsData.map(convertToPostCardFormat) : []
 
   const filteredPosts = allPosts.filter(post => {
     const matchesSentiment = selectedSentiment === 'all' || post.sentiment === selectedSentiment
@@ -197,7 +198,7 @@ export default function CampaignDetailPage() {
   })
 
   // Convert API profiles to ProfileCard format
-  const allProfiles = profilesData ? profilesData.map(convertToProfileCardFormat) : []
+  const allProfiles = profilesData && Array.isArray(profilesData) ? profilesData.map(convertToProfileCardFormat) : []
 
   // Handle category-based filtering for navigation
   const handleCategorySelect = (categoryName: string) => {
@@ -297,7 +298,7 @@ export default function CampaignDetailPage() {
             { name: 'Viral Negative', icon: ShieldExclamationIcon, params: { sentiment: 'NEGATIVE', min_sharesCount: '1000' } },
             { name: 'Trending Discussions', icon: ChatBubbleLeftRightIcon, params: { timeRange: '24h', sortBy: 'commentsCount' } },
             { name: 'High Engagement', icon: ChartBarIcon, params: { min_likesCount: '100', min_commentsCount: '50' } },
-            { name: 'High Reach, Low Engagement', icon: EyeIcon, params: { min_viewsCount: '10000', max_likesCount: '50' } },
+            { name: 'High Reach/Low Engage', icon: EyeIcon, params: { min_viewsCount: '10000', max_likesCount: '50' } },
             { name: 'Viral Potential', icon: ArrowTrendingUpIcon, params: { timeRange: '6h', sortBy: 'sharesCount' } },
           ],
         },
@@ -1036,5 +1037,13 @@ export default function CampaignDetailPage() {
           </div>
         </div>
     </div>
+  )
+}
+
+export default function CampaignDetailPageWithErrorBoundary() {
+  return (
+    <ErrorBoundary>
+      <CampaignDetailPage />
+    </ErrorBoundary>
   )
 }

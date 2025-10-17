@@ -33,6 +33,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
 import { Search, Download, Heart, MessageCircle, Share2, Eye, X, Loader2, ArrowRight } from 'lucide-react'
+import { responsive } from '@/lib/performance'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
@@ -712,7 +713,7 @@ function SocialFeedContent() {
     { id: 'viral-negative', label: 'Viral Negative', icon: '⚠️' },
     { id: 'trending', label: 'Trending Discussions', icon: '💬' },
     { id: 'high-engagement', label: 'High Engagement', icon: '📊' },
-    { id: 'high-reach-low-engagement', label: 'High Reach, Low Engagement', icon: '👁️' },
+    { id: 'high-reach-low-engagement', label: 'High Reach/Low Engage', icon: '👁️' },
     { id: 'viral-potential', label: 'Viral Potential', icon: '🚀' }
   ]
 
@@ -733,6 +734,30 @@ function SocialFeedContent() {
   const getFilterLabel = (filterId: string) => {
     const allFilters = [...discoverFilters, ...contentFilters, ...platformFilters, ...sentimentFilters]
     return allFilters.find(f => f.id === filterId)?.label || 'All Posts'
+  }
+
+  // Calculate count for each filter
+  const getFilterCount = (filterId: string) => {
+    return allPosts.filter(post => {
+      // Apply the filter logic
+      if (filterId === 'all-posts') return true
+      if (filterId === 'latest-posts') return true // Same as all for now
+      if (filterId === 'positive') return post.sentiment === 'positive'
+      if (filterId === 'negative') return post.sentiment === 'negative'
+      if (filterId === 'neutral') return post.sentiment === 'neutral'
+      if (filterId === 'news') return post.platform === 'news'
+      if (filterId === 'videos') return post.hasVideo
+      if (filterId === 'twitter') return post.platform === 'twitter'
+      if (filterId === 'facebook') return post.platform === 'facebook'
+      if (filterId === 'instagram') return post.platform === 'instagram'
+      if (filterId === 'high-impact') return post.impact === 'high'
+      if (filterId === 'viral-negative') return post.isViral && post.sentiment === 'negative'
+      if (filterId === 'trending') return post.isTrending
+      if (filterId === 'high-engagement') return post.engagement > 500
+      if (filterId === 'high-reach-low-engagement') return post.reach > 1000 && post.engagement < 100
+      if (filterId === 'viral-potential') return post.engagement > 300 && post.shares > 50
+      return true
+    }).length
   }
 
   const [showSearch, setShowSearch] = useState(!!urlSearchQuery) // Show search if query param exists
@@ -762,53 +787,88 @@ function SocialFeedContent() {
               <div className="space-y-1">
                 <button
                   onClick={() => handleFilterChange('all-posts')}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
                     activeFilter === 'all-posts'
                       ? 'bg-primary text-primary-foreground font-medium'
                       : 'text-foreground hover:bg-accent'
                   }`}
                 >
-                  📋 All Posts
+                  <span>📋 All Posts</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+                    activeFilter === 'all-posts' 
+                      ? 'bg-primary-foreground/20' 
+                      : 'bg-muted text-muted-foreground'
+                  }`}>
+                    {getFilterCount('all-posts')}
+                  </span>
                 </button>
                 <button
                   onClick={() => handleFilterChange('latest-posts')}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
                     activeFilter === 'latest-posts'
                       ? 'bg-primary text-primary-foreground font-medium'
                       : 'text-foreground hover:bg-accent'
                   }`}
                 >
-                  ✨ Latest
+                  <span>✨ Latest</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+                    activeFilter === 'latest-posts' 
+                      ? 'bg-primary-foreground/20' 
+                      : 'bg-muted text-muted-foreground'
+                  }`}>
+                    {getFilterCount('latest-posts')}
+                  </span>
                 </button>
                 <button
                   onClick={() => handleFilterChange('high-impact')}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
                     activeFilter === 'high-impact'
                       ? 'bg-primary text-primary-foreground font-medium'
                       : 'text-foreground hover:bg-accent'
                   }`}
                 >
-                  🎯 Top
+                  <span>🎯 Top</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+                    activeFilter === 'high-impact' 
+                      ? 'bg-primary-foreground/20' 
+                      : 'bg-muted text-muted-foreground'
+                  }`}>
+                    {getFilterCount('high-impact')}
+                  </span>
                 </button>
                 <button
                   onClick={() => handleFilterChange('positive')}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
                     activeFilter === 'positive'
                       ? 'bg-primary text-primary-foreground font-medium'
                       : 'text-foreground hover:bg-accent'
                   }`}
                 >
-                  😊 Positive
+                  <span>😊 Positive</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+                    activeFilter === 'positive' 
+                      ? 'bg-primary-foreground/20' 
+                      : 'bg-muted text-muted-foreground'
+                  }`}>
+                    {getFilterCount('positive')}
+                  </span>
                 </button>
                 <button
                   onClick={() => handleFilterChange('negative')}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
                     activeFilter === 'negative'
                       ? 'bg-primary text-primary-foreground font-medium'
                       : 'text-foreground hover:bg-accent'
                   }`}
                 >
-                  😞 Negative
+                  <span>😞 Negative</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+                    activeFilter === 'negative' 
+                      ? 'bg-primary-foreground/20' 
+                      : 'bg-muted text-muted-foreground'
+                  }`}>
+                    {getFilterCount('negative')}
+                  </span>
                 </button>
               </div>
             </div>
@@ -821,13 +881,23 @@ function SocialFeedContent() {
                   <button
                     key={filter.id}
                     onClick={() => handleFilterChange(filter.id)}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors text-left ${
                       activeFilter === filter.id
                         ? 'bg-primary text-primary-foreground font-medium'
                         : 'text-foreground hover:bg-accent'
                     }`}
                   >
-                    {filter.icon} {filter.label}
+                    <span className="flex items-center gap-1 flex-1 min-w-0">
+                      <span>{filter.icon}</span>
+                      <span className="truncate">{filter.label}</span>
+                    </span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ml-2 ${
+                      activeFilter === filter.id 
+                        ? 'bg-primary-foreground/20' 
+                        : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {getFilterCount(filter.id)}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -841,13 +911,23 @@ function SocialFeedContent() {
                   <button
                     key={filter.id}
                     onClick={() => handleFilterChange(filter.id)}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors text-left ${
                       activeFilter === filter.id
                         ? 'bg-primary text-primary-foreground font-medium'
                         : 'text-foreground hover:bg-accent'
                     }`}
                   >
-                    {filter.icon} {filter.label}
+                    <span className="flex items-center gap-1 flex-1 min-w-0">
+                      <span>{filter.icon}</span>
+                      <span className="truncate">{filter.label}</span>
+                    </span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ml-2 ${
+                      activeFilter === filter.id 
+                        ? 'bg-primary-foreground/20' 
+                        : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {getFilterCount(filter.id)}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -910,7 +990,7 @@ function SocialFeedContent() {
               <FeedSkeleton />
             ) : (filteredPosts || []).length > 0 ? (
               <>
-                <StaggerList speed="fast" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3">
+                <StaggerList speed="fast" className={responsive.getGrid('cards', 'small')}>
                   {(filteredPosts || []).map((post) => (
                     <StaggerItem key={post.id}>
                       <PostCard post={post} />

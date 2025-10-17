@@ -4,46 +4,40 @@
  */
 
 import { Variants, Transition } from 'framer-motion'
+import { motionConfig } from './performance'
 
 // ============================================
-// TRANSITIONS
+// OPTIMIZED TRANSITIONS FOR 60FPS PERFORMANCE
 // ============================================
 
 export const transitions = {
-  // Smooth and natural
-  smooth: {
-    type: 'spring',
-    stiffness: 300,
-    damping: 30,
-  } as Transition,
+  // Ultra-smooth spring (optimized for 60fps)
+  smooth: motionConfig.ultraSmooth,
   
-  // Bouncy effect
-  bouncy: {
-    type: 'spring',
-    stiffness: 400,
-    damping: 20,
-  } as Transition,
+  // Performance-optimized bouncy effect
+  bouncy: motionConfig.smoothDrag,
   
-  // Gentle ease
-  gentle: {
-    type: 'tween',
-    duration: 0.3,
-    ease: 'easeInOut',
-  } as Transition,
+  // Gentle ease (GPU accelerated)
+  gentle: motionConfig.gentle,
   
-  // Quick snap
-  quick: {
-    type: 'tween',
-    duration: 0.15,
-    ease: 'easeOut',
-  } as Transition,
+  // Quick snap (optimized for responsiveness)
+  quick: motionConfig.quick,
   
-  // Slow and smooth
+  // Smooth drag/resize transitions
+  drag: motionConfig.smoothDrag,
+  
+  // Resize transitions (using gentle for smooth resize)
+  resize: motionConfig.gentle,
+  
+  // Quick response for interactions
+  quickResponse: motionConfig.quickResponse,
+  
+  // Slow and smooth (for dramatic effects)
   slow: {
-    type: 'tween',
-    duration: 0.5,
-    ease: 'easeInOut',
-  } as Transition,
+    type: 'tween' as const,
+    duration: 0.4,
+    ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
+  },
 }
 
 // ============================================
@@ -55,7 +49,7 @@ export const buttonVariants: Variants = {
   initial: { scale: 1 },
   hover: { 
     scale: 1.02,
-    transition: transitions.quick,
+    transition: transitions.quickResponse,
   },
   tap: { 
     scale: 0.98,
