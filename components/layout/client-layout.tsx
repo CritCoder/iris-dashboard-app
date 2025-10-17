@@ -24,13 +24,9 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   // Enable keyboard shortcuts
   useKeyboardShortcuts()
 
-  // For public routes, render without sidebars
+  // For public routes, render without sidebars and without any wrapper constraints
   if (isPublicRoute) {
-    return (
-      <div className="h-screen bg-background text-foreground flex overflow-hidden w-full">
-        {children}
-      </div>
-    )
+    return <>{children}</>
   }
 
   // For authenticated routes, render with sidebars

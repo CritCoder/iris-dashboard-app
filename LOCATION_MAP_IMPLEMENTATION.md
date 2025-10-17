@@ -193,3 +193,4 @@ The locations page now provides:
 - ✅ **Theme Support** for light and dark modes
 
 Visit `/locations?activity=low` to see the map in action!
+

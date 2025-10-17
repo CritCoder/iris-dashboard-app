@@ -218,3 +218,4 @@ The responsiveness issues have been completely resolved:
 - ✅ **Future-proof architecture** for easy updates
 
 All card listing pages now properly adapt to different screen sizes without content going out of viewport!
+
