@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { PageLayout } from '@/components/layout/page-layout'
-import { PageHeader } from '@/components/layout/page-header'
 import { Search, User, MapPin, CreditCard, Car, FileText, Phone, Loader2, CheckCircle2, XCircle, AlertCircle, Building2, Hash, Users2, MessageSquare, FileCheck, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -708,13 +707,6 @@ export default function EntitySearchPage() {
     setSelectedOptions(filteredOptions.map(opt => opt.id))
   }
 
-  // Auto-select cheapest option (first option) when search type changes
-  useEffect(() => {
-    if (filteredOptions.length > 0) {
-      setSelectedOptions([filteredOptions[0].id])
-    }
-  }, [searchType])
-
   const clearAllOptions = () => {
     setSelectedOptions([])
   }
@@ -1014,13 +1006,8 @@ export default function EntitySearchPage() {
   return (
     <PageLayout>
       <div className="h-screen flex flex-col bg-background overflow-hidden">
-        <PageHeader 
-          title="Unified Search" 
-          description="Comprehensive intelligence search across multiple databases"
-        />
-
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-7xl mx-auto p-3 sm:p-4 lg:p-6 xl:p-8 space-y-4 sm:space-y-6">
+        <div className="flex-1 overflow-y-auto flex items-center justify-center">
+          <div className="max-w-4xl w-full mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 space-y-4 sm:space-y-6">
             {/* Search Form */}
             <Card>
               <CardHeader>

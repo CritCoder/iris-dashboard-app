@@ -12,7 +12,8 @@ const publicRoutes = [
   '/forgot-password/reset',
   '/test-animations',
   '/page-test',
-  '/debug-auth',
+  '/start-analysis', // Temporarily added for testing
+  '/social-feed', // Temporarily added for testing
 ]
 
 // Define static assets and Next.js internals to exclude from middleware

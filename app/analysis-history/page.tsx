@@ -4,9 +4,11 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
-import { Search, Eye, Pause, Trash2, ChevronLeft, ChevronRight, Loader2, AlertCircle } from 'lucide-react'
+import { Search, Eye, Pause, Trash2, ChevronLeft, ChevronRight, Loader2, AlertCircle, ArrowUpDown, TrendingUp } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { AnimatedPage, AnimatedList, AnimatedItem } from '@/components/ui/animated'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { AnimatedPage, AnimatedGrid, AnimatedCard } from '@/components/ui/animated'
 import {
   getCampaigns,
   searchCampaigns,
@@ -56,11 +58,11 @@ const calculateSentimentScore = (sentiment: { positive: number; neutral: number;
   return Math.round((positive * 100) + (neutral * 50) + (negative * 0));
 };
 
-function CampaignRow({ 
-  campaign, 
-  onDelete, 
-  onToggleMonitoring 
-}: { 
+function CampaignCard({
+  campaign,
+  onDelete,
+  onToggleMonitoring
+}: {
   campaign: Campaign;
   onDelete: (id: string) => void;
   onToggleMonitoring: (id: string, isActive: boolean) => void;
@@ -70,9 +72,9 @@ function CampaignRow({
   const [isToggling, setIsToggling] = useState(false)
 
   const getSentimentColor = (sentiment: number) => {
-    if (sentiment >= 70) return 'bg-green-600 text-white'
-    if (sentiment >= 40) return 'bg-yellow-600 text-white'
-    return 'bg-red-600 text-white'
+    if (sentiment >= 70) return 'bg-green-600'
+    if (sentiment >= 40) return 'bg-yellow-600'
+    return 'bg-red-600'
   }
 
   // Calculate display values
@@ -82,10 +84,9 @@ function CampaignRow({
     day: 'numeric',
     year: 'numeric'
   })
-  const displayStatus = campaign.status.toLowerCase() as 'active' | 'inactive' | 'completed'
 
-  const handleRowClick = () => {
-    router.push(`/campaign/${campaign.id}`)
+  const handleCardClick = () => {
+    router.push(`/analysis-history/${campaign.id}`)
   }
 
   const handleDelete = async (e: React.MouseEvent) => {
@@ -113,96 +114,111 @@ function CampaignRow({
   const isMonitoring = campaign.monitoringStatus === 'ACTIVE'
 
   return (
-    <div
-      onClick={handleRowClick}
-      className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border-b border-border hover:bg-accent/20 transition-colors gap-3 cursor-pointer group"
+    <Card
+      onClick={handleCardClick}
+      className="group cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-primary/50 card-hover h-full flex flex-col"
     >
-      <div className="flex-1 min-w-0">
-        <h3 className="text-foreground font-medium mb-1 hover:text-blue-400 transition-colors">
-          {campaign.name}
-        </h3>
-        <p className="text-sm text-muted-foreground">{formatDate(campaign.createdAt)}</p>
-      </div>
+      <CardContent className="p-6 flex flex-col h-full">
+        {/* Header with title and monitoring status */}
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-semibold text-foreground mb-1 group-hover:text-primary transition-colors truncate">
+              {campaign.name}
+            </h3>
+            <p className="text-sm text-muted-foreground">{formatDate(campaign.createdAt)}</p>
+          </div>
+          <Badge
+            variant={isMonitoring ? "default" : "secondary"}
+            className={`ml-2 ${isMonitoring ? 'bg-green-500 hover:bg-green-600' : ''}`}
+          >
+            {isMonitoring ? 'Active' : 'Paused'}
+          </Badge>
+        </div>
 
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-6">
-        <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-2 sm:pb-0">
-          <div className="bg-blue-900/20 border border-blue-800/30 rounded-lg px-3 sm:px-4 py-2 text-center min-w-[70px] sm:min-w-[80px] flex-shrink-0">
-            <div className="text-blue-300 font-bold text-base sm:text-lg">{formatNumber(campaign.metrics?.totalPosts)}</div>
-            <div className="text-xs text-blue-400">POSTS</div>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 gap-3 mb-4 flex-1">
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
+            <div className="text-blue-400 font-bold text-2xl mb-1">{formatNumber(campaign.metrics?.totalPosts)}</div>
+            <div className="text-xs text-blue-300 uppercase tracking-wide">Posts</div>
           </div>
-          <div className="bg-cyan-900/20 border border-cyan-800/30 rounded-lg px-3 sm:px-4 py-2 text-center min-w-[70px] sm:min-w-[80px] flex-shrink-0">
-            <div className="text-cyan-300 font-bold text-base sm:text-lg">{formatNumber(campaign.metrics?.totalEngagement)}</div>
-            <div className="text-xs text-cyan-400">ENGAGE</div>
+          <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-lg p-3">
+            <div className="text-cyan-400 font-bold text-2xl mb-1">{formatNumber(campaign.metrics?.totalEngagement)}</div>
+            <div className="text-xs text-cyan-300 uppercase tracking-wide">Engagement</div>
           </div>
-          <div className="bg-green-900/20 border border-green-800/30 rounded-lg px-3 sm:px-4 py-2 text-center min-w-[70px] sm:min-w-[80px] flex-shrink-0">
-            <div className="text-green-300 font-bold text-base sm:text-lg">{formatNumber(campaign.metrics?.reach)}</div>
-            <div className="text-xs text-green-400">REACH</div>
+          <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
+            <div className="text-green-400 font-bold text-2xl mb-1">{formatNumber(campaign.metrics?.reach)}</div>
+            <div className="text-xs text-green-300 uppercase tracking-wide">Reach</div>
           </div>
-          <div className="bg-purple-900/20 border border-purple-800/30 rounded-lg px-3 sm:px-4 py-2 text-center min-w-[70px] sm:min-w-[80px] flex-shrink-0">
-            <div className="text-purple-300 font-bold text-base sm:text-lg">{(campaign.metrics?.engagementRate || 0).toFixed(1)}%</div>
-            <div className="text-xs text-purple-400">ENG RATE</div>
+          <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-3">
+            <div className="text-purple-400 font-bold text-2xl mb-1">{(campaign.metrics?.engagementRate || 0).toFixed(1)}%</div>
+            <div className="text-xs text-purple-300 uppercase tracking-wide">Eng. Rate</div>
           </div>
         </div>
 
-        <div className="flex items-center justify-between sm:justify-start gap-4">
-          <div className="text-left sm:text-right">
-            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg ${getSentimentColor(sentimentScore)}`}>
-              <div className="text-xl sm:text-2xl font-bold">{sentimentScore}</div>
+        {/* Sentiment Score */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-muted-foreground">Sentiment Score</span>
+            <div className={`${getSentimentColor(sentimentScore)} text-white text-xl font-bold px-4 py-1 rounded-lg`}>
+              {sentimentScore}
             </div>
-            <div className="text-xs text-muted-foreground mt-1">SENTIMENT</div>
           </div>
-
-          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-            <button 
-              onClick={(e) => {
-                e.stopPropagation()
-                handleRowClick()
-              }}
-              className="px-3 py-2 hover:bg-accent/30 rounded-lg transition-colors text-foreground/70 hover:text-blue-500 flex items-center gap-2"
-            >
-              <Eye className="w-4 sm:w-5 h-4 sm:h-5" />
-              <span className="text-sm font-medium">View</span>
-            </button>
-            {/* Monitor Toggle Icon */}
-            <button
-              onClick={handleToggleMonitoring}
-              disabled={isToggling}
-              title={isMonitoring ? 'Stop Monitoring' : 'Start Monitoring'}
-              className="p-1 rounded transition-colors hover:bg-gray-700/40 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isToggling ? (
-                <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
-              ) : isMonitoring ? (
-                <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-              ) : (
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.269-2.944-9.543-7a9.966 9.966 0 012.164-3.338m3.086-2.14A9.953 9.953 0 0112 5c4.478 0 8.269 2.943 9.543 7a9.965 9.965 0 01-1.249 2.592M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3l18 18" />
-                </svg>
-              )}
-            </button>
-            {/* Delete Button - Hidden by default, shows on hover */}
-            <button
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-400/10 disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Delete Campaign"
-            >
-              {isDeleting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              )}
-            </button>
+          <div className="h-2 bg-muted rounded-full overflow-hidden">
+            <div
+              className={`h-full ${getSentimentColor(sentimentScore)} transition-all duration-300`}
+              style={{ width: `${sentimentScore}%` }}
+            />
           </div>
         </div>
-      </div>
-    </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-2 pt-4 border-t border-border" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={handleCardClick}
+            className="flex-1 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-colors flex items-center justify-center gap-2 font-medium"
+          >
+            <Eye className="w-4 h-4" />
+            View
+          </button>
+          <button
+            onClick={handleToggleMonitoring}
+            disabled={isToggling}
+            className={`flex-1 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed ${
+              isMonitoring
+                ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30 border border-green-500/30'
+                : 'bg-gray-500/20 text-gray-400 hover:bg-gray-500/30 border border-gray-500/30'
+            }`}
+          >
+            {isToggling ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : isMonitoring ? (
+              <>
+                <Pause className="w-4 h-4" />
+                Pause
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+                Start
+              </>
+            )}
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="p-2 hover:bg-red-500/20 text-red-500 hover:text-red-400 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-red-500/30"
+          >
+            {isDeleting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Trash2 className="w-4 h-4" />
+            )}
+          </button>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -211,7 +227,7 @@ export default function AnalysisHistoryPage() {
   const [pagination, setPagination] = useState<PaginationInfo>({
     total: 0,
     page: 1,
-    limit: 10,
+    limit: 12,
     totalPages: 1,
     hasNext: false,
     hasPrev: false
@@ -221,6 +237,7 @@ export default function AnalysisHistoryPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [sortBy, setSortBy] = useState<'date' | 'posts' | 'engagement' | 'sentiment'>('date')
 
   // Debounce search query
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
@@ -241,12 +258,12 @@ export default function AnalysisHistoryPage() {
 
     try {
       const monitored = activeTab === 'active' ? true : activeTab === 'inactive' ? false : undefined
-      
+
       let response
       if (debouncedSearchQuery.trim()) {
-        response = await searchCampaigns(debouncedSearchQuery, currentPage, 10, monitored)
+        response = await searchCampaigns(debouncedSearchQuery, currentPage, 12, monitored)
       } else {
-        response = await getCampaigns(currentPage, 10, monitored)
+        response = await getCampaigns(currentPage, 12, monitored)
       }
 
       setCampaigns(response.data)
@@ -262,6 +279,22 @@ export default function AnalysisHistoryPage() {
   useEffect(() => {
     fetchCampaigns()
   }, [fetchCampaigns])
+
+  // Sort campaigns
+  const sortedCampaigns = [...campaigns].sort((a, b) => {
+    switch (sortBy) {
+      case 'date':
+        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      case 'posts':
+        return (b.metrics?.totalPosts || 0) - (a.metrics?.totalPosts || 0)
+      case 'engagement':
+        return (b.metrics?.totalEngagement || 0) - (a.metrics?.totalEngagement || 0)
+      case 'sentiment':
+        return calculateSentimentScore(b.metrics?.sentimentDistribution) - calculateSentimentScore(a.metrics?.sentimentDistribution)
+      default:
+        return 0
+    }
+  })
 
   // Handle tab change
   const handleTabChange = (tab: 'all' | 'active' | 'inactive') => {
@@ -285,15 +318,12 @@ export default function AnalysisHistoryPage() {
     try {
       if (isActive) {
         await stopMonitoring(id)
-        // Update local state immediately
-        setCampaigns(prev => prev.map(c => c.id === id ? { ...c, monitoringStatus: 'INACTIVE' } : c))
       } else {
-        await startMonitoring(id, 5) // Default interval of 5 minutes
-        // Update local state immediately
-        setCampaigns(prev => prev.map(c => c.id === id ? { ...c, monitoringStatus: 'ACTIVE' } : c))
+        await startMonitoring(id)
       }
+      // Refresh the list
+      await fetchCampaigns()
     } catch (err) {
-      console.error('Monitoring toggle failed:', err)
       alert(err instanceof Error ? err.message : 'Failed to update monitoring status')
     }
   }
@@ -346,11 +376,11 @@ export default function AnalysisHistoryPage() {
           description="Track and manage your campaign analyses"
         />
 
-        {/* Search and filters in one row */}
+        {/* Search, filters, and sort in one row */}
         <div className="border-b border-border bg-background p-3 sm:p-4">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             {/* Search bar */}
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="text"
@@ -362,20 +392,20 @@ export default function AnalysisHistoryPage() {
             </div>
 
             {/* Filter buttons */}
-            <div className="flex gap-2 overflow-x-auto">
+            <div className="flex gap-2">
               <button
                 onClick={() => handleTabChange('all')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
                   activeTab === 'all'
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-secondary text-muted-foreground hover:bg-accent/30'
                 }`}
               >
-                All
+                All Campaigns
               </button>
               <button
                 onClick={() => handleTabChange('active')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
                   activeTab === 'active'
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-secondary text-muted-foreground hover:bg-accent/30'
@@ -385,14 +415,29 @@ export default function AnalysisHistoryPage() {
               </button>
               <button
                 onClick={() => handleTabChange('inactive')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
                   activeTab === 'inactive'
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-secondary text-muted-foreground hover:bg-accent/30'
                 }`}
               >
-                Inactive
+                Paused
               </button>
+            </div>
+
+            {/* Sort Dropdown */}
+            <div className="flex items-center gap-2">
+              <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="px-3 py-2 bg-background border border-border rounded-lg text-sm font-medium transition-colors hover:bg-accent/20 cursor-pointer"
+              >
+                <option value="date">Latest</option>
+                <option value="posts">Most Posts</option>
+                <option value="engagement">Most Engagement</option>
+                <option value="sentiment">Best Sentiment</option>
+              </select>
             </div>
           </div>
         </div>
@@ -419,18 +464,20 @@ export default function AnalysisHistoryPage() {
                 </button>
               </div>
             </div>
-          ) : campaigns.length > 0 ? (
-            <AnimatedList className="divide-y divide-border list-animate-in">
-              {campaigns.map((campaign) => (
-                <AnimatedItem key={campaign.id}>
-                  <CampaignRow 
-                    campaign={campaign}
-                    onDelete={handleDeleteCampaign}
-                    onToggleMonitoring={handleToggleMonitoring}
-                  />
-                </AnimatedItem>
-              ))}
-            </AnimatedList>
+          ) : sortedCampaigns.length > 0 ? (
+            <div className="p-3 sm:p-4 lg:p-6">
+              <AnimatedGrid stagger={0.05} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                {sortedCampaigns.map((campaign) => (
+                  <AnimatedCard key={campaign.id}>
+                    <CampaignCard
+                      campaign={campaign}
+                      onDelete={handleDeleteCampaign}
+                      onToggleMonitoring={handleToggleMonitoring}
+                    />
+                  </AnimatedCard>
+                ))}
+              </AnimatedGrid>
+            </div>
           ) : (
             <div className="p-8 text-center text-muted-foreground">
               <p>No campaigns found matching your criteria.</p>
@@ -438,7 +485,7 @@ export default function AnalysisHistoryPage() {
           )}
         </div>
 
-        {!isLoading && !error && campaigns.length > 0 && (
+        {!isLoading && !error && sortedCampaigns.length > 0 && (
           <div className="border-t border-border bg-background px-3 sm:px-4 h-16 flex flex-col sm:flex-row items-center justify-between gap-3">
             <p className="text-sm text-muted-foreground">
               Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} campaigns

@@ -3,6 +3,7 @@
 import React, { useState, useCallback, useMemo, createContext, useContext } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useAuth } from '@/contexts/auth-context'
 import {
   Home, Mail, Play, BarChart3, Globe, Users, Hash, MapPin, Building2,
   Search, Shield, ChevronRight, X,
@@ -61,6 +62,7 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
   const pathname = usePathname()
   const [hoveredNav, setHoveredNav] = useState<string | null>(null)
   const { setIsOpen: setMobileOpen } = useMobileMenu()
+  const { logout, user } = useAuth()
 
   const toggleSubMenu = useCallback((menuId: string) => {
     if (expandedSubMenu === menuId) {
@@ -383,8 +385,13 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
                 
                 {/* User Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs text-foreground font-medium truncate">suumit@mydukaan.io</div>
-                  <button className="text-xs text-muted-foreground hover:text-blue-500 transition-colors font-medium">Logout</button>
+                  <div className="text-xs text-foreground font-medium truncate">{user?.email || 'suumit@mydukaan.io'}</div>
+                  <button 
+                    onClick={logout}
+                    className="text-xs text-muted-foreground hover:text-blue-500 transition-colors font-medium"
+                  >
+                    Logout
+                  </button>
                 </div>
               </div>
             </div>

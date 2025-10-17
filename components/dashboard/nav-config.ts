@@ -1,6 +1,7 @@
 import {
   Home, Mail, Play, BarChart3, Globe, Users, Hash, MapPin, Building2,
-  Search, Shield
+  Search, TrendingUp, TrendingDown, Eye, MessageSquare, ThumbsDown, ThumbsUp,
+  Twitter, Facebook, Instagram
 } from 'lucide-react'
 
 export interface NavItem {
@@ -76,14 +77,26 @@ export const navConfig: NavSection[] = [
         label: 'Entities',
         icon: Hash,
         href: '/entities',
-        description: 'What is being talked about'
+        description: 'What is being talked about',
+        submenu: [
+          { id: 'all-entities', label: 'All Entities', icon: Hash, href: '/entities' },
+          { id: 'trending-entities', label: 'Trending', icon: TrendingUp, href: '/entities?filter=trending' },
+          { id: 'positive-entities', label: 'Positive', icon: ThumbsUp, href: '/entities?sentiment=positive' },
+          { id: 'negative-entities', label: 'Negative', icon: ThumbsDown, href: '/entities?sentiment=negative' }
+        ]
       },
       {
         id: 'locations',
         label: 'Locations',
         icon: MapPin,
         href: '/locations',
-        description: 'Where things are happening'
+        description: 'Where things are happening',
+        submenu: [
+          { id: 'all-locations', label: 'All Locations', icon: MapPin, href: '/locations' },
+          { id: 'high-activity-locations', label: 'High Activity', icon: TrendingUp, href: '/locations?activity=high' },
+          { id: 'medium-activity-locations', label: 'Medium Activity', icon: BarChart3, href: '/locations?activity=medium' },
+          { id: 'low-activity-locations', label: 'Low Activity', icon: TrendingDown, href: '/locations?activity=low' }
+        ]
       },
       {
         id: 'groups',
@@ -111,13 +124,6 @@ export const navConfig: NavSection[] = [
         icon: Mail,
         href: '/social-inbox',
         description: 'Messages & interactions'
-      },
-      {
-        id: 'osint-tools',
-        label: 'OSINT Tools',
-        icon: Shield,
-        href: '/osint-tools',
-        description: 'Intelligence gathering'
       }
     ]
   }
