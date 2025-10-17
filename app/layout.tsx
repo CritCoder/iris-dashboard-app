@@ -7,6 +7,7 @@ import { ToastProvider } from '@/components/ui/toast-provider'
 import { RouteProgress } from '@/components/layout/route-progress'
 import { PageTransition } from '@/components/layout/page-transition'
 import { ProtectedRoute } from '@/components/auth/protected-route'
+import { ClientLayout } from '@/components/layout/client-layout'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -32,9 +33,11 @@ export default function RootLayout({
             <ProtectedRoute>
               <ToastProvider />
               <RouteProgress />
-              <PageTransition>
-                {children}
-              </PageTransition>
+              <ClientLayout>
+                <PageTransition>
+                  {children}
+                </PageTransition>
+              </ClientLayout>
             </ProtectedRoute>
           </AuthProvider>
         </ThemeProvider>

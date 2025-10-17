@@ -273,6 +273,22 @@ export default function LocationsPage() {
     )
   }
 
+  // Show error state
+  if (error) {
+    return (
+      <PageLayout>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center max-w-md">
+            <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">Failed to Load Locations</h3>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()}>Try Again</Button>
+          </div>
+        </div>
+      </PageLayout>
+    )
+  }
+
   const locationsForCounts = apiLocations || []
 
   const filterOptions = [

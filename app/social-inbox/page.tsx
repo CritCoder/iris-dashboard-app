@@ -256,88 +256,86 @@ export default function SocialInboxPage() {
           title="Social Inbox"
           description="New posts from all campaigns"
           actions={
-            <div className="w-full">
-              {/* Mobile: Compact Tab Toggle */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-                {/* Tab Toggle - Mobile Optimized */}
-                <div className="flex items-center bg-muted/50 rounded-md border border-border overflow-hidden w-full sm:w-auto">
-                  <button 
-                    onClick={() => setActiveTab('posts')}
-                    className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-all duration-200 border-r border-border ${
-                      activeTab === 'posts' 
-                        ? 'bg-primary/10 text-primary' 
-                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
-                    }`}
-                  >
-                    <span className="hidden sm:inline">Inbox Posts</span>
-                    <span className="sm:hidden">Posts</span>
-                  </button>
-                  <button 
-                    onClick={() => setActiveTab('notes')}
-                    className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-all duration-200 ${
-                      activeTab === 'notes' 
-                        ? 'bg-primary/10 text-primary' 
-                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
-                    }`}
-                  >
-                    <span className="hidden sm:inline">Saved Notes</span>
-                    <span className="sm:hidden">Notes</span>
-                  </button>
-                </div>
-
-                {/* Search Bar - Mobile Optimized */}
-                <div className="relative flex-1 min-w-0">
-                  <Search className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                  <Input
-                    type="text"
-                    placeholder="Search posts..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-8 sm:pl-10 w-full text-sm"
-                  />
-                </div>
+            <div className="flex items-center gap-2">
+              {/* Tab Toggle - Compact */}
+              <div className="flex items-center bg-muted/50 rounded-md border border-border overflow-hidden">
+                <button
+                  onClick={() => setActiveTab('posts')}
+                  className={`px-4 py-1.5 text-sm font-medium transition-all border-r border-border ${
+                    activeTab === 'posts'
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                  }`}
+                >
+                  Inbox Posts
+                </button>
+                <button
+                  onClick={() => setActiveTab('notes')}
+                  className={`px-4 py-1.5 text-sm font-medium transition-all ${
+                    activeTab === 'notes'
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                  }`}
+                >
+                  Saved Notes
+                </button>
               </div>
 
-              {/* Filters - Collapsible on Mobile */}
-              <div className="mt-3 space-y-2 sm:space-y-0">
-                {/* Primary Filters Row - Always Visible */}
-                <div className="flex flex-wrap items-center gap-2">
-                  {/* Sentiment Filter */}
-                  <select
-                    value={selectedSentiment}
-                    onChange={(e) => setSelectedSentiment(e.target.value)}
-                    className="appearance-none bg-background border border-border rounded-md px-2 sm:px-3 py-1.5 sm:py-2 pr-6 sm:pr-8 text-foreground text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer min-w-0 flex-1 sm:flex-none"
-                    style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
-                  >
-                    <option value="all">All Sentiments</option>
-                    <option value="POSITIVE">Positive</option>
-                    <option value="NEGATIVE">Negative</option>
-                    <option value="NEUTRAL">Neutral</option>
-                    <option value="MIXED">Mixed</option>
-                  </select>
+              {/* Search Bar - Compact */}
+              <div className="relative w-64">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  type="text"
+                  placeholder="Search posts..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-9 text-sm"
+                />
+              </div>
+            </div>
+          }
+        />
 
-                  {/* Platform Filter */}
-                  <select
-                    value={selectedPlatform}
-                    onChange={(e) => setSelectedPlatform(e.target.value)}
-                    className="appearance-none bg-background border border-border rounded-md px-2 sm:px-3 py-1.5 sm:py-2 pr-6 sm:pr-8 text-foreground text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer min-w-0 flex-1 sm:flex-none"
-                    style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
-                  >
-                    <option value="all">All Platforms</option>
-                    <option value="twitter">Twitter</option>
-                    <option value="facebook">Facebook</option>
-                    <option value="instagram">Instagram</option>
-                    <option value="youtube">YouTube</option>
-                    <option value="india-news">India News</option>
-                  </select>
+        {/* Filters Bar - Below Header */}
+        <div className="border-b border-border bg-background px-3 sm:px-4 lg:px-6 py-3">
+          <div className="max-w-[1800px] mx-auto">
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Sentiment Filter */}
+              <select
+                value={selectedSentiment}
+                onChange={(e) => setSelectedSentiment(e.target.value)}
+                className="appearance-none bg-background border border-border rounded-md px-3 py-1.5 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer"
+                style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
+              >
+                <option value="all">All Sentiments</option>
+                <option value="POSITIVE">Positive</option>
+                <option value="NEGATIVE">Negative</option>
+                <option value="NEUTRAL">Neutral</option>
+                <option value="MIXED">Mixed</option>
+              </select>
 
-                  {/* Campaign Filter - Hidden on mobile, shown on larger screens */}
-                  <select
-                    value={selectedCampaign}
-                    onChange={(e) => setSelectedCampaign(e.target.value)}
-                    className="hidden md:block appearance-none bg-background border border-border rounded-md px-3 py-2 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 max-w-[12rem] truncate cursor-pointer"
-                    style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
-                  >
+              {/* Platform Filter */}
+              <select
+                value={selectedPlatform}
+                onChange={(e) => setSelectedPlatform(e.target.value)}
+                className="appearance-none bg-background border border-border rounded-md px-3 py-1.5 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer"
+                style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
+              >
+                <option value="all">All Platforms</option>
+                <option value="twitter">Twitter</option>
+                <option value="facebook">Facebook</option>
+                <option value="instagram">Instagram</option>
+                <option value="youtube">YouTube</option>
+                <option value="india-news">India News</option>
+              </select>
+
+              {/* Campaign Filter */}
+              <select
+                value={selectedCampaign}
+                onChange={(e) => setSelectedCampaign(e.target.value)}
+                className="appearance-none bg-background border border-border rounded-md px-3 py-1.5 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 max-w-[12rem] truncate cursor-pointer"
+                style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
+              >
                     <option value="all">All Campaigns</option>
                     <option value="cmgjzn11q0001z2alaq70ckwk">Bengaluru Police</option>
                     <option value="cmgjzjpf50001z2yqum0gfs8a">Bengaluru Police</option>

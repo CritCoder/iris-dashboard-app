@@ -1,7 +1,7 @@
 import {
   Home, Mail, Play, BarChart3, Globe, Users, Hash, MapPin, Building2,
   Search, TrendingUp, TrendingDown, Eye, MessageSquare, ThumbsDown, ThumbsUp,
-  Twitter, Facebook, Instagram, Shield
+  Twitter, Facebook, Instagram
 } from 'lucide-react'
 
 export interface NavItem {
@@ -70,18 +70,7 @@ export const navConfig: NavSection[] = [
         label: 'Profiles',
         icon: Users,
         href: '/profiles',
-        description: 'Who is talking',
-        submenu: [
-          { id: 'all-authors', label: 'All Authors', icon: Users, href: '/profiles' },
-          { id: 'high-impact', label: 'High Impact', icon: TrendingUp, href: '/profiles?filter=high-impact' },
-          { id: 'high-reach', label: 'High Reach', icon: Eye, href: '/profiles?filter=high-reach' },
-          { id: 'engaged-posters', label: 'Engaged Posters', icon: MessageSquare, href: '/profiles?filter=engaged' },
-          { id: 'negative-influencers', label: 'Negative', icon: ThumbsDown, href: '/profiles?filter=negative' },
-          { id: 'positive-influencers', label: 'Positive', icon: ThumbsUp, href: '/profiles?filter=positive' },
-          { id: 'twitter', label: 'Twitter', icon: Twitter, href: '/profiles?platform=twitter' },
-          { id: 'facebook', label: 'Facebook', icon: Facebook, href: '/profiles?platform=facebook' },
-          { id: 'instagram', label: 'Instagram', icon: Instagram, href: '/profiles?platform=instagram' }
-        ]
+        description: 'Who is talking'
       },
       {
         id: 'entities',
@@ -135,13 +124,6 @@ export const navConfig: NavSection[] = [
         icon: Mail,
         href: '/social-inbox',
         description: 'Messages & interactions'
-      },
-      {
-        id: 'osint-tools',
-        label: 'OSINT Tools',
-        icon: Shield,
-        href: '/osint-tools',
-        description: 'Intelligence gathering'
       }
     ]
   }

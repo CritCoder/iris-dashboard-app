@@ -103,44 +103,44 @@ function EntityCard({ avatar, name, handle, platform, stance, followers, posts, 
   }
 
   return (
-    <div className="bg-card border border-border rounded-lg p-5 card-hover pressable">
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-foreground font-semibold">
+    <div className="bg-card border border-border rounded-lg p-3 card-hover pressable">
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-foreground font-semibold text-xs">
             {avatar}
           </div>
           <div>
-            <div className="text-foreground font-semibold text-sm">{name}</div>
-            <div className="text-muted-foreground text-xs">{handle} · {platform}</div>
+            <div className="text-foreground font-semibold text-xs">{name}</div>
+            <div className="text-muted-foreground text-[10px]">{handle} · {platform}</div>
           </div>
         </div>
-        <div className={`px-2 py-1 rounded text-xs font-medium border bg-secondary border-border text-muted-foreground`}>
+        <div className={`px-1.5 py-0.5 rounded text-[10px] font-medium border bg-secondary border-border text-muted-foreground`}>
           {stance.replace('_', ' ')}
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mb-4">
+      <div className="grid grid-cols-3 gap-2 mb-3">
         <div className="text-center">
-          <div className="text-lg font-bold text-foreground">{formatNumber(followers)}</div>
-          <div className="text-xs text-muted-foreground">Followers</div>
+          <div className="text-sm font-bold text-foreground">{formatNumber(followers)}</div>
+          <div className="text-[10px] text-muted-foreground">Followers</div>
         </div>
         <div className="text-center">
-          <div className="text-lg font-bold text-foreground">{formatNumber(posts)}</div>
-          <div className="text-xs text-muted-foreground">Posts</div>
+          <div className="text-sm font-bold text-foreground">{formatNumber(posts)}</div>
+          <div className="text-[10px] text-muted-foreground">Posts</div>
         </div>
         <div className="text-center">
-          <div className="text-lg font-bold text-foreground">{formatEngagement(engagement)}</div>
-          <div className="text-xs text-muted-foreground">Engagement</div>
+          <div className="text-sm font-bold text-foreground">{formatEngagement(engagement)}</div>
+          <div className="text-[10px] text-muted-foreground">Engagement</div>
         </div>
       </div>
 
       {viralContent && (
-        <div className="pt-4 border-t border-border">
-          <div className="flex items-center gap-2 mb-2">
+        <div className="pt-2 border-t border-border">
+          <div className="flex items-center gap-1.5 mb-1">
             <Zap className="w-3 h-3 text-muted-foreground" />
-            <span className="text-xs font-medium text-muted-foreground">Viral Content ({viralContent.engagement})</span>
+            <span className="text-[10px] font-medium text-muted-foreground">Viral ({viralContent.engagement})</span>
           </div>
-          <p className="text-xs text-muted-foreground line-clamp-2">{viralContent.text}</p>
+          <p className="text-[10px] text-muted-foreground line-clamp-2">{viralContent.text}</p>
         </div>
       )}
     </div>
@@ -179,47 +179,47 @@ export function InfluencerTracker({ data, loading, error }: InfluencerTrackerPro
   const insight = influencerData.insight
 
   return (
-    <div className="bg-card border border-border rounded-lg p-6 list-animate-in">
-      <div className="flex items-center justify-between mb-6">
+    <div className="bg-card border border-border rounded-lg p-4 list-animate-in h-[600px] flex flex-col">
+      <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <div>
-          <h2 className="text-2xl font-semibold text-foreground mb-1">Influencer & Entity Tracker</h2>
-          <p className="text-sm text-muted-foreground">{loading ? 'Loading...' : summary}</p>
+          <h2 className="text-lg font-semibold text-foreground mb-1">Influencer & Entity Tracker</h2>
+          <p className="text-xs text-muted-foreground">{loading ? 'Loading...' : summary}</p>
         </div>
         {loading ? (
-          <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" />
+          <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
         ) : (
-          <Users className="w-5 h-5 text-muted-foreground" />
+          <Users className="w-4 h-4 text-muted-foreground" />
         )}
       </div>
 
       {error && (
-        <Alert variant="destructive" className="mb-4">
+        <Alert variant="destructive" className="mb-4 flex-shrink-0">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       {loading ? (
-        <div className="space-y-4">
+        <div className="space-y-3 flex-1 overflow-y-auto min-h-0">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="p-5 border border-border rounded-lg space-y-3">
-              <div className="flex items-center gap-3">
-                <Skeleton className="w-10 h-10 rounded-full" />
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-32" />
+            <div key={i} className="p-3 border border-border rounded-lg space-y-2">
+              <div className="flex items-center gap-2">
+                <Skeleton className="w-8 h-8 rounded-full" />
+                <div className="space-y-1">
                   <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-2 w-20" />
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-12 w-full" />
+              <div className="grid grid-cols-3 gap-2">
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 flex-1 overflow-y-auto min-h-0">
           {(displayData || []).map((entity: any, index: number) => (
             <EntityCard
               key={index}
@@ -237,12 +237,12 @@ export function InfluencerTracker({ data, loading, error }: InfluencerTrackerPro
         </div>
       )}
 
-      <div className="mt-6 p-4 bg-muted/50 border border-border rounded-lg">
-        <div className="flex items-start gap-3">
-          <Lightbulb className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-          <div className="text-xs text-muted-foreground leading-relaxed">
+      <div className="mt-3 p-2 bg-muted/50 border border-border rounded-lg flex-shrink-0">
+        <div className="flex items-start gap-2">
+          <Lightbulb className="w-3 h-3 text-muted-foreground mt-0.5 flex-shrink-0" />
+          <div className="text-[10px] text-muted-foreground leading-relaxed">
             {loading ? (
-              <Skeleton className="h-4 w-64" />
+              <Skeleton className="h-3 w-48" />
             ) : (
               <>
                 <span className="font-medium text-foreground">Key Insight:</span> {insight}

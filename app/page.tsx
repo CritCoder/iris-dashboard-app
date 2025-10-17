@@ -18,7 +18,7 @@ import { DashboardSkeleton } from '@/components/skeletons/dashboard-skeleton'
 import { useState, useMemo, useEffect } from 'react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Settings, Grid3X3, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react'
+import { Settings, Grid3X3, Eye, EyeOff, AlertCircle, Loader2, Globe, Mail, UserSearch, ArrowRight } from 'lucide-react'
 import { TrendingUp, TrendingDown, Hash } from 'lucide-react'
 import {
   ChatBubbleIcon,
@@ -73,10 +73,8 @@ export default function Page() {
     'total-mentions': true,
     'sentiment-score': true,
     'active-campaigns': true,
-    'threat-level': true,
     'trending-topics': true,
     'topic-sentiment': true,
-    'influencer-tracker': true,
     'opponent-narrative': true,
     'support-base': true
   })
@@ -105,19 +103,31 @@ export default function Page() {
     { id: 5, type: 'trend', content: 'Crime prevention discussions rising', time: '15m ago', sentiment: 'positive' }
   ]
 
+  // Sample fallback data for trending topics
+  const sampleTrendingTopics = [
+    { topic: 'Bengaluru Traffic', mentions: 2450, change: '+12%', sentiment: 'negative' },
+    { topic: 'Police Reforms', mentions: 1890, change: '+8%', sentiment: 'positive' },
+    { topic: 'Crime Prevention', mentions: 1654, change: '+5%', sentiment: 'positive' },
+    { topic: 'Women Safety', mentions: 1230, change: '-3%', sentiment: 'neutral' }
+  ]
+
   // Process trending topics from API
   const trendingTopics = useMemo(() => {
-    if (!campaignThemes || typeof campaignThemes !== 'object' || !('themes' in campaignThemes)) return []
-    
+    if (!campaignThemes || typeof campaignThemes !== 'object' || !('themes' in campaignThemes)) {
+      return sampleTrendingTopics
+    }
+
     const themes = (campaignThemes as any).themes
-    if (!themes) return []
-    
+    if (!themes) return sampleTrendingTopics
+
     const allThemes: any[] = [
       ...(themes.positive || []),
       ...(themes.negative || []),
       ...(themes.neutral || [])
     ]
-    
+
+    if (allThemes.length === 0) return sampleTrendingTopics
+
     return allThemes.slice(0, 4).map(campaign => ({
       topic: campaign.campaignName || 'Unknown Campaign',
       mentions: campaign.metrics?.totalPosts || 0,
@@ -171,14 +181,6 @@ export default function Page() {
       size: 'small'
     },
     {
-      id: 'threat-level',
-      title: 'Threat Level',
-      description: 'Security threat assessment',
-      icon: LockClosedIcon,
-      color: 'gray',
-      size: 'small'
-    },
-    {
       id: 'trending-topics',
       title: 'Trending Topics',
       description: 'Hot topics and discussions',
@@ -192,14 +194,6 @@ export default function Page() {
       description: 'Sentiment heatmap analysis',
       icon: Hash,
       color: 'blue',
-      size: 'large'
-    },
-    {
-      id: 'influencer-tracker',
-      title: 'Influencer Tracker',
-      description: 'Key influencer monitoring',
-      icon: PersonIcon,
-      color: 'purple',
       size: 'large'
     },
     {
@@ -239,30 +233,65 @@ export default function Page() {
     setEnabledCards(newEnabledCards as typeof enabledCards)
   }
 
+  // Primary Intelligence Tools data with Japanese-inspired colors
+  const primaryOptions = [
+    {
+      id: 'social-monitoring',
+      title: 'Social Media Monitoring',
+      description: 'Advanced social media intelligence gathering and analysis across all platforms',
+      icon: Globe,
+      href: '/start-analysis',
+      features: ['Real-time monitoring', 'Multi-platform analysis', 'Sentiment tracking', 'Trend identification'],
+      color: 'bg-[#4A90E2]', // Sora Iro (Sky Blue)
+      darkColor: 'bg-[#3A7BC8]'
+    },
+    {
+      id: 'smart-inbox',
+      title: 'Smart AI Inbox',
+      description: 'Aggregated smart AI-driven inbox that helps you manage all inboxes in one place',
+      icon: Mail,
+      href: '/social-inbox',
+      features: ['AI-powered filtering', 'Unified inbox view', 'Smart categorization', 'Priority management'],
+      color: 'bg-[#7C9D96]', // Rokusho (Verdigris Green)
+      darkColor: 'bg-[#6B8B7E]'
+    },
+    {
+      id: 'entity-search',
+      title: 'Entity Search',
+      description: 'Find super important details of a person across vehicle, mobile number, and more',
+      icon: UserSearch,
+      href: '/entity-search',
+      features: ['Vehicle details', 'Mobile number lookup', 'Address verification', 'Comprehensive profiles'],
+      color: 'bg-[#9B72AA]', // Fuji Murasaki (Wisteria Purple)
+      darkColor: 'bg-[#89629A]'
+    }
+  ]
+
   return (
     <ProtectedRoute>
       <PageLayout>
-        <PageHeader
-          title="Intelligence Dashboard"
-          description="Real-time insights on narratives, opponents, and public sentiment"
-          actions={
-            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-              <GlobalSearch />
-              <Button
-                variant={isCustomizing ? "default" : "outline"}
-                size="sm"
-                onClick={() => setIsCustomizing(!isCustomizing)}
-                className="flex items-center justify-center gap-2 flex-shrink-0"
-              >
-                <Settings className="w-4 h-4" />
-                <span className="hidden sm:inline">{isCustomizing ? 'Exit Customize' : 'Customize'}</span>
-                <span className="sm:hidden">Edit</span>
-              </Button>
-            </div>
-          }
-        />
+        <div className="h-screen flex flex-col bg-background overflow-hidden">
+          <PageHeader
+            title="Intelligence Dashboard"
+            description="Real-time insights on narratives, opponents, and public sentiment"
+            actions={
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <GlobalSearch />
+                <Button
+                  variant={isCustomizing ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setIsCustomizing(!isCustomizing)}
+                  className="flex items-center justify-center gap-2 flex-shrink-0"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span className="hidden sm:inline">{isCustomizing ? 'Exit Customize' : 'Customize'}</span>
+                  <span className="sm:hidden">Edit</span>
+                </Button>
+              </div>
+            }
+          />
 
-        <main className="flex-1 overflow-y-auto">
+          <main className="flex-1 overflow-y-auto">
           <div className="max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-8">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-6">
@@ -376,23 +405,108 @@ export default function Page() {
             <div className="animate-in fade-in duration-200">
 
               {/* CRITICAL ALERT BAR - Highest Priority */}
-              <motion.div 
-                className="mb-6 p-4 bg-red-600 dark:bg-red-950/20 border border-red-700 dark:border-red-900/50 rounded-lg shadow-lg"
+              <motion.div
+                className="mb-6 p-4 bg-red-600 border border-red-700 rounded-lg shadow-lg"
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ type: "spring", stiffness: 300, damping: 25 }}
               >
                 <div className="flex items-center gap-3">
-                  <motion.div 
-                    className="w-2 h-2 bg-white dark:bg-red-500 rounded-full"
+                  <motion.div
+                    className="w-2 h-2 bg-white rounded-full"
                     animate={{ scale: [1, 1.2, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   />
                   <div className="flex-1">
-                    <p className="text-white dark:text-red-400 font-semibold text-sm">⚠️ CRITICAL ALERT</p>
-                    <p className="text-red-50 dark:text-red-300 text-xs">Traffic Management sentiment dropped 15% this week - Immediate attention required</p>
+                    <p className="text-white font-semibold text-sm">⚠️ CRITICAL ALERT</p>
+                    <p className="text-red-50 text-xs">Traffic Management sentiment dropped 15% this week - Immediate attention required</p>
                   </div>
-                  <Button variant="destructive" size="sm" className="bg-red-800 hover:bg-red-900 dark:bg-red-900 dark:hover:bg-red-950 text-white border-none">View Details</Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="bg-red-800 hover:bg-red-900 text-white border-none"
+                    onClick={() => window.location.href = '/social-feed?filter=negative&search=Traffic%20Management'}
+                  >
+                    View Details
+                  </Button>
+                </div>
+              </motion.div>
+
+              {/* PRIMARY INTELLIGENCE TOOLS SECTION */}
+              <motion.div 
+                className="mb-8"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-foreground mb-2">Primary Intelligence Tools</h2>
+                  <p className="text-muted-foreground">Select your primary intelligence gathering method</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {primaryOptions.map((option, index) => {
+                    const IconComponent = option.icon
+                    return (
+                      <motion.div
+                        key={option.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: index * 0.1 }}
+                        whileHover={{ scale: 1.02, y: -4 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="h-full"
+                      >
+                        <Card
+                          className={`cursor-pointer transition-all duration-300 hover:shadow-2xl border-0 bg-card h-full flex flex-col overflow-hidden group`}
+                          onClick={() => window.location.href = option.href}
+                        >
+                          <CardHeader className={`${option.color} relative overflow-hidden pb-6`}>
+                            {/* Decorative pattern overlay */}
+                            <div className="absolute inset-0 opacity-10">
+                              <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/20 -translate-y-1/2 translate-x-1/2"></div>
+                              <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-white/10 translate-y-1/2 -translate-x-1/2"></div>
+                            </div>
+
+                            <div className="relative flex items-start justify-between">
+                              <div className="flex items-start gap-4 flex-1">
+                                <div className={`p-3.5 rounded-xl bg-white/15 backdrop-blur-md text-white border border-white/20 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                                  <IconComponent className="w-7 h-7" strokeWidth={1.5} />
+                                </div>
+                                <div className="flex-1">
+                                  <CardTitle className="text-white text-lg font-bold mb-2">
+                                    {option.title}
+                                  </CardTitle>
+                                  <CardDescription className="text-white/90 text-sm leading-relaxed line-clamp-2">
+                                    {option.description}
+                                  </CardDescription>
+                                </div>
+                              </div>
+                              <ArrowRight className="w-5 h-5 text-white/80 group-hover:translate-x-1 transition-transform duration-300 flex-shrink-0 ml-2" />
+                            </div>
+                          </CardHeader>
+                          <CardContent className="p-5 bg-card flex-1 flex flex-col">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-sm text-foreground mb-3 flex items-center gap-2">
+                                <span className="w-1 h-4 rounded-full ${option.color}"></span>
+                                Key Features
+                              </h4>
+                              <div className="grid grid-cols-2 gap-2">
+                                {option.features.map((feature, featureIndex) => (
+                                  <span
+                                    key={featureIndex}
+                                    className="px-2.5 py-1.5 text-[11px] font-medium bg-muted/50 text-foreground border border-border/50 rounded-lg hover:bg-muted transition-colors text-center"
+                                  >
+                                    {feature}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    )
+                  })}
                 </div>
               </motion.div>
 
@@ -504,16 +618,19 @@ export default function Page() {
                   </motion.div>
                 )}
 
-                {/* Row 2 - Large Cards */}
+                {/* Row 2 - Trending Topics and Topic Sentiment (50-50 layout) */}
                 {enabledCards['trending-topics'] && (
                   <motion.div variants={listItemVariants} className="lg:col-span-2">
-                    <Card className="lg:col-span-2 border-2 border-orange-500/30 bg-gradient-to-br from-orange-950/20 to-orange-900/10">
+                    <Card className="bg-card border border-border h-full flex flex-col">
                       <CardHeader className="pb-4">
-                        <CardTitle className="flex items-center gap-2 text-orange-300">
-                          <TrendingUp className="w-5 h-5" />
-                          🔥 Trending Topics
-                        </CardTitle>
-                        <CardDescription className="text-orange-200/80">Most discussed campaign themes</CardDescription>
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-2">
+                            <TrendingUp className="w-5 h-5 text-orange-400" />
+                            <CardTitle className="text-lg font-semibold text-foreground">Trending Topics</CardTitle>
+                          </div>
+                          <span className="text-xs text-muted-foreground">🔥</span>
+                        </div>
+                        <CardDescription className="text-xs text-muted-foreground">Most discussed campaign themes</CardDescription>
                       </CardHeader>
                       <CardContent>
                         {themesLoading ? (
@@ -593,61 +710,30 @@ export default function Page() {
                   </motion.div>
                 )}
 
-                {enabledCards['threat-level'] && (
-                  <motion.div variants={listItemVariants}>
-                    <Card className="border border-border/30 bg-muted/20">
-                      <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-muted-foreground/70">Threat Level</p>
-                            <p className="text-2xl font-bold text-foreground/80">Low</p>
-                            <p className="text-xs text-muted-foreground flex items-center gap-1">
-                              <LockClosedIcon className="w-3 h-3" />
-                              No alerts
-                            </p>
-                          </div>
-                          <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
-                            <LockClosedIcon className="w-6 h-6 text-green-500/70" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                )}
-
-                {/* Row 3 - Large Components */}
+                {/* Topic Sentiment - Now in same row as Trending Topics (50-50 layout) */}
                 {enabledCards['topic-sentiment'] && (
-                  <motion.div variants={listItemVariants} className="lg:col-span-2">
+                  <motion.div variants={listItemVariants} className="lg:col-span-1">
                     <TopicSentimentHeatmap />
                   </motion.div>
                 )}
 
-                {enabledCards['influencer-tracker'] && (
-                  <motion.div variants={listItemVariants}>
-                    <InfluencerTracker 
-                      data={influencerData} 
-                      loading={influencerLoading} 
-                      error={influencerError} 
-                    />
-                  </motion.div>
-                )}
-
+                {/* Row 4 - Opponent Narrative and Support Base */}
                 {enabledCards['opponent-narrative'] && (
                   <motion.div variants={listItemVariants} className="lg:col-span-2">
-                    <OpponentNarrativeWatch 
-                      data={opponentData} 
-                      loading={opponentLoading} 
-                      error={opponentError} 
+                    <OpponentNarrativeWatch
+                      data={opponentData}
+                      loading={opponentLoading}
+                      error={opponentError}
                     />
                   </motion.div>
                 )}
 
                 {enabledCards['support-base'] && (
                   <motion.div variants={listItemVariants}>
-                    <SupportBaseEnergy 
-                      data={supportBaseData} 
-                      loading={supportLoading} 
-                      error={supportError} 
+                    <SupportBaseEnergy
+                      data={supportBaseData}
+                      loading={supportLoading}
+                      error={supportError}
                     />
                   </motion.div>
                 )}
@@ -795,7 +881,8 @@ export default function Page() {
           </TabsContent>
           </Tabs>
           </div>
-        </main>
+          </main>
+        </div>
       </PageLayout>
     </ProtectedRoute>
   )

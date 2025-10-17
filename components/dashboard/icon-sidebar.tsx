@@ -33,7 +33,7 @@ export function IconSidebar() {
   }
 
   return (
-    <div className="fixed left-0 top-0 h-screen w-16 bg-background border-r border-border flex flex-col items-center py-4 z-50">
+    <div className="fixed left-0 top-0 h-screen w-16 bg-card border-r border-border flex flex-col items-center py-4 z-50">
       {/* Logo */}
       <Link href="/" className="mb-8">
         <motion.div

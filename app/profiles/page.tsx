@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { PageLayout } from '@/components/layout/page-layout'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import { PageHeader } from '@/components/layout/page-header'
-import { Search, Users, MapPin, Calendar, MessageSquare, Heart, Share2, Eye, Download, Filter, ArrowRight } from 'lucide-react'
+import { Search, Users, MapPin, Calendar, MessageSquare, Heart, Share2, Eye, Download, Filter, ArrowRight, TrendingUp, ThumbsDown, ThumbsUp, Twitter, Facebook, Instagram } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -78,8 +78,24 @@ function ProfileCard({ profile }: { profile: Profile }) {
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <div className="relative flex-shrink-0">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-foreground font-bold text-lg border-2 border-primary/20">
-                {profile.avatar || profile.displayName[0].toUpperCase()}
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-foreground font-bold text-lg border-2 border-primary/20 overflow-hidden">
+                {profile.avatar ? (
+                  <img
+                    src={profile.avatar}
+                    alt={profile.displayName}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Fallback to initials on image error
+                      const target = e.target as HTMLImageElement
+                      target.style.display = 'none'
+                      if (target.parentElement) {
+                        target.parentElement.innerHTML = profile.displayName[0].toUpperCase()
+                      }
+                    }}
+                  />
+                ) : (
+                  profile.displayName[0].toUpperCase()
+                )}
               </div>
               <div className={`absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full ${getPlatformColor(profile.platform)} border-2 border-background flex items-center justify-center text-[10px]`}>
                 {getPlatformIcon(profile.platform)}
@@ -410,29 +426,101 @@ export default function ProfilesPage() {
                 className="pl-10"
               />
             </div>
-            <div className="flex gap-2">
-              <select
-                value={activeFilter}
-                onChange={(e) => setActiveFilter(e.target.value)}
-                className="appearance-none bg-background border border-border text-foreground text-sm rounded-lg px-3 py-2 cursor-pointer hover:bg-accent/20 transition-colors"
-              >
-                {(filterOptions || []).map(option => (
-                  <option key={option.id} value={option.id}>
-                    {option.label} ({option.count})
-                  </option>
-                ))}
-              </select>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="appearance-none bg-background border border-border text-foreground text-sm rounded-lg px-3 py-2 cursor-pointer hover:bg-accent/20 transition-colors"
-              >
-                <option value="followers">Sort by Followers</option>
-                <option value="posts">Sort by Posts</option>
-                <option value="engagement">Sort by Engagement</option>
-                <option value="name">Sort by Name</option>
-              </select>
-            </div>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="appearance-none bg-background border border-border text-foreground text-sm rounded-lg px-3 py-2 cursor-pointer hover:bg-accent/20 transition-colors"
+            >
+              <option value="followers">Sort by Followers</option>
+              <option value="posts">Sort by Posts</option>
+              <option value="engagement">Sort by Engagement</option>
+              <option value="name">Sort by Name</option>
+            </select>
+          </div>
+
+          {/* Horizontal Filter Chips */}
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+            <Button
+              variant={activeFilter === 'all' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveFilter('all')}
+              className="flex items-center gap-2 whitespace-nowrap"
+            >
+              <Users className="w-4 h-4" />
+              All Authors
+            </Button>
+            <Button
+              variant={activeFilter === 'high-impact' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveFilter('high-impact')}
+              className="flex items-center gap-2 whitespace-nowrap"
+            >
+              <TrendingUp className="w-4 h-4" />
+              High Impact
+            </Button>
+            <Button
+              variant={activeFilter === 'high-reach' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveFilter('high-reach')}
+              className="flex items-center gap-2 whitespace-nowrap"
+            >
+              <Eye className="w-4 h-4" />
+              High Reach
+            </Button>
+            <Button
+              variant={activeFilter === 'engaged' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveFilter('engaged')}
+              className="flex items-center gap-2 whitespace-nowrap"
+            >
+              <MessageSquare className="w-4 h-4" />
+              Engaged Posters
+            </Button>
+            <Button
+              variant={activeFilter === 'negative' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveFilter('negative')}
+              className="flex items-center gap-2 whitespace-nowrap"
+            >
+              <ThumbsDown className="w-4 h-4" />
+              Negative
+            </Button>
+            <Button
+              variant={activeFilter === 'positive' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveFilter('positive')}
+              className="flex items-center gap-2 whitespace-nowrap"
+            >
+              <ThumbsUp className="w-4 h-4" />
+              Positive
+            </Button>
+            <Button
+              variant={activeFilter === 'twitter' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveFilter('twitter')}
+              className="flex items-center gap-2 whitespace-nowrap"
+            >
+              <Twitter className="w-4 h-4" />
+              Twitter
+            </Button>
+            <Button
+              variant={activeFilter === 'facebook' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveFilter('facebook')}
+              className="flex items-center gap-2 whitespace-nowrap"
+            >
+              <Facebook className="w-4 h-4" />
+              Facebook
+            </Button>
+            <Button
+              variant={activeFilter === 'instagram' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveFilter('instagram')}
+              className="flex items-center gap-2 whitespace-nowrap"
+            >
+              <Instagram className="w-4 h-4" />
+              Instagram
+            </Button>
           </div>
         </div>
 
