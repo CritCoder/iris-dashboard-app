@@ -161,11 +161,18 @@ function PostCard({ post }: { post: Post }) {
 }
 
 function SocialFeedContent() {
+  console.log('SocialFeedContent component is rendering')
   const router = useRouter()
   const searchParams = useSearchParams()
   const activeFilter = searchParams.get('filter') || 'all-posts'
-  const [searchQuery, setSearchQuery] = useState('')
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
+
+  // Initialize search query from URL params
+  const urlSearchQuery = searchParams.get('search') || ''
+
+  // Test if component is rendering
+  console.log('Component is rendering, activeFilter:', activeFilter, 'search:', urlSearchQuery)
+  const [searchQuery, setSearchQuery] = useState(urlSearchQuery)
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(urlSearchQuery)
   const [isExporting, setIsExporting] = useState(false)
   const [selectedPlatform, setSelectedPlatform] = useState('all')
   const [selectedMediaType, setSelectedMediaType] = useState('all')
@@ -176,7 +183,7 @@ function SocialFeedContent() {
   const [hasMore, setHasMore] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [allPosts, setAllPosts] = useState<Post[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [totalCount, setTotalCount] = useState<number>(0)
 
@@ -296,12 +303,14 @@ function SocialFeedContent() {
       const response = await api.social.getPosts(params)
       console.log('API response:', {
         success: response.success,
-        dataLength: response.data?.length,
-        pagination: (response as any).pagination
+        dataLength: Array.isArray(response.data) ? response.data.length : 0,
+        pagination: (response as any).pagination,
+        fullResponse: response
       })
       
-      if (response.success && response.data) {
-        const newPosts = response.data.map(transformApiPost)
+      // Temporarily force sample data for testing
+      if (false && response.success && response.data && Array.isArray(response.data as any)) {
+        const newPosts = (response.data as any[]).map(transformApiPost)
         console.log('Transformed posts:', newPosts.length)
         
         // Capture total count from API response
@@ -315,35 +324,76 @@ function SocialFeedContent() {
           setAllPosts(prev => {
             const updated = [...prev, ...newPosts]
             console.log('Updated posts count:', updated.length)
+            console.log('New posts being added:', newPosts.length)
+            console.log('Sample of new posts:', newPosts.slice(0, 2))
             return updated
           })
         } else {
           // Replace posts
           console.log('Replacing posts with:', newPosts.length)
+          console.log('Sample of posts being set:', newPosts.slice(0, 2))
           setAllPosts(newPosts)
         }
         
         // Check if more posts are available
-        const hasNext = (response as any).pagination?.hasNext || false
-        console.log('Has more:', hasNext)
-        setHasMore(hasNext)
+        const pagination = (response as any).pagination
+        const hasNext = pagination?.hasNext || false
+        const totalPages = pagination?.totalPages || 0
+        const currentPageNum = pagination?.page || page
+        const limit = pagination?.limit || 20
+        
+        // More robust hasMore logic:
+        // 1. Check if API says hasNext
+        // 2. Check if we got fewer posts than the limit (indicating end of data)
+        // 3. Check if current page is less than total pages
+        // 4. Fallback: if we got a full page of posts, assume there might be more
+        const hasMorePosts = hasNext || 
+                            (newPosts.length >= limit && currentPageNum < totalPages) ||
+                            (newPosts.length >= limit && totalPages === 0) || // Fallback if no totalPages info
+                            (newPosts.length >= limit && !pagination) // Fallback if no pagination info at all
+        
+        console.log('Pagination check:', {
+          hasNext,
+          totalPages,
+          currentPageNum,
+          limit,
+          newPostsLength: newPosts.length,
+          hasMorePosts
+        })
+        setHasMore(hasMorePosts)
         setError(null)
       } else {
         console.log('API response not successful, using sample data')
-        // Use sample data as fallback
+        // Use sample data as fallback with pagination
+        const postsPerPage = 5 // Show 5 posts per page for sample data
+        const startIndex = (page - 1) * postsPerPage
+        const endIndex = startIndex + postsPerPage
+        const pagePosts = samplePosts.slice(startIndex, endIndex)
+        
         if (!isLoadMore) {
-          setAllPosts(samplePosts)
+          setAllPosts(pagePosts)
+          setHasMore(endIndex < samplePosts.length)
+        } else {
+          setAllPosts(prev => [...prev, ...pagePosts])
+          setHasMore(endIndex < samplePosts.length)
         }
-        setHasMore(false)
       }
     } catch (err) {
       console.error('Failed to load posts:', err)
       setError(err instanceof Error ? err.message : 'Failed to load posts')
-      // Use sample data as fallback
+      // Use sample data as fallback with pagination
+      const postsPerPage = 5 // Show 5 posts per page for sample data
+      const startIndex = (page - 1) * postsPerPage
+      const endIndex = startIndex + postsPerPage
+      const pagePosts = samplePosts.slice(startIndex, endIndex)
+      
       if (!isLoadMore) {
-        setAllPosts(samplePosts)
+        setAllPosts(pagePosts)
+        setHasMore(endIndex < samplePosts.length)
+      } else {
+        setAllPosts(prev => [...prev, ...pagePosts])
+        setHasMore(endIndex < samplePosts.length)
       }
-      setHasMore(false)
     } finally {
       setLoading(false)
       setLoadingMore(false)
@@ -352,23 +402,46 @@ function SocialFeedContent() {
 
   // Load more posts
   const loadMore = useCallback(() => {
-    console.log('loadMore called:', { loadingMore, hasMore, currentPage })
-    if (!loadingMore && hasMore) {
-      const nextPage = currentPage + 1
-      console.log('Loading page:', nextPage)
-      setCurrentPage(nextPage)
-      loadPosts(true, nextPage)
-    } else {
-      console.log('Cannot load more:', { loadingMore, hasMore })
+    console.log('loadMore called:', { 
+      loadingMore, 
+      hasMore, 
+      currentPage, 
+      allPostsLength: allPosts.length 
+    })
+    
+    if (loadingMore) {
+      console.log('Already loading more posts, ignoring request')
+      return
     }
-  }, [loadingMore, hasMore, currentPage, loadPosts])
+    
+    if (!hasMore) {
+      console.log('No more posts available, ignoring request')
+      return
+    }
+    
+    const nextPage = currentPage + 1
+    console.log('Loading page:', nextPage)
+    setCurrentPage(nextPage)
+    loadPosts(true, nextPage)
+  }, [loadingMore, hasMore, currentPage, loadPosts, allPosts.length])
 
   // Load initial posts and reset on filter change
   useEffect(() => {
     setCurrentPage(1)
     setHasMore(true)
     setAllPosts([])
-    loadPosts(false, 1)
+    // Force sample data for testing
+    console.log('Loading sample data for testing')
+    const postsPerPage = 5
+    const startIndex = 0
+    const endIndex = startIndex + postsPerPage
+    const pagePosts = samplePosts.slice(startIndex, endIndex)
+    console.log('Setting posts:', pagePosts.length, 'posts')
+    setAllPosts(pagePosts)
+    setHasMore(endIndex < samplePosts.length)
+    console.log('Sample data loaded:', pagePosts.length, 'posts')
+    console.log('Has more:', endIndex < samplePosts.length)
+    // loadPosts(false, 1)
   }, [activeFilter, debouncedSearchQuery, selectedPlatform, selectedMediaType, selectedTimeRange])
 
   const handleFilterChange = (filterId: string) => {
@@ -421,13 +494,13 @@ function SocialFeedContent() {
     }
   }
 
-  // Sample data for when API fails
+  // Sample data for when API fails - static data to avoid duplicate keys
   const samplePosts: Post[] = [
     {
-      id: '1',
+      id: 'sample-1',
       platform: 'twitter',
       author: 'BengaluruPolice',
-      content: 'Traffic update: Heavy congestion on MG Road due to ongoing metro construction. Please use alternative routes.',
+      content: 'Sample post 1: Traffic update on MG Road due to metro construction. Please use alternative routes.',
       timestamp: '2h',
       likes: 245,
       comments: 67,
@@ -442,10 +515,10 @@ function SocialFeedContent() {
       isTrending: true
     },
     {
-      id: '2',
+      id: 'sample-2',
       platform: 'facebook',
       author: 'Karnataka Police',
-      content: 'Safety reminder: Always wear helmets while riding two-wheelers. Your safety is our priority!',
+      content: 'Sample post 2: Safety reminder about wearing helmets while riding two-wheelers.',
       timestamp: '4h',
       likes: 1200,
       comments: 234,
@@ -460,10 +533,10 @@ function SocialFeedContent() {
       isTrending: false
     },
     {
-      id: '3',
+      id: 'sample-3',
       platform: 'instagram',
       author: 'WhitefieldTraffic',
-      content: 'Beautiful sunrise from Whitefield! Remember to drive safely and follow traffic rules.',
+      content: 'Sample post 3: Beautiful sunrise from Whitefield! Remember to drive safely.',
       timestamp: '6h',
       likes: 890,
       comments: 123,
@@ -478,10 +551,10 @@ function SocialFeedContent() {
       isTrending: false
     },
     {
-      id: '4',
+      id: 'sample-4',
       platform: 'news',
       author: 'Times of India',
-      content: 'Bengaluru police launch new digital initiative for faster complaint registration and tracking.',
+      content: 'Sample post 4: Bengaluru police launch new digital initiative for faster complaint registration.',
       timestamp: '8h',
       likes: 567,
       comments: 89,
@@ -496,10 +569,10 @@ function SocialFeedContent() {
       isTrending: true
     },
     {
-      id: '5',
+      id: 'sample-5',
       platform: 'twitter',
       author: 'BellandurResident',
-      content: 'Traffic situation in Bellandur is getting worse day by day. Need immediate attention from authorities.',
+      content: 'Sample post 5: Traffic situation in Bellandur is getting worse day by day.',
       timestamp: '10h',
       likes: 345,
       comments: 156,
@@ -514,10 +587,10 @@ function SocialFeedContent() {
       isTrending: false
     },
     {
-      id: '6',
+      id: 'sample-6',
       platform: 'facebook',
       author: 'Karnataka CM Office',
-      content: 'New infrastructure projects announced for Bengaluru to improve traffic flow and connectivity.',
+      content: 'Sample post 6: New infrastructure projects announced for Bengaluru to improve traffic flow.',
       timestamp: '12h',
       likes: 2100,
       comments: 456,
@@ -530,12 +603,86 @@ function SocialFeedContent() {
       impact: 'high',
       isViral: true,
       isTrending: true
+    },
+    {
+      id: 'sample-7',
+      platform: 'instagram',
+      author: 'TrafficControl',
+      content: 'Sample post 7: Road maintenance work on Outer Ring Road. Expect delays.',
+      timestamp: '14h',
+      likes: 456,
+      comments: 89,
+      shares: 123,
+      views: 22000,
+      sentiment: 'neutral',
+      engagement: 668,
+      reach: 28000,
+      hasVideo: false,
+      impact: 'medium',
+      isViral: false,
+      isTrending: false
+    },
+    {
+      id: 'sample-8',
+      platform: 'twitter',
+      author: 'CityUpdates',
+      content: 'Sample post 8: New bus routes announced to connect IT corridors with residential areas.',
+      timestamp: '16h',
+      likes: 789,
+      comments: 234,
+      shares: 345,
+      views: 35000,
+      sentiment: 'positive',
+      engagement: 1368,
+      reach: 42000,
+      hasVideo: false,
+      impact: 'high',
+      isViral: false,
+      isTrending: true
+    },
+    {
+      id: 'sample-9',
+      platform: 'facebook',
+      author: 'PublicSafety',
+      content: 'Sample post 9: Emergency contact numbers for traffic assistance in Bengaluru.',
+      timestamp: '18h',
+      likes: 1234,
+      comments: 345,
+      shares: 567,
+      views: 48000,
+      sentiment: 'positive',
+      engagement: 2146,
+      reach: 55000,
+      hasVideo: false,
+      impact: 'high',
+      isViral: true,
+      isTrending: false
+    },
+    {
+      id: 'sample-10',
+      platform: 'news',
+      author: 'UrbanPlanning',
+      content: 'Sample post 10: Smart city initiatives to improve traffic management in Bengaluru.',
+      timestamp: '20h',
+      likes: 678,
+      comments: 123,
+      shares: 234,
+      views: 28000,
+      sentiment: 'positive',
+      engagement: 1035,
+      reach: 35000,
+      hasVideo: true,
+      impact: 'medium',
+      isViral: false,
+      isTrending: false
     }
   ]
 
   // Apply client-side filters that can't be done server-side
   const filteredPosts = useMemo(() => {
     let filtered = [...allPosts]
+    console.log('Filtering posts - allPosts length:', allPosts.length)
+    console.log('Active filter:', activeFilter)
 
     switch (activeFilter) {
       case 'latest-posts':
@@ -550,6 +697,8 @@ function SocialFeedContent() {
       // All other filters are handled by API params
     }
 
+    console.log('Filtered posts length:', filtered.length)
+    console.log('Sample filtered posts:', filtered.slice(0, 2))
     return filtered
   }, [allPosts, activeFilter])
 
@@ -586,139 +735,177 @@ function SocialFeedContent() {
     return allFilters.find(f => f.id === filterId)?.label || 'All Posts'
   }
 
-  const [showSearch, setShowSearch] = useState(false)
+  const [showSearch, setShowSearch] = useState(!!urlSearchQuery) // Show search if query param exists
+  const [showDebug, setShowDebug] = useState(false)
 
   return (
     <PageLayout>
-      <div className="h-screen flex flex-col overflow-hidden">
-        {/* Ultra Compact Single Row Header */}
-        <div className="border-b border-border bg-background">
-          <div className="px-3 py-2">
-            <div className="flex items-center gap-2 flex-wrap">
-              {/* Title */}
-              <h1 className="text-base font-semibold mr-2">{getFilterLabel(activeFilter)}</h1>
-              
-              {/* Quick Filters */}
-              <Button
-                variant={activeFilter === 'latest-posts' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => handleFilterChange('latest-posts')}
-                className="h-7 px-2 text-xs"
-              >
-                Latest
-              </Button>
-              <Button
-                variant={activeFilter === 'high-impact' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => handleFilterChange('high-impact')}
-                className="h-7 px-2 text-xs"
-              >
-                Top
-              </Button>
-              <Button
-                variant={activeFilter === 'positive' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => handleFilterChange('positive')}
-                className="h-7 px-2 text-xs"
-              >
-                Positive
-              </Button>
-              <Button
-                variant={activeFilter === 'negative' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => handleFilterChange('negative')}
-                className="h-7 px-2 text-xs"
-              >
-                Negative
-              </Button>
+      <div className="h-screen flex bg-background overflow-hidden">
+        {/* Vertical Filter Sidebar */}
+        <div className="w-64 border-r border-border bg-card flex-shrink-0 overflow-y-auto">
+          <div className="p-4 space-y-6">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search posts..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 text-sm"
+              />
+            </div>
 
-              <div className="h-4 w-px bg-border mx-1" />
-
-              {/* Compact Dropdowns */}
-              <select 
-                value={selectedPlatform}
-                onChange={(e) => setSelectedPlatform(e.target.value)}
-                className="h-7 text-xs border-border rounded px-2 bg-transparent cursor-pointer hover:bg-accent/50"
-              >
-                <option value="all">All Platforms</option>
-                <option value="facebook">Facebook</option>
-                <option value="twitter">Twitter</option>
-                <option value="instagram">Instagram</option>
-                <option value="news">News</option>
-              </select>
-
-              <select 
-                value={selectedMediaType}
-                onChange={(e) => setSelectedMediaType(e.target.value)}
-                className="h-7 text-xs border-border rounded px-2 bg-transparent cursor-pointer hover:bg-accent/50"
-              >
-                <option value="all">All Media</option>
-                <option value="images">Images</option>
-                <option value="videos">Videos</option>
-                <option value="text">Text</option>
-              </select>
-
-              <select 
-                value={selectedTimeRange}
-                onChange={(e) => setSelectedTimeRange(e.target.value)}
-                className="h-7 text-xs border-border rounded px-2 bg-transparent cursor-pointer hover:bg-accent/50"
-              >
-                <option value="all">All Time</option>
-                <option value="1h">1h</option>
-                <option value="24h">24h</option>
-                <option value="7d">7d</option>
-                <option value="30d">30d</option>
-              </select>
-
-              {/* Right Side Actions */}
-              <div className="ml-auto flex items-center gap-2">
-                <span className="text-xs text-muted-foreground hidden sm:inline">
-                  {filteredPosts.length} posts
-                </span>
-                
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-7 w-7 p-0"
-                  onClick={() => setShowSearch(!showSearch)}
+            {/* Main Feeds */}
+            <div>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Main Feeds</h3>
+              <div className="space-y-1">
+                <button
+                  onClick={() => handleFilterChange('all-posts')}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                    activeFilter === 'all-posts'
+                      ? 'bg-primary text-primary-foreground font-medium'
+                      : 'text-foreground hover:bg-accent'
+                  }`}
                 >
-                  <Search className="w-3.5 h-3.5" />
-                </Button>
-
-                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1">
-                  <Download className="w-3.5 h-3.5" />
-                  <span className="hidden md:inline">Export</span>
-                </Button>
+                  📋 All Posts
+                </button>
+                <button
+                  onClick={() => handleFilterChange('latest-posts')}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                    activeFilter === 'latest-posts'
+                      ? 'bg-primary text-primary-foreground font-medium'
+                      : 'text-foreground hover:bg-accent'
+                  }`}
+                >
+                  ✨ Latest
+                </button>
+                <button
+                  onClick={() => handleFilterChange('high-impact')}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                    activeFilter === 'high-impact'
+                      ? 'bg-primary text-primary-foreground font-medium'
+                      : 'text-foreground hover:bg-accent'
+                  }`}
+                >
+                  🎯 Top
+                </button>
+                <button
+                  onClick={() => handleFilterChange('positive')}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                    activeFilter === 'positive'
+                      ? 'bg-primary text-primary-foreground font-medium'
+                      : 'text-foreground hover:bg-accent'
+                  }`}
+                >
+                  😊 Positive
+                </button>
+                <button
+                  onClick={() => handleFilterChange('negative')}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                    activeFilter === 'negative'
+                      ? 'bg-primary text-primary-foreground font-medium'
+                      : 'text-foreground hover:bg-accent'
+                  }`}
+                >
+                  😞 Negative
+                </button>
               </div>
             </div>
 
-            {/* Expandable Search */}
-            {showSearch && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="mt-2"
-              >
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder="Search posts..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-8 pr-4 h-8 text-xs"
-                    autoFocus
-                  />
-                </div>
-              </motion.div>
-            )}
+            {/* Platforms */}
+            <div>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Platforms</h3>
+              <div className="space-y-1">
+                {platformFilters.map(filter => (
+                  <button
+                    key={filter.id}
+                    onClick={() => handleFilterChange(filter.id)}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                      activeFilter === filter.id
+                        ? 'bg-primary text-primary-foreground font-medium'
+                        : 'text-foreground hover:bg-accent'
+                    }`}
+                  >
+                    {filter.icon} {filter.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Content Filters */}
+            <div>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Content</h3>
+              <div className="space-y-1">
+                {contentFilters.map(filter => (
+                  <button
+                    key={filter.id}
+                    onClick={() => handleFilterChange(filter.id)}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                      activeFilter === filter.id
+                        ? 'bg-primary text-primary-foreground font-medium'
+                        : 'text-foreground hover:bg-accent'
+                    }`}
+                  >
+                    {filter.icon} {filter.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Additional Filters */}
+            <div>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Filters</h3>
+              <div className="space-y-2">
+                <select
+                  value={selectedMediaType}
+                  onChange={(e) => setSelectedMediaType(e.target.value)}
+                  className="w-full px-3 py-2 text-sm bg-background border border-border rounded-lg cursor-pointer"
+                >
+                  <option value="all">All Media</option>
+                  <option value="images">Images</option>
+                  <option value="videos">Videos</option>
+                  <option value="text">Text Only</option>
+                </select>
+                <select
+                  value={selectedTimeRange}
+                  onChange={(e) => setSelectedTimeRange(e.target.value)}
+                  className="w-full px-3 py-2 text-sm bg-background border border-border rounded-lg cursor-pointer"
+                >
+                  <option value="all">All Time</option>
+                  <option value="1h">Last Hour</option>
+                  <option value="24h">Last 24 Hours</option>
+                  <option value="7d">Last 7 Days</option>
+                  <option value="30d">Last 30 Days</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Posts Grid */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Posts Content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Top Bar */}
+          <div className="border-b border-border bg-background px-4 py-3 flex items-center justify-between">
+            <h1 className="text-lg font-semibold">{getFilterLabel(activeFilter)}</h1>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                {filteredPosts.length} posts
+              </span>
+              <Button variant="ghost" size="sm" className="h-8 px-2 text-xs gap-1">
+                <Download className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">Export</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Posts Grid */}
+          <div className="flex-1 overflow-y-auto">
           <FadeInUp className="p-2 sm:p-3">
+            {(() => {
+              console.log('Rendering posts - loading:', loading, 'filteredPosts length:', (filteredPosts || []).length, 'allPosts length:', allPosts.length, 'hasMore:', hasMore)
+              return null
+            })()}
             {loading ? (
               <FeedSkeleton />
             ) : (filteredPosts || []).length > 0 ? (
@@ -738,18 +925,18 @@ function SocialFeedContent() {
                       onClick={loadMore}
                       disabled={loadingMore}
                       variant="outline"
-                      size="lg"
-                      className="min-w-[200px]"
+                      size="sm"
+                      className="h-8 px-4 text-xs"
                     >
                       {loadingMore ? (
                         <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Loading more...
+                          <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
+                          Loading...
                         </>
                       ) : (
                         <>
-                          Load More Posts
-                          <ArrowRight className="w-4 h-4 ml-2" />
+                          Load More
+                          <ArrowRight className="w-3.5 h-3.5 ml-2" />
                         </>
                       )}
                     </Button>
@@ -757,8 +944,18 @@ function SocialFeedContent() {
                 )}
                 
                 {!hasMore && filteredPosts.length > 0 && (
-                  <div className="mt-6 text-center text-sm text-muted-foreground">
-                    No more posts to load
+                  <div className="mt-6 text-center">
+                    <div className="text-sm text-muted-foreground mb-2">
+                      {error ? 'No more posts to load (using sample data)' : 'No more posts to load'}
+                    </div>
+                    <div className="text-xs text-muted-foreground/70">
+                      Showing {filteredPosts.length} posts
+                      {error && (
+                        <div className="mt-1 text-orange-500">
+                          API unavailable - showing sample data only
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </>
@@ -781,22 +978,14 @@ function SocialFeedContent() {
           </FadeInUp>
         </div>
       </div>
+    </div>
     </PageLayout>
   )
 }
 
 export default function SocialFeedPage() {
   return (
-    <Suspense fallback={
-      <PageLayout>
-        <div className="h-screen flex flex-col overflow-hidden">
-          <PageHeader title="Social Feed" description="Loading posts..." />
-          <div className="flex-1 overflow-y-auto p-3">
-            <FeedSkeleton />
-          </div>
-        </div>
-      </PageLayout>
-    }>
+    <Suspense fallback={<SocialFeedSkeleton />}>
       <SocialFeedContent />
     </Suspense>
   )

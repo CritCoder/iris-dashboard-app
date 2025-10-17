@@ -6,10 +6,10 @@ import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { FacebookIcon, InstagramIcon, TwitterIcon, NewsIcon } from '@/components/ui/platform-icons'
 import { useToast } from '@/hooks/use-toast'
-import { Loader2, Search, Zap, Calendar } from 'lucide-react'
+import { Loader2, Search, Zap, Calendar, Globe, Mail, UserSearch, ArrowRight, Shield, BarChart3, MessageSquare } from 'lucide-react'
 import { AnimatedPage, FadeIn, SlideUp } from '@/components/ui/animated'
 import { DateRangePicker } from '@/components/ui/date-range-picker'
 import { DateRange } from 'react-day-picker'
@@ -18,7 +18,7 @@ export default function StartAnalysisPage() {
   const router = useRouter()
   const { success, error } = useToast()
   const [activeTab, setActiveTab] = useState<'topic' | 'poi'>('topic')
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['facebook', 'instagram', 'twitter', 'india-news'])
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['facebook', 'twitter'])
   const [searchQuery, setSearchQuery] = useState('')
   const [timeRange, setTimeRange] = useState('any')
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
@@ -104,185 +104,175 @@ export default function StartAnalysisPage() {
     }
   }
 
+
   return (
     <PageLayout>
       <div className="h-screen flex flex-col bg-background overflow-hidden">
-        <PageHeader 
-          title="Start Analysis"
-          description="Advanced social media intelligence gathering and analysis"
-        />
 
-        {/* Main Content */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
-            {/* Analysis Type Tabs */}
-            <div className="flex justify-center mb-6 sm:mb-8">
-              <div className="w-full max-w-2xl">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 p-1 bg-muted rounded-lg">
-                  <button
-                    onClick={() => setActiveTab('topic')}
-                    className={`px-4 py-4 rounded-md transition-all ${
-                      activeTab === 'topic'
-                        ? 'bg-background text-foreground shadow-sm border border-border'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
-                    }`}
-                  >
-                    <div className="text-left">
-                      <div className="font-semibold text-base mb-1">Topic Analysis</div>
-                      <div className="text-xs opacity-90">Search for topics, keywords, hashtags</div>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('poi')}
-                    className={`px-4 py-4 rounded-md transition-all ${
-                      activeTab === 'poi'
-                        ? 'bg-background text-foreground shadow-sm border border-border'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
-                    }`}
-                  >
-                    <div className="text-left">
-                      <div className="font-semibold text-base mb-1">Person of Interest (POI)</div>
-                      <div className="text-xs opacity-90">Search for specific individuals, profiles</div>
-                    </div>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Search Input */}
-            <div className="mb-6 sm:mb-8">
-              <label className="block text-sm font-medium text-foreground mb-2">
-                {activeTab === 'topic' ? 'Enter Topics, Keywords, or Hashtags' : 'Enter Person Name, Username, or Profile URL'}
-              </label>
-              <Textarea
-                placeholder={activeTab === 'topic' 
-                  ? "e.g., Bengaluru Traffic, #BengaluruPolice, Women Safety..." 
-                  : "e.g., @username, person name, profile URL..."}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="min-h-[120px] text-base resize-none"
-              />
-              <p className="text-xs text-muted-foreground mt-2">
-                {activeTab === 'topic' 
-                  ? 'Separate multiple topics with commas. You can include hashtags, keywords, or phrases.'
-                  : 'Enter the name, username, or social media profile URL of the person you want to analyze.'}
-              </p>
-            </div>
-
-            {/* Analyze Button */}
-            <div className="mb-6 sm:mb-8">
-              <Button 
-                onClick={handleAnalyze}
-                disabled={isAnalyzing || searchQuery.trim().length < 3}
-                className="w-full py-6 text-base font-medium"
-              >
-                {isAnalyzing ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Analyzing...
-                  </>
-                ) : (
-                  <>
-                    <Zap className="w-5 h-5 mr-2" />
-                    Analyze
-                  </>
-                )}
-              </Button>
-              {searchQuery.trim().length > 0 && searchQuery.trim().length < 3 && (
-                <p className="text-xs text-muted-foreground mt-2 text-left">
-                  Enter at least 3 characters to start analysis
-                </p>
-              )}
-            </div>
-
-            {/* Select Platforms */}
-            <div className="mb-6 sm:mb-8">
-              <h3 className="text-foreground font-semibold mb-4">Select Platforms</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {(platforms || []).map((platform) => {
-                  const IconComponent = platform.icon
-                  return (
-                    <button
-                      key={platform.id}
-                      onClick={() => togglePlatform(platform.id)}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg border-2 transition-all ${
-                        selectedPlatforms.includes(platform.id)
-                          ? `${platform.bgColor} ${platform.borderColor} text-white`
-                          : 'bg-card border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                      }`}
-                    >
-                      <div className={`w-8 h-8 flex items-center justify-center ${
-                        selectedPlatforms.includes(platform.id) ? 'text-white' : platform.color
-                      }`}>
-                        <IconComponent className="w-6 h-6" />
+        <div className="flex-1 overflow-y-auto flex items-center justify-center">
+          <div className="max-w-4xl w-full mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
+            <Card>
+                  <CardHeader>
+                    <CardTitle>Social Media Monitoring</CardTitle>
+                    <CardDescription>Set up comprehensive monitoring across platforms</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    
+                    {/* Analysis Type Tabs */}
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-3">Analysis Type</label>
+                      <div className="grid grid-cols-2 gap-2 p-1 bg-muted rounded-lg">
+                        <button
+                          onClick={() => setActiveTab('topic')}
+                          className={`px-4 py-3 rounded-md transition-all ${
+                            activeTab === 'topic'
+                              ? 'bg-background text-foreground shadow-sm border border-border'
+                              : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                          }`}
+                        >
+                          <div className="text-left">
+                            <div className="font-semibold text-sm mb-1">Topic Analysis</div>
+                            <div className="text-xs opacity-90">Keywords, hashtags</div>
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => setActiveTab('poi')}
+                          className={`px-4 py-3 rounded-md transition-all ${
+                            activeTab === 'poi'
+                              ? 'bg-background text-foreground shadow-sm border border-border'
+                              : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                          }`}
+                        >
+                          <div className="text-left">
+                            <div className="font-semibold text-sm mb-1">Person of Interest</div>
+                            <div className="text-xs opacity-90">Individuals, profiles</div>
+                          </div>
+                        </button>
                       </div>
-                      <span className="font-medium">{platform.name}</span>
-                      <span className="ml-auto w-5 h-5 flex items-center justify-center">
-                        {selectedPlatforms.includes(platform.id) && (
-                          <span className="text-white text-lg">✓</span>
-                        )}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
+                    </div>
 
-            {/* Time Range */}
-            <div>
-              <h3 className="text-foreground font-semibold mb-4">Time Range</h3>
-              
-              {/* Preset Options */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-                {[
-                  { value: 'any', label: 'Any time' },
-                  { value: '24h', label: '24 hours' },
-                  { value: '7d', label: '7 days' },
-                  { value: '30d', label: '30 days' },
-                  { value: '3m', label: '3 months' },
-                  { value: '6m', label: '6 months' },
-                  { value: '1y', label: '1 year' },
-                  { value: 'custom', label: 'Custom' }
-                ].map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => {
-                      setTimeRange(option.value)
-                      if (option.value !== 'custom') {
-                        setDateRange(undefined)
-                      }
-                    }}
-                    className={`px-3 py-2 text-sm rounded-lg border transition-all ${
-                      timeRange === option.value
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-background border-border text-foreground hover:bg-accent hover:text-accent-foreground'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
+                    {/* Search Input */}
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        {activeTab === 'topic' ? 'Enter Topics, Keywords, or Hashtags' : 'Enter Person Name, Username, or Profile URL'}
+                      </label>
+                      <Textarea
+                        placeholder={activeTab === 'topic' 
+                          ? "e.g., Bengaluru Traffic, #BengaluruPolice, Women Safety..." 
+                          : "e.g., @username, person name, profile URL..."}
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="min-h-[100px] text-sm resize-none"
+                      />
+                    </div>
 
-              {/* Custom Date Range Picker */}
-              {timeRange === 'custom' && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">
-                    Select Custom Date Range
-                  </label>
-                  <DateRangePicker
-                    date={dateRange}
-                    onDateChange={setDateRange}
-                    placeholder="Choose start and end dates"
-                    className="w-full"
-                  />
-                  {dateRange?.from && dateRange?.to && (
-                    <p className="text-xs text-muted-foreground">
-                      Selected: {dateRange.from.toLocaleDateString()} - {dateRange.to.toLocaleDateString()}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
+                    {/* Platform Selection */}
+                    <div>
+                      <h4 className="text-sm font-medium text-foreground mb-3">Select Platforms</h4>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {platforms.map((platform) => {
+                          const IconComponent = platform.icon
+                          const isSelected = selectedPlatforms.includes(platform.id)
+                          return (
+                            <button
+                              key={platform.id}
+                              onClick={() => togglePlatform(platform.id)}
+                              className={`relative flex flex-col items-center gap-3 p-6 rounded-xl border-2 transition-all ${
+                                isSelected
+                                  ? `${platform.borderColor} bg-accent/50 shadow-md scale-105`
+                                  : 'border-border bg-card hover:bg-accent/30 hover:border-muted-foreground/30'
+                              }`}
+                            >
+                              {/* Checkmark indicator */}
+                              {isSelected && (
+                                <div className={`absolute -top-2 -right-2 w-6 h-6 rounded-full ${platform.bgColor} flex items-center justify-center shadow-lg`}>
+                                  <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                </div>
+                              )}
+
+                              <div className={`w-12 h-12 rounded-full ${isSelected ? platform.bgColor : 'bg-muted'} flex items-center justify-center transition-all`}>
+                                <IconComponent className={`w-6 h-6 ${isSelected ? 'text-white' : 'text-muted-foreground'}`} />
+                              </div>
+                              <span className={`text-xs font-medium ${isSelected ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                {platform.name}
+                              </span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Time Range */}
+                    <div>
+                      <h4 className="text-sm font-medium text-foreground mb-3">Time Range</h4>
+                      <div className="grid grid-cols-4 gap-2">
+                        {[
+                          { value: 'any', label: 'Any' },
+                          { value: '24h', label: '24h' },
+                          { value: '7d', label: '7d' },
+                          { value: '30d', label: '30d' },
+                          { value: '3m', label: '3m' },
+                          { value: '6m', label: '6m' },
+                          { value: '1y', label: '1y' },
+                          { value: 'custom', label: 'Custom' }
+                        ].map((option) => (
+                          <button
+                            key={option.value}
+                            onClick={() => {
+                              setTimeRange(option.value)
+                              if (option.value !== 'custom') {
+                                setDateRange(undefined)
+                              }
+                            }}
+                            className={`px-3 py-2 text-xs rounded-lg border transition-all ${
+                              timeRange === option.value
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'bg-background border-border text-foreground hover:bg-accent hover:text-accent-foreground'
+                            }`}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Custom Date Range */}
+                    {timeRange === 'custom' && (
+                      <div>
+                        <label className="text-sm font-medium text-foreground mb-2">
+                          Select Custom Date Range
+                        </label>
+                        <DateRangePicker
+                          date={dateRange}
+                          onDateChange={setDateRange}
+                          placeholder="Choose start and end dates"
+                          className="w-full"
+                        />
+                      </div>
+                    )}
+
+                    {/* Analyze Button */}
+                    <Button 
+                      onClick={handleAnalyze}
+                      disabled={isAnalyzing || searchQuery.trim().length < 3}
+                      className="w-full py-3 text-sm font-medium"
+                    >
+                      {isAnalyzing ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Analyzing...
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="w-4 h-4 mr-2" />
+                          Start Analysis
+                        </>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
           </div>
         </div>
       </div>
