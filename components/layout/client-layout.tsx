@@ -31,15 +31,15 @@ export function ClientLayout({ children }: ClientLayoutProps) {
 
   // For authenticated routes, render with sidebars
   return (
-    <div className="h-screen bg-background text-foreground w-full overflow-hidden">
-      {/* Icon Sidebar - Hidden on mobile, visible on lg+ */}
-      <IconSidebar className="hidden lg:flex" />
+    <div className="h-screen bg-card text-foreground flex overflow-hidden w-full">
+      {/* Icon Sidebar - Fixed 64px */}
+      <IconSidebar />
 
-      {/* Main Sidebar - Hidden on mobile, visible on lg+ */}
-      <MainSidebar className="hidden lg:block" />
+      {/* Main Sidebar - Fixed 256px */}
+      <MainSidebar />
 
-      {/* Main Content Area - Full width on mobile, offset for sidebars on lg+ */}
-      <div className="lg:ml-80 h-screen bg-background overflow-hidden">
+      {/* Main Content Area */}
+      <div className="ml-80 flex-1 flex flex-col overflow-hidden w-full min-w-0 bg-background">
         {children}
       </div>
 
