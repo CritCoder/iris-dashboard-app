@@ -308,104 +308,10 @@ export default function CommunitiesGroupsPage() {
 
   const { data: communities, loading: communitiesLoading, error: communitiesError } = useCommunities(communitiesParams)
   const { data: groups, loading: groupsLoading, error: groupsError } = useGroups(groupsParams)
-  
-  // Sample data for when API fails
-  const sampleCommunities: Community[] = [
-    {
-      id: '1',
-      name: 'Karnataka Politics Discussion',
-      type: 'political',
-      members: 125000,
-      posts: 5600,
-      platform: 'Reddit',
-      description: 'Discussion forum for Karnataka state politics, elections, and governance issues.',
-      created: '3 years ago',
-      lastActive: '1 hour ago',
-      engagement: 25000,
-      sentiment: 'neutral',
-      activityLevel: 'high',
-      category: 'community'
-    },
-    {
-      id: '2',
-      name: 'Bengaluru Tech Community',
-      type: 'professional',
-      members: 89000,
-      posts: 3200,
-      platform: 'Discord',
-      description: 'Professional community for tech workers in Bengaluru to network and share opportunities.',
-      created: '2 years ago',
-      lastActive: '2 hours ago',
-      engagement: 18000,
-      sentiment: 'positive',
-      activityLevel: 'high',
-      category: 'community'
-    },
-    {
-      id: '3',
-      name: 'Karnataka Social Issues',
-      type: 'social',
-      members: 67000,
-      posts: 4800,
-      platform: 'Facebook',
-      description: 'Community discussing social issues, welfare programs, and citizen concerns in Karnataka.',
-      created: '4 years ago',
-      lastActive: '30 minutes ago',
-      engagement: 15000,
-      sentiment: 'negative',
-      activityLevel: 'moderate',
-      category: 'community'
-    }
-  ]
 
-  const sampleGroups: Group[] = [
-    {
-      id: '1',
-      name: 'Bengaluru Police Community',
-      type: 'public',
-      members: 45000,
-      posts: 1200,
-      platform: 'Facebook',
-      description: 'Official community for Bengaluru Police updates, safety tips, and citizen engagement.',
-      created: '2 years ago',
-      lastActive: '2 hours ago',
-      engagement: 8900,
-      sentiment: 'positive',
-      category: 'Government'
-    },
-    {
-      id: '2',
-      name: 'Karnataka Traffic Updates',
-      type: 'public',
-      members: 32000,
-      posts: 890,
-      platform: 'Telegram',
-      description: 'Real-time traffic updates and road condition reports for Karnataka state.',
-      created: '1 year ago',
-      lastActive: '30 minutes ago',
-      engagement: 5600,
-      sentiment: 'neutral',
-      category: 'Transport'
-    },
-    {
-      id: '3',
-      name: 'Bellandur Residents Forum',
-      type: 'private',
-      members: 8500,
-      posts: 2340,
-      platform: 'WhatsApp',
-      description: 'Private forum for Bellandur area residents to discuss local issues and community updates.',
-      created: '3 years ago',
-      lastActive: '1 hour ago',
-      engagement: 2300,
-      sentiment: 'negative',
-      category: 'Community'
-    }
-  ]
-
-  // Use API data if available and no error, otherwise use sample data
-  const allCommunities = (communities && communities.length > 0 && !communitiesError) ? communities.map(c => ({ ...c, category: 'community' })) : sampleCommunities
-  const allGroups = (groups && groups.length > 0 && !groupsError) ? groups : sampleGroups
+  // Use API data if available, otherwise use empty arrays
+  const allCommunities = (communities && communities.length > 0 && !communitiesError) ? communities.map(c => ({ ...c, category: 'community' })) : []
+  const allGroups = (groups && groups.length > 0 && !groupsError) ? groups : []
 
   // Combine all entities
   const allEntities: SocialEntity[] = useMemo(() => {
@@ -500,7 +406,7 @@ export default function CommunitiesGroupsPage() {
       <PageLayout>
         <PageHeader
           title="Communities & Groups"
-          description={error ? "Manage and analyze social media communities and groups (showing sample data)" : "Manage and analyze social media communities and groups"}
+          description="Manage and analyze social media communities and groups"
           actions={
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" className="gap-2">

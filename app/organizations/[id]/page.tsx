@@ -244,38 +244,7 @@ const legacyOrganizationsData: Organization[] = [
   }
 ]
 
-// Sample posts for each organization
-const generatePostsForOrganization = (orgId: number, orgName: string): Post[] => {
-  const platforms: Array<'facebook' | 'twitter' | 'instagram'> = ['facebook', 'twitter', 'instagram']
-  const sentiments: Array<'positive' | 'negative' | 'neutral'> = ['positive', 'negative', 'neutral']
-
-  const sampleContents = [
-    `Latest update from ${orgName}. Join us in our mission for a better tomorrow!`,
-    `Important announcement regarding upcoming events. Stay tuned for more details.`,
-    `Thank you to all our members for your continuous support and dedication.`,
-    `New initiatives launched this week. Check out our latest programs and activities.`,
-    `Community gathering scheduled for next month. All members are invited to participate.`,
-    `Celebrating our growing community of ${Math.floor(Math.random() * 1000)} active members!`,
-    `Special message from our leadership team. Together we grow stronger.`,
-    `Monthly report: Our impact in the community continues to expand.`,
-    `Join our online discussion this weekend. Your voice matters!`,
-    `Proud to announce our latest social initiative in the region.`
-  ]
-
-  return Array.from({ length: 15 }, (_, i) => ({
-    id: `${orgId}-post-${i + 1}`,
-    author: orgName.substring(0, 20),
-    platform: platforms[Math.floor(Math.random() * platforms.length)],
-    content: sampleContents[Math.floor(Math.random() * sampleContents.length)],
-    timestamp: `${Math.floor(Math.random() * 7) + 1} days ago`,
-    likes: Math.floor(Math.random() * 500),
-    comments: Math.floor(Math.random() * 100),
-    shares: Math.floor(Math.random() * 50),
-    views: Math.floor(Math.random() * 5000),
-    sentiment: sentiments[Math.floor(Math.random() * sentiments.length)]
-  }))
-}
-
+// TODO: Integrate posts API for organization posts
 function PostCard({ post }: { post: Post }) {
   const platformIcons = {
     facebook: FacebookIcon,
@@ -345,8 +314,8 @@ export default function OrganizationDetailPage() {
   }, [organizationId])
 
   const posts = useMemo(() => {
-    if (!organization) return []
-    return generatePostsForOrganization(organization.id, organization.name)
+    // TODO: Fetch posts from API for this organization
+    return []
   }, [organization])
 
   const filteredPosts = useMemo(() => {

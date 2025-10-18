@@ -24,7 +24,11 @@ const navItems: IconNavItem[] = [
   { id: 'search', icon: Search, href: '/entity-search', label: 'Search', shortcut: '⌘K' },
 ]
 
-export function IconSidebar() {
+interface IconSidebarProps {
+  className?: string
+}
+
+export function IconSidebar({ className }: IconSidebarProps) {
   const pathname = usePathname()
 
   const isActive = (href: string) => {
@@ -33,7 +37,7 @@ export function IconSidebar() {
   }
 
   return (
-    <div className="fixed left-0 top-0 h-screen w-16 bg-card border-r border-border flex flex-col items-center py-4 z-50">
+    <div className={`fixed left-0 top-0 h-screen w-16 bg-card border-r border-border flex flex-col items-center py-4 z-50 ${className || ''}`}>
       {/* Logo */}
       <Link href="/" className="mb-8">
         <motion.div

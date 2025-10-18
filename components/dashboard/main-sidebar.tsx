@@ -83,7 +83,7 @@ export function MainSidebar({ className }: MainSidebarProps) {
 
   return (
     <aside
-      className={`fixed left-16 top-0 h-screen w-64 bg-card border-r border-border flex flex-col ${className}`}
+      className={`fixed left-16 top-0 h-screen w-64 bg-card border-r border-border flex flex-col z-40 ${className}`}
     >
       {/* Scrollable Content */}
       <div

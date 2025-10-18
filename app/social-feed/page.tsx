@@ -30,8 +30,6 @@
 
 import { useState, useMemo, Suspense, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { PageLayout } from '@/components/layout/page-layout'
-import { PageHeader } from '@/components/layout/page-header'
 import { Search, Download, Heart, MessageCircle, Share2, Eye, X, Loader2, ArrowRight } from 'lucide-react'
 import { responsive } from '@/lib/performance'
 import { Button } from '@/components/ui/button'
@@ -187,6 +185,8 @@ function SocialFeedContent() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [totalCount, setTotalCount] = useState<number>(0)
+  const [showSearch, setShowSearch] = useState(!!urlSearchQuery) // Show search if query param exists
+  const [showDebug, setShowDebug] = useState(false)
 
   // Ensure auth token is loaded on mount
   useEffect(() => {
@@ -286,10 +286,56 @@ function SocialFeedContent() {
     return params
   }, [activeFilter, debouncedSearchQuery, selectedPlatform, selectedMediaType, selectedTimeRange])
 
+  // Transform API response to match Post interface
+  const transformApiPost = useCallback((apiPost: any): Post => {
+    // Get author from various possible fields
+    const author = apiPost.social_profile?.username ||
+                   apiPost.social_profile?.displayName ||
+                   apiPost.person?.name ||
+                   'Unknown Author'
+
+    // Convert ISO timestamp to relative time
+    const getRelativeTime = (isoDate: string) => {
+      const now = new Date()
+      const posted = new Date(isoDate)
+      const diffMs = now.getTime() - posted.getTime()
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+      const diffDays = Math.floor(diffHours / 24)
+
+      if (diffDays > 0) return `${diffDays}d`
+      if (diffHours > 0) return `${diffHours}h`
+      return 'now'
+    }
+
+    return {
+      id: apiPost.id,
+      platform: apiPost.platform?.toLowerCase() as 'facebook' | 'twitter' | 'instagram' | 'news',
+      author,
+      authorName: apiPost.person?.name,
+      authorDisplayName: apiPost.social_profile?.displayName,
+      username: apiPost.social_profile?.username,
+      content: apiPost.content || '',
+      timestamp: getRelativeTime(apiPost.postedAt),
+      likes: apiPost.likesCount || 0,
+      comments: apiPost.commentsCount || 0,
+      shares: apiPost.sharesCount || 0,
+      views: apiPost.viewsCount || 0,
+      sentiment: (apiPost.aiSentiment?.toLowerCase() || 'neutral') as 'positive' | 'negative' | 'neutral',
+      engagement: (apiPost.likesCount || 0) + (apiPost.commentsCount || 0) + (apiPost.sharesCount || 0),
+      reach: apiPost.viewsCount || 0,
+      hasVideo: (apiPost.videoUrls && apiPost.videoUrls.length > 0) || apiPost.contentType === 'video',
+      impact: apiPost.classification === 'CRITICAL' || apiPost.classification === 'URGENT' ? 'high'
+              : apiPost.classification === 'MEDIUM' ? 'medium'
+              : 'low',
+      isViral: (apiPost.likesCount || 0) > 1000 && (apiPost.sharesCount || 0) > 100,
+      isTrending: apiPost.isFlagged || apiPost.needsAttention || false,
+    }
+  }, [])
+
   // Load posts function
   const loadPosts = useCallback(async (isLoadMore = false, page = 1) => {
     console.log('loadPosts called:', { isLoadMore, page })
-    
+
     if (isLoadMore) {
       setLoadingMore(true)
     } else {
@@ -300,7 +346,7 @@ function SocialFeedContent() {
     try {
       const params = buildApiParams(page)
       console.log('API params:', params)
-      
+
       const response = await api.social.getPosts(params)
       console.log('API response:', {
         success: response.success,
@@ -308,17 +354,16 @@ function SocialFeedContent() {
         pagination: (response as any).pagination,
         fullResponse: response
       })
-      
-      // Temporarily force sample data for testing
-      if (false && response.success && response.data && Array.isArray(response.data as any)) {
+
+      if (response.success && response.data && Array.isArray(response.data as any)) {
         const newPosts = (response.data as any[]).map(transformApiPost)
         console.log('Transformed posts:', newPosts.length)
-        
+
         // Capture total count from API response
         const apiTotalCount = (response as any).pagination?.total || (response as any).total || newPosts.length
         setTotalCount(apiTotalCount)
         console.log('Total count from API:', apiTotalCount)
-        
+
         if (isLoadMore) {
           // Append new posts
           console.log('Appending posts, current count:', allPosts.length)
@@ -335,24 +380,24 @@ function SocialFeedContent() {
           console.log('Sample of posts being set:', newPosts.slice(0, 2))
           setAllPosts(newPosts)
         }
-        
+
         // Check if more posts are available
         const pagination = (response as any).pagination
         const hasNext = pagination?.hasNext || false
         const totalPages = pagination?.totalPages || 0
         const currentPageNum = pagination?.page || page
         const limit = pagination?.limit || 20
-        
+
         // More robust hasMore logic:
         // 1. Check if API says hasNext
         // 2. Check if we got fewer posts than the limit (indicating end of data)
         // 3. Check if current page is less than total pages
         // 4. Fallback: if we got a full page of posts, assume there might be more
-        const hasMorePosts = hasNext || 
+        const hasMorePosts = hasNext ||
                             (newPosts.length >= limit && currentPageNum < totalPages) ||
                             (newPosts.length >= limit && totalPages === 0) || // Fallback if no totalPages info
                             (newPosts.length >= limit && !pagination) // Fallback if no pagination info at all
-        
+
         console.log('Pagination check:', {
           hasNext,
           totalPages,
@@ -364,42 +409,21 @@ function SocialFeedContent() {
         setHasMore(hasMorePosts)
         setError(null)
       } else {
-        console.log('API response not successful, using sample data')
-        // Use sample data as fallback with pagination
-        const postsPerPage = 5 // Show 5 posts per page for sample data
-        const startIndex = (page - 1) * postsPerPage
-        const endIndex = startIndex + postsPerPage
-        const pagePosts = samplePosts.slice(startIndex, endIndex)
-        
-        if (!isLoadMore) {
-          setAllPosts(pagePosts)
-          setHasMore(endIndex < samplePosts.length)
-        } else {
-          setAllPosts(prev => [...prev, ...pagePosts])
-          setHasMore(endIndex < samplePosts.length)
-        }
+        console.log('API response not successful')
+        setError('Failed to load posts from API')
+        setAllPosts([])
+        setHasMore(false)
       }
     } catch (err) {
       console.error('Failed to load posts:', err)
       setError(err instanceof Error ? err.message : 'Failed to load posts')
-      // Use sample data as fallback with pagination
-      const postsPerPage = 5 // Show 5 posts per page for sample data
-      const startIndex = (page - 1) * postsPerPage
-      const endIndex = startIndex + postsPerPage
-      const pagePosts = samplePosts.slice(startIndex, endIndex)
-      
-      if (!isLoadMore) {
-        setAllPosts(pagePosts)
-        setHasMore(endIndex < samplePosts.length)
-      } else {
-        setAllPosts(prev => [...prev, ...pagePosts])
-        setHasMore(endIndex < samplePosts.length)
-      }
+      setAllPosts([])
+      setHasMore(false)
     } finally {
       setLoading(false)
       setLoadingMore(false)
     }
-  }, [buildApiParams])
+  }, [buildApiParams, transformApiPost])
 
   // Load more posts
   const loadMore = useCallback(() => {
@@ -424,260 +448,19 @@ function SocialFeedContent() {
     console.log('Loading page:', nextPage)
     setCurrentPage(nextPage)
     loadPosts(true, nextPage)
-  }, [loadingMore, hasMore, currentPage, loadPosts, allPosts.length])
+  }, [loadingMore, hasMore, currentPage, loadPosts, allPosts])
 
   // Load initial posts and reset on filter change
   useEffect(() => {
     setCurrentPage(1)
     setHasMore(true)
     setAllPosts([])
-    // Force sample data for testing
-    console.log('Loading sample data for testing')
-    const postsPerPage = 5
-    const startIndex = 0
-    const endIndex = startIndex + postsPerPage
-    const pagePosts = samplePosts.slice(startIndex, endIndex)
-    console.log('Setting posts:', pagePosts.length, 'posts')
-    setAllPosts(pagePosts)
-    setHasMore(endIndex < samplePosts.length)
-    console.log('Sample data loaded:', pagePosts.length, 'posts')
-    console.log('Has more:', endIndex < samplePosts.length)
-    // loadPosts(false, 1)
-  }, [activeFilter, debouncedSearchQuery, selectedPlatform, selectedMediaType, selectedTimeRange])
+    loadPosts(false, 1)
+  }, [activeFilter, debouncedSearchQuery, selectedPlatform, selectedMediaType, selectedTimeRange, loadPosts])
 
   const handleFilterChange = (filterId: string) => {
     router.push(`/social-feed?filter=${filterId}`)
   }
-
-  // Transform API response to match Post interface
-  const transformApiPost = (apiPost: any): Post => {
-    // Get author from various possible fields
-    const author = apiPost.social_profile?.username || 
-                   apiPost.social_profile?.displayName || 
-                   apiPost.person?.name || 
-                   'Unknown Author'
-
-    // Convert ISO timestamp to relative time
-    const getRelativeTime = (isoDate: string) => {
-      const now = new Date()
-      const posted = new Date(isoDate)
-      const diffMs = now.getTime() - posted.getTime()
-      const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-      const diffDays = Math.floor(diffHours / 24)
-      
-      if (diffDays > 0) return `${diffDays}d`
-      if (diffHours > 0) return `${diffHours}h`
-      return 'now'
-    }
-
-    return {
-      id: apiPost.id,
-      platform: apiPost.platform?.toLowerCase() as 'facebook' | 'twitter' | 'instagram' | 'news',
-      author,
-      authorName: apiPost.person?.name,
-      authorDisplayName: apiPost.social_profile?.displayName,
-      username: apiPost.social_profile?.username,
-      content: apiPost.content || '',
-      timestamp: getRelativeTime(apiPost.postedAt),
-      likes: apiPost.likesCount || 0,
-      comments: apiPost.commentsCount || 0,
-      shares: apiPost.sharesCount || 0,
-      views: apiPost.viewsCount || 0,
-      sentiment: (apiPost.aiSentiment?.toLowerCase() || 'neutral') as 'positive' | 'negative' | 'neutral',
-      engagement: (apiPost.likesCount || 0) + (apiPost.commentsCount || 0) + (apiPost.sharesCount || 0),
-      reach: apiPost.viewsCount || 0,
-      hasVideo: (apiPost.videoUrls && apiPost.videoUrls.length > 0) || apiPost.contentType === 'video',
-      impact: apiPost.classification === 'CRITICAL' || apiPost.classification === 'URGENT' ? 'high' 
-              : apiPost.classification === 'MEDIUM' ? 'medium' 
-              : 'low',
-      isViral: (apiPost.likesCount || 0) > 1000 && (apiPost.sharesCount || 0) > 100,
-      isTrending: apiPost.isFlagged || apiPost.needsAttention || false,
-    }
-  }
-
-  // Sample data for when API fails - static data to avoid duplicate keys
-  const samplePosts: Post[] = [
-    {
-      id: 'sample-1',
-      platform: 'twitter',
-      author: 'BengaluruPolice',
-      content: 'Sample post 1: Traffic update on MG Road due to metro construction. Please use alternative routes.',
-      timestamp: '2h',
-      likes: 245,
-      comments: 67,
-      shares: 89,
-      views: 12500,
-      sentiment: 'neutral',
-      engagement: 401,
-      reach: 25000,
-      hasVideo: false,
-      impact: 'medium',
-      isViral: false,
-      isTrending: true
-    },
-    {
-      id: 'sample-2',
-      platform: 'facebook',
-      author: 'Karnataka Police',
-      content: 'Sample post 2: Safety reminder about wearing helmets while riding two-wheelers.',
-      timestamp: '4h',
-      likes: 1200,
-      comments: 234,
-      shares: 456,
-      views: 45000,
-      sentiment: 'positive',
-      engagement: 1890,
-      reach: 50000,
-      hasVideo: true,
-      impact: 'high',
-      isViral: true,
-      isTrending: false
-    },
-    {
-      id: 'sample-3',
-      platform: 'instagram',
-      author: 'WhitefieldTraffic',
-      content: 'Sample post 3: Beautiful sunrise from Whitefield! Remember to drive safely.',
-      timestamp: '6h',
-      likes: 890,
-      comments: 123,
-      shares: 234,
-      views: 18000,
-      sentiment: 'positive',
-      engagement: 1247,
-      reach: 22000,
-      hasVideo: false,
-      impact: 'medium',
-      isViral: false,
-      isTrending: false
-    },
-    {
-      id: 'sample-4',
-      platform: 'news',
-      author: 'Times of India',
-      content: 'Sample post 4: Bengaluru police launch new digital initiative for faster complaint registration.',
-      timestamp: '8h',
-      likes: 567,
-      comments: 89,
-      shares: 123,
-      views: 32000,
-      sentiment: 'positive',
-      engagement: 779,
-      reach: 40000,
-      hasVideo: false,
-      impact: 'high',
-      isViral: false,
-      isTrending: true
-    },
-    {
-      id: 'sample-5',
-      platform: 'twitter',
-      author: 'BellandurResident',
-      content: 'Sample post 5: Traffic situation in Bellandur is getting worse day by day.',
-      timestamp: '10h',
-      likes: 345,
-      comments: 156,
-      shares: 78,
-      views: 15000,
-      sentiment: 'negative',
-      engagement: 579,
-      reach: 18000,
-      hasVideo: false,
-      impact: 'medium',
-      isViral: false,
-      isTrending: false
-    },
-    {
-      id: 'sample-6',
-      platform: 'facebook',
-      author: 'Karnataka CM Office',
-      content: 'Sample post 6: New infrastructure projects announced for Bengaluru to improve traffic flow.',
-      timestamp: '12h',
-      likes: 2100,
-      comments: 456,
-      shares: 789,
-      views: 65000,
-      sentiment: 'positive',
-      engagement: 3345,
-      reach: 75000,
-      hasVideo: true,
-      impact: 'high',
-      isViral: true,
-      isTrending: true
-    },
-    {
-      id: 'sample-7',
-      platform: 'instagram',
-      author: 'TrafficControl',
-      content: 'Sample post 7: Road maintenance work on Outer Ring Road. Expect delays.',
-      timestamp: '14h',
-      likes: 456,
-      comments: 89,
-      shares: 123,
-      views: 22000,
-      sentiment: 'neutral',
-      engagement: 668,
-      reach: 28000,
-      hasVideo: false,
-      impact: 'medium',
-      isViral: false,
-      isTrending: false
-    },
-    {
-      id: 'sample-8',
-      platform: 'twitter',
-      author: 'CityUpdates',
-      content: 'Sample post 8: New bus routes announced to connect IT corridors with residential areas.',
-      timestamp: '16h',
-      likes: 789,
-      comments: 234,
-      shares: 345,
-      views: 35000,
-      sentiment: 'positive',
-      engagement: 1368,
-      reach: 42000,
-      hasVideo: false,
-      impact: 'high',
-      isViral: false,
-      isTrending: true
-    },
-    {
-      id: 'sample-9',
-      platform: 'facebook',
-      author: 'PublicSafety',
-      content: 'Sample post 9: Emergency contact numbers for traffic assistance in Bengaluru.',
-      timestamp: '18h',
-      likes: 1234,
-      comments: 345,
-      shares: 567,
-      views: 48000,
-      sentiment: 'positive',
-      engagement: 2146,
-      reach: 55000,
-      hasVideo: false,
-      impact: 'high',
-      isViral: true,
-      isTrending: false
-    },
-    {
-      id: 'sample-10',
-      platform: 'news',
-      author: 'UrbanPlanning',
-      content: 'Sample post 10: Smart city initiatives to improve traffic management in Bengaluru.',
-      timestamp: '20h',
-      likes: 678,
-      comments: 123,
-      shares: 234,
-      views: 28000,
-      sentiment: 'positive',
-      engagement: 1035,
-      reach: 35000,
-      hasVideo: true,
-      impact: 'medium',
-      isViral: false,
-      isTrending: false
-    }
-  ]
 
   // Apply client-side filters that can't be done server-side
   const filteredPosts = useMemo(() => {
@@ -760,12 +543,9 @@ function SocialFeedContent() {
     }).length
   }
 
-  const [showSearch, setShowSearch] = useState(!!urlSearchQuery) // Show search if query param exists
-  const [showDebug, setShowDebug] = useState(false)
-
   return (
-    <PageLayout>
-      <div className="h-screen flex bg-background overflow-hidden">
+    <div className="h-full flex flex-col bg-background overflow-hidden">
+      <div className="flex-1 flex overflow-hidden">
         {/* Vertical Filter Sidebar */}
         <div className="w-64 border-r border-border bg-card flex-shrink-0 overflow-y-auto">
           <div className="p-4 space-y-6">
@@ -1026,15 +806,10 @@ function SocialFeedContent() {
                 {!hasMore && filteredPosts.length > 0 && (
                   <div className="mt-6 text-center">
                     <div className="text-sm text-muted-foreground mb-2">
-                      {error ? 'No more posts to load (using sample data)' : 'No more posts to load'}
+                      No more posts to load
                     </div>
                     <div className="text-xs text-muted-foreground/70">
                       Showing {filteredPosts.length} posts
-                      {error && (
-                        <div className="mt-1 text-orange-500">
-                          API unavailable - showing sample data only
-                        </div>
-                      )}
                     </div>
                   </div>
                 )}
@@ -1047,8 +822,8 @@ function SocialFeedContent() {
                   </EmptyMedia>
                   <EmptyTitle>No Posts Found</EmptyTitle>
                   <EmptyDescription>
-                    {error 
-                      ? 'Unable to load posts from API. Showing sample data.' 
+                    {error
+                      ? `Unable to load posts: ${error}`
                       : 'Try adjusting your filters or search query to find more posts.'
                     }
                   </EmptyDescription>
@@ -1059,7 +834,7 @@ function SocialFeedContent() {
         </div>
       </div>
     </div>
-    </PageLayout>
+  </div>
   )
 }
 

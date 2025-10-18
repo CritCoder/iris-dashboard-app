@@ -440,7 +440,7 @@ export default function AnalysisHistoryPage() {
             </div>
           ) : sortedCampaigns.length > 0 ? (
             <div className="p-3 sm:p-4 lg:p-6">
-              <AnimatedGrid stagger={0.05} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+              <AnimatedGrid staggerDelay={0.05} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                 {sortedCampaigns.map((campaign) => (
                   <AnimatedCard key={campaign.id}>
                     <CampaignCard

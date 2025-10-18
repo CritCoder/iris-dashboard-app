@@ -35,65 +35,6 @@ interface Post {
   url?: string
 }
 
-// Sample data for Bengaluru location
-const samplePosts: Post[] = [
-  {
-    id: '1',
-    source: 'News-Article @india-news',
-    timestamp: 'Oct 11, 2025, 03:40 AM',
-    content: 'Bengaluru police taking strict action against social media content that violates community guidelines. New safety measures online implemented across the city.',
-    sentiment: 'NEUTRAL',
-    relevance: 80,
-    likes: 0,
-    comments: 0,
-    shares: 0
-  },
-  {
-    id: '2',
-    source: 'News-Article @karnataka-news',
-    timestamp: 'Oct 11, 2025, 02:15 AM',
-    content: 'Karnataka high court notice to govt on plea challenging division of Bengaluru police. Legal proceedings continue regarding administrative restructuring.',
-    sentiment: 'MIXED',
-    relevance: 75,
-    likes: 0,
-    comments: 0,
-    shares: 0
-  },
-  {
-    id: '3',
-    source: 'News-Article @ndtv',
-    timestamp: 'Oct 10, 2025, 11:30 PM',
-    content: 'Viral Post: Latest News, Photos, Videos on Viral Post - NDTV.COM... To Fix Bengaluru Potholes. Citizens demand better infrastructure maintenance.',
-    sentiment: 'NEGATIVE',
-    relevance: 85,
-    likes: 0,
-    comments: 0,
-    shares: 0
-  },
-  {
-    id: '4',
-    source: 'News-Article @times-of-india',
-    timestamp: 'Oct 10, 2025, 10:45 PM',
-    content: 'Bengaluru traffic management system receives positive feedback from commuters. New digital initiatives showing promising results in reducing congestion.',
-    sentiment: 'POSITIVE',
-    relevance: 70,
-    likes: 0,
-    comments: 0,
-    shares: 0
-  },
-  {
-    id: '5',
-    source: 'News-Article @deccan-herald',
-    timestamp: 'Oct 10, 2025, 09:20 PM',
-    content: 'Bengaluru police community outreach programs gain momentum. Increased public participation in safety awareness campaigns across the city.',
-    sentiment: 'POSITIVE',
-    relevance: 65,
-    likes: 0,
-    comments: 0,
-    shares: 0
-  }
-]
-
 function PostCard({ post }: { post: Post }) {
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
@@ -259,7 +200,7 @@ export default function LocationDetailPage() {
         }
       })
     }
-    return samplePosts // Fallback to sample data
+    return [] // Return empty array if no API data
   }, [locationData])
 
   // Apply client-side search filtering (tab filtering is done via API filter param)

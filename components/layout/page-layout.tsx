@@ -8,7 +8,7 @@ interface PageLayoutProps {
 
 export function PageLayout({ children }: PageLayoutProps) {
   return (
-    <div className="h-full flex flex-col overflow-hidden w-full">
+    <div className="h-full flex flex-col w-full">
       {children}
     </div>
   )
