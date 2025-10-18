@@ -62,7 +62,7 @@ export default function PostAnalysisPage() {
         console.log('📊 POST API RESPONSE:', response)
         
         if (response.success && response.data) {
-          const post = response.data as any
+          const post = response.data
           
           // Transform API response to match our interface
           const transformedPost: PostData = {
@@ -117,14 +117,14 @@ export default function PostAnalysisPage() {
         const fallbackPost: PostData = {
           id: postId,
           platform: 'twitter', // Most common platform
-          author: {
+    author: {
             name: 'Social Media User',
-            avatar: 'S',
+      avatar: 'S',
             handle: '@socialuser'
-          },
+    },
           content: `This is a sample post with ID: ${postId}. The actual post data could not be loaded from the server. This might be due to network issues, authentication problems, or the post no longer exists in the database.`,
           timestamp: new Date().toLocaleString(),
-          engagement: {
+    engagement: {
             likes: Math.floor(Math.random() * 100),
             comments: Math.floor(Math.random() * 20),
             shares: Math.floor(Math.random() * 50),

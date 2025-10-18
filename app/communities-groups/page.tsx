@@ -421,7 +421,7 @@ export default function CommunitiesGroupsPage() {
           }
         />
 
-        <div className="max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-8">
+        <div className="max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-8 min-h-[calc(100vh-200px)] flex flex-col">
           {/* View Type Toggle */}
           <div className="mb-6">
             <div className="flex gap-2">
@@ -487,30 +487,32 @@ export default function CommunitiesGroupsPage() {
             </div>
           </div>
 
-          {/* Entities Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(filteredEntities || []).map((entity, index) => (
-              <SocialEntityCard 
-                key={`${entity.id}-${index}`} 
-                entity={entity} 
-                isMonitored={monitoredIds.has(entity.id)}
-                onToggleMonitor={toggleMonitor}
-              />
-            ))}
-          </div>
-
-          {filteredEntities.length === 0 && !loading && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <Users2 className="w-12 h-12 text-muted-foreground" />
-                </EmptyMedia>
-                <EmptyTitle>No Communities or Groups Found</EmptyTitle>
-                <EmptyDescription>
-                  Try adjusting your search criteria or filters to find more communities and groups.
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
+          {/* Content Area */}
+          {filteredEntities.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {(filteredEntities || []).map((entity, index) => (
+                <SocialEntityCard 
+                  key={`${entity.id}-${index}`} 
+                  entity={entity} 
+                  isMonitored={monitoredIds.has(entity.id)}
+                  onToggleMonitor={toggleMonitor}
+                />
+              ))}
+            </div>
+          ) : !loading && (
+            <div className="flex-1 flex items-center justify-center">
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <Users2 className="w-12 h-12 text-muted-foreground" />
+                  </EmptyMedia>
+                  <EmptyTitle>No Communities or Groups Found</EmptyTitle>
+                  <EmptyDescription>
+                    Try adjusting your search criteria or filters to find more communities and groups.
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            </div>
           )}
         </div>
       </PageLayout>

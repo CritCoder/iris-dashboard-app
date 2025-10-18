@@ -218,23 +218,17 @@ export default function SocialInboxPage() {
         // Navigation
         case 'ArrowDown':
         case 'j': // Vim-style
-          // Only prevent default if we have posts to navigate
-          if (posts.length > 0) {
-            e.preventDefault()
-            if (currentIndex < posts.length - 1) {
-              setSelectedPost(posts[currentIndex + 1])
-            }
+          e.preventDefault()
+          if (currentIndex < posts.length - 1) {
+            setSelectedPost(posts[currentIndex + 1])
           }
           break
 
         case 'ArrowUp':
         case 'k': // Vim-style
-          // Only prevent default if we have posts to navigate
-          if (posts.length > 0) {
-            e.preventDefault()
-            if (currentIndex > 0) {
-              setSelectedPost(posts[currentIndex - 1])
-            }
+          e.preventDefault()
+          if (currentIndex > 0) {
+            setSelectedPost(posts[currentIndex - 1])
           }
           break
 
@@ -309,8 +303,8 @@ export default function SocialInboxPage() {
           title="Social Inbox"
           description="New posts from all campaigns"
           actions={
-            <div className="flex items-center justify-center gap-2 w-full">
-              {/* Tab Toggle - Centered */}
+            <div className="flex items-center gap-2">
+              {/* Tab Toggle - Compact */}
               <div className="flex items-center bg-muted/50 rounded-md border border-border overflow-hidden">
                 <button
                   onClick={() => setActiveTab('posts')}
@@ -352,12 +346,12 @@ export default function SocialInboxPage() {
         {/* Filters Bar - Below Header */}
         <div className="border-b border-border bg-background px-3 sm:px-4 lg:px-6 py-3">
           <div className="max-w-[1800px] mx-auto">
-            <div className="flex items-center gap-2 overflow-x-auto">
+            <div className="flex flex-wrap items-center gap-2">
               {/* Sentiment Filter */}
               <select
                 value={selectedSentiment}
                 onChange={(e) => setSelectedSentiment(e.target.value)}
-                className="appearance-none bg-background border border-border rounded-md px-3 py-1.5 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer flex-shrink-0"
+                className="appearance-none bg-background border border-border rounded-md px-3 py-1.5 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer"
                 style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
               >
                 <option value="all">All Sentiments</option>
@@ -371,7 +365,7 @@ export default function SocialInboxPage() {
               <select
                 value={selectedPlatform}
                 onChange={(e) => setSelectedPlatform(e.target.value)}
-                className="appearance-none bg-background border border-border rounded-md px-3 py-1.5 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer flex-shrink-0"
+                className="appearance-none bg-background border border-border rounded-md px-3 py-1.5 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer"
                 style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
               >
                 <option value="all">All Platforms</option>
@@ -386,7 +380,7 @@ export default function SocialInboxPage() {
               <select
                 value={selectedCampaign}
                 onChange={(e) => setSelectedCampaign(e.target.value)}
-                className="appearance-none bg-background border border-border rounded-md px-3 py-1.5 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 max-w-[12rem] truncate cursor-pointer flex-shrink-0"
+                className="appearance-none bg-background border border-border rounded-md px-3 py-1.5 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 max-w-[12rem] truncate cursor-pointer"
                 style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
               >
                     <option value="all">All Campaigns</option>
@@ -463,19 +457,19 @@ export default function SocialInboxPage() {
                       setSortBy('date')
                       setSearchQuery('')
                     }}
-                    className="bg-background hover:bg-accent border border-border hover:border-accent/50 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 flex-shrink-0"
+                    className="bg-background hover:bg-accent border border-border hover:border-accent/50 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
                   >
                     Reset
                   </Button>
                 </div>
 
                 {/* Secondary Filters Row - Hidden on mobile, shown on larger screens */}
-                <div className="hidden lg:flex items-center gap-2">
+                <div className="hidden lg:flex flex-wrap items-center gap-2">
                   {/* Time Range Filter */}
                   <select
                     value={selectedTimeRange}
                     onChange={(e) => setSelectedTimeRange(e.target.value)}
-                    className="appearance-none bg-background border border-border rounded-md px-3 py-2 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer flex-shrink-0"
+                    className="appearance-none bg-background border border-border rounded-md px-3 py-2 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer"
                     style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
                   >
                     <option value="30m">Last 30 Minutes</option>
@@ -493,7 +487,7 @@ export default function SocialInboxPage() {
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="appearance-none bg-background border border-border rounded-md px-3 py-2 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer flex-shrink-0"
+                    className="appearance-none bg-background border border-border rounded-md px-3 py-2 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer"
                     style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
                   >
                     <option value="date">Sort by Date</option>
@@ -560,6 +554,8 @@ export default function SocialInboxPage() {
                 </div>
               </div>
             </div>
+          }
+        />
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col xl:flex-row overflow-hidden w-full h-full">

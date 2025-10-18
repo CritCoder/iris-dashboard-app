@@ -33,8 +33,7 @@ const legacyOrganizationsData: Organization[] = [
     contact: {
       physicalAddress: "Yalahanka",
       phoneNumber: "1919381307652",
-      email: "rg065726@gmail.com",
-      website: null
+      email: "rg065726@gmail.com"
     }
   },
   {
@@ -55,8 +54,7 @@ const legacyOrganizationsData: Organization[] = [
     contact: {
       physicalAddress: "Yadagiri",
       phoneNumber: "9449477555",
-      email: null,
-      website: null
+      email: null
     }
   },
   {
@@ -528,7 +526,7 @@ export default function OrganizationsPage() {
 
             <div className="flex-1 overflow-y-auto p-4 sm:p-6">
               {filteredOrganizations.length > 0 ? (
-                <AnimatedGrid staggerDelay={0.03} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <AnimatedGrid stagger={0.03} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {filteredOrganizations.map((organization) => (
                     <AnimatedCard key={organization.id}>
                       <OrganizationCard

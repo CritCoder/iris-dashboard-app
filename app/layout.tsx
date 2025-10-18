@@ -34,7 +34,7 @@ export default function RootLayout({
               <ToastProvider />
               <RouteProgress />
               <ClientLayout>
-                <PageTransition>
+                <PageTransition className="flex-1 min-h-0 flex flex-col w-full">
                   {children}
                 </PageTransition>
               </ClientLayout>

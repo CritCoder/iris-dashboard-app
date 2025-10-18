@@ -31,15 +31,16 @@ export function ClientLayout({ children }: ClientLayoutProps) {
 
   // For authenticated routes, render with sidebars
   return (
-    <div className="h-screen bg-card text-foreground flex overflow-hidden w-full">
-      {/* Icon Sidebar - Fixed 64px */}
-      <IconSidebar />
-
+    // Reserve horizontal space for fixed sidebars (icon-only on md, full on lg)
+    <div className="h-screen bg-card text-foreground flex w-full pl-0  overflow-x-hidden">
       {/* Main Sidebar - Fixed 256px */}
       <MainSidebar />
 
+      {/* Icon Sidebar - Fixed 64px */}
+      <IconSidebar />
+
       {/* Main Content Area */}
-      <div className="ml-80 flex-1 flex flex-col overflow-hidden w-full min-w-0 bg-background">
+      <div className="flex-1 flex flex-col overflow-hidden w-full min-w-0 bg-background ml-80">
         {children}
       </div>
 

@@ -32,6 +32,81 @@ import { ProfileList } from '@/components/profiles/profile-list'
 import { startMonitoring, stopMonitoring } from '@/lib/api/campaigns'
 import ErrorBoundary from '@/components/ui/error-boundary'
 
+const samplePosts: Post[] = [
+  {
+    id: '1',
+    author: 'dubeyjikahin',
+    platform: 'twitter',
+    content: 'Bengaluru police taking strict action against social media content that violates community guidelines. #BengaluruPolice #SocialMedia',
+    timestamp: '2 days ago',
+    likes: 45,
+    comments: 12,
+    shares: 8,
+    views: 1200,
+    sentiment: 'neutral'
+  },
+  {
+    id: '2',
+    author: 'grok',
+    platform: 'twitter',
+    content: 'New AI model Grok Imagine launched with enhanced capabilities for content analysis and monitoring.',
+    timestamp: '2 days ago',
+    likes: 5,
+    comments: 0,
+    shares: 1,
+    views: 800,
+    sentiment: 'positive'
+  },
+  {
+    id: '3',
+    author: 'EnglishSalar',
+    platform: 'twitter',
+    content: 'Arrest made in Bengaluru for spreading misinformation on social media platforms. Police action shows commitment to digital safety.',
+    timestamp: '2 days ago',
+    likes: 23,
+    comments: 5,
+    shares: 3,
+    views: 950,
+    sentiment: 'positive'
+  },
+  {
+    id: '4',
+    author: 'DeccanChronicle',
+    platform: 'twitter',
+    content: 'Bengaluru police crackdown on fake news and hate speech online continues with multiple arrests this week.',
+    timestamp: '2 days ago',
+    likes: 67,
+    comments: 15,
+    shares: 12,
+    views: 2100,
+    sentiment: 'neutral'
+  },
+  {
+    id: '5',
+    author: 'JIMMY211711',
+    platform: 'twitter',
+    content: 'Personal experience with Bengaluru police response to online harassment complaint. Quick and professional action taken.',
+    timestamp: '2 days ago',
+    likes: 12,
+    comments: 3,
+    shares: 2,
+    views: 600,
+    sentiment: 'positive'
+  },
+  {
+    id: '6',
+    author: 'Misabh2020',
+    platform: 'twitter',
+    content: 'Concerns about freedom of expression vs. content moderation policies in Bengaluru. Need for balanced approach.',
+    timestamp: '2 days ago',
+    likes: 8,
+    comments: 7,
+    shares: 1,
+    views: 450,
+    sentiment: 'negative'
+  }
+]
+
 function CampaignDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -642,12 +717,12 @@ function CampaignDetailPage() {
           </div>
         </div>
 
-        {/* Main Content - Simplified Layout */}
+        {/* Main Content - Full Screen Desktop Layout */}
         <div ref={contentRef} className="flex-1 flex overflow-hidden min-h-0">
-          {/* Left Sidebar - Compact Navigation */}
-          <div className="w-14 border-r border-border bg-card/30 flex flex-col h-full shadow-sm">
+          {/* Left Sidebar - Compact Vertical Tabs (Toolbar Style) */}
+          <div className="w-16 border-r border-border bg-card/50 backdrop-blur-sm flex flex-col h-[calc(100vh-16rem)] shadow-sm">
             {/* Main Analysis Tabs */}
-            <div className="p-1.5 space-y-1.5">
+            <div className="p-2 space-y-2">
               {menuItems.map((item) => {
                 const isActive = activeAnalysisTab === item.id
                 const IconComponent = item.icon
@@ -664,14 +739,14 @@ function CampaignDetailPage() {
                         setExpandedTabs(newExpanded)
                       }
                     }}
-                    className={`w-10 h-10 flex flex-col items-center justify-center gap-1 rounded-lg transition-all duration-200 group relative ${
+                    className={`w-12 h-12 flex flex-col items-center justify-center gap-1 rounded-xl transition-all duration-200 group relative border ${
                       isActive
-                        ? 'bg-primary text-primary-foreground shadow-md'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                        ? 'bg-primary text-primary-foreground shadow-lg border-primary/20 scale-105'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/60 border-transparent hover:border-border/50 hover:shadow-sm'
                     }`}
                     title={`${item.title} - ${item.description}`}
                   >
-                    <IconComponent className="w-4 h-4" />
+                    <IconComponent className="w-5 h-5" />
                     
                     {/* Tooltip */}
                     <div className="absolute left-14 top-1/2 -translate-y-1/2 bg-background border border-border rounded-lg px-3 py-2 text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 shadow-lg">
@@ -790,9 +865,9 @@ function CampaignDetailPage() {
             )
           })()}
 
-          {/* Main Content Area - Simplified */}
+          {/* Main Feed Area */}
           <div className="flex-1 flex flex-col overflow-hidden min-h-0">
-            <div className="flex-1 overflow-y-auto p-4 min-h-0">
+            <div className="flex-1 overflow-y-auto p-6 min-h-0">
               {activeAnalysisTab === 'social-feed' && (
                 selectedNavItem ? (
                   <div className="space-y-4">

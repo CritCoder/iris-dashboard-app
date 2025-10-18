@@ -152,37 +152,16 @@ class ApiClient {
       })
       
       if (!response.ok) {
-        let errorData
-        try {
-          const responseText = await response.text()
-          console.log('🔍 Raw response text:', responseText)
-          if (responseText) {
-            try {
-              errorData = JSON.parse(responseText)
-            } catch (parseError) {
-              errorData = { 
-                message: responseText,
-                rawResponse: responseText,
-                parseError: parseError.message
-              }
-            }
-          } else {
-            errorData = { message: 'Empty response' }
-          }
-        } catch (readError) {
-          console.log('🔍 Failed to read response:', readError)
-          errorData = { 
-            message: response.status === 401 ? 'Authentication failed' : 'Network error',
-            readError: readError.message
-          }
-        }
+        const data = await response.json().catch(() => ({ 
+          message: response.status === 401 ? 'Authentication failed' : 'Network error' 
+        }))
         
         // DEBUG: Log error response
         console.error('❌ API ERROR:', {
           url,
           status: response.status,
           statusText: response.statusText,
-          error: errorData,
+          error: data,
           timestamp: new Date().toISOString()
         })
         

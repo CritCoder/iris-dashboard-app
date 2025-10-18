@@ -14,7 +14,7 @@ interface MainSidebarProps {
   className?: string
 }
 
-export function MainSidebar({ className }: MainSidebarProps) {
+export function MainSidebar({ className = '' }: MainSidebarProps) {
   const pathname = usePathname()
   const scrollRef = useRef<HTMLDivElement>(null)
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null)
@@ -83,7 +83,7 @@ export function MainSidebar({ className }: MainSidebarProps) {
 
   return (
     <aside
-      className={`fixed left-16 top-0 h-screen w-64 bg-card border-r border-border flex flex-col ${className}`}
+      className={`hidden lg:flex fixed left-16 top-0 h-screen w-64 bg-card border-r border-border flex-col z-40 ${className}`}
     >
       {/* Scrollable Content */}
       <div
@@ -219,4 +219,3 @@ export function MainSidebar({ className }: MainSidebarProps) {
     </aside>
   )
 }
-

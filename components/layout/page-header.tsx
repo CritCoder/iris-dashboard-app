@@ -2,6 +2,7 @@
 
 import { ReactNode } from 'react'
 import { Breadcrumbs } from '@/components/ui/breadcrumbs'
+import { MobileNav } from '@/components/layout/mobile-nav'
 
 interface PageHeaderProps {
   title: string
@@ -17,9 +18,11 @@ export function PageHeader({ title, description, actions, centerContent, showBre
       <div className="max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-2">
         {/* Compact Header - Single Row */}
         <div className="flex items-center justify-between gap-4">
-          {/* Breadcrumbs */}
+          {/* Mobile Nav Trigger + Breadcrumbs */}
           {showBreadcrumbs && (
-            <div className="flex-shrink-0">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Mobile-only Nav */}
+              <MobileNav />
               <Breadcrumbs />
             </div>
           )}

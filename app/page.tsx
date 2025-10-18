@@ -1,6 +1,7 @@
 'use client'
 
 import { PageLayout } from '@/components/layout/page-layout'
+import { ProtectedRoute } from '@/components/auth/protected-route'
 import { PageHeader } from '@/components/layout/page-header'
 import { StatsGrid } from '@/components/dashboard/stats-grid'
 import { TopicSentimentHeatmap } from '@/components/dashboard/topic-sentiment-heatmap'
@@ -40,7 +41,6 @@ import {
   useOpponentNarratives,
   useSupportBaseEnergy 
 } from '@/hooks/use-api'
-import { useCampaigns } from '@/hooks/use-campaigns'
 import { motion } from 'framer-motion'
 import { staggerContainerVariants, listItemVariants, fadeInUpVariants } from '@/lib/motion'
 
@@ -69,7 +69,6 @@ export default function Page() {
   const [range, setRange] = useState('24h')
   const [activeTab, setActiveTab] = useState('overview')
   const [isCustomizing, setIsCustomizing] = useState(false)
-  const [selectedCampaign, setSelectedCampaign] = useState('all')
   const [enabledCards, setEnabledCards] = useState({
     'total-mentions': true,
     'sentiment-score': true,
@@ -80,18 +79,14 @@ export default function Page() {
     'support-base': true
   })
 
-  // Fetch campaigns for selection
-  const { data: campaigns, loading: campaignsLoading } = useCampaigns({ limit: 50 })
-  
   // Fetch dashboard data from APIs
   const timeRange = mapTimeRange(range)
   
   // Memoize API params to prevent infinite re-renders
   const apiParams = useMemo(() => ({ 
     timeRange, 
-    cached: true,
-    ...(selectedCampaign !== 'all' && { campaignId: selectedCampaign })
-  }), [timeRange, selectedCampaign])
+    cached: true 
+  }), [timeRange])
   
   const { data: quickStats, loading: statsLoading, error: statsError } = usePoliticalStats(apiParams)
   const { data: campaignThemes, loading: themesLoading, error: themesError } = useCampaignThemes(apiParams)
@@ -99,16 +94,31 @@ export default function Page() {
   const { data: opponentData, loading: opponentLoading, error: opponentError } = useOpponentNarratives(apiParams)
   const { data: supportBaseData, loading: supportLoading, error: supportError } = useSupportBaseEnergy(apiParams)
 
-  // No sample data - use only real API data
+  // Sample data for the new dashboard sections (fallback)
+  const recentActivity = [
+    { id: 1, type: 'mention', content: 'Bengaluru Police mentioned in viral post', time: '2m ago', sentiment: 'positive' },
+    { id: 2, type: 'trend', content: 'Traffic management trending up', time: '5m ago', sentiment: 'neutral' },
+    { id: 3, type: 'alert', content: 'Negative sentiment spike detected', time: '8m ago', sentiment: 'negative' },
+    { id: 4, type: 'mention', content: 'New influencer post about police reforms', time: '12m ago', sentiment: 'positive' },
+    { id: 5, type: 'trend', content: 'Crime prevention discussions rising', time: '15m ago', sentiment: 'positive' }
+  ]
 
-  // Process trending topics from API only
+  // Sample fallback data for trending topics
+  const sampleTrendingTopics = [
+    { topic: 'Bengaluru Traffic', mentions: 2450, change: '+12%', sentiment: 'negative' },
+    { topic: 'Police Reforms', mentions: 1890, change: '+8%', sentiment: 'positive' },
+    { topic: 'Crime Prevention', mentions: 1654, change: '+5%', sentiment: 'positive' },
+    { topic: 'Women Safety', mentions: 1230, change: '-3%', sentiment: 'neutral' }
+  ]
+
+  // Process trending topics from API
   const trendingTopics = useMemo(() => {
     if (!campaignThemes || typeof campaignThemes !== 'object' || !('themes' in campaignThemes)) {
-      return []
+      return sampleTrendingTopics
     }
 
     const themes = (campaignThemes as any).themes
-    if (!themes) return []
+    if (!themes) return sampleTrendingTopics
 
     const allThemes: any[] = [
       ...(themes.positive || []),
@@ -116,7 +126,7 @@ export default function Page() {
       ...(themes.neutral || [])
     ]
 
-    if (allThemes.length === 0) return []
+    if (allThemes.length === 0) return sampleTrendingTopics
 
     return allThemes.slice(0, 4).map(campaign => ({
       topic: campaign.campaignName || 'Unknown Campaign',
@@ -135,7 +145,14 @@ export default function Page() {
     }
   }
 
-  // Removed unused getActivityIcon function
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'mention': return ChatBubbleIcon
+      case 'trend': return TrendingUp
+      case 'alert': return ExclamationTriangleIcon
+      default: return ActivityLogIcon
+    }
+  }
 
   // Dashboard card definitions
   const dashboardCards = [
@@ -251,71 +268,48 @@ export default function Page() {
   ]
 
   return (
-    <PageLayout>
-      <PageHeader
-        title="Intelligence Dashboard"
-        description="Real-time insights on narratives, opponents, and public sentiment"
-        actions={
-            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-              <GlobalSearch />
-              <Button
-                variant={isCustomizing ? "default" : "outline"}
-                size="sm"
-                onClick={() => setIsCustomizing(!isCustomizing)}
-                className="flex items-center justify-center gap-2 flex-shrink-0"
-              >
-                <Settings className="w-4 h-4" />
-                <span className="hidden sm:inline">{isCustomizing ? 'Exit Customize' : 'Customize'}</span>
-                <span className="sm:hidden">Edit</span>
-              </Button>
-            </div>
-          }
-        />
-
-      <main className="flex-1 overflow-y-auto bg-background">
-        <div className="max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-8">
-          {/* Debug: Test if content is rendering */}
-          <div className="mb-4 p-4 bg-red-500 text-white">
-            DEBUG: Content is rendering! If you can see this, the layout is working.
-          </div>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-                <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="w-full sm:w-auto overflow-x-auto">
-                    <TabsTrigger value="overview" className="text-xs sm:text-sm whitespace-nowrap">
-                      <span className="hidden sm:inline">📊 Overview</span>
-                      <span className="sm:hidden">📊</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="analytics" className="text-xs sm:text-sm whitespace-nowrap">
-                      <span className="hidden sm:inline">📈 Analytics</span>
-                      <span className="sm:hidden">📈</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="monitoring" className="text-xs sm:text-sm whitespace-nowrap">
-                      <span className="hidden sm:inline">🔍 Monitoring</span>
-                      <span className="sm:hidden">🔍</span>
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-                
-                {/* Campaign Selection */}
-                <div className="flex items-center gap-2">
-                  <label className="text-xs font-medium text-muted-foreground whitespace-nowrap">Campaign:</label>
-                  <select
-                    value={selectedCampaign}
-                    onChange={(e) => setSelectedCampaign(e.target.value)}
-                    className="appearance-none bg-background border border-border rounded-md px-3 py-1.5 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer min-w-[200px]"
-                    style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
-                  >
-                    <option value="all">All Campaigns</option>
-                    {campaigns?.map((campaign) => (
-                      <option key={campaign.id} value={campaign.id}>
-                        {campaign.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+    <ProtectedRoute>
+      <PageLayout>
+        <div className="h-screen flex flex-col bg-background overflow-hidden">
+          <PageHeader
+            title="Intelligence Dashboard"
+            description="Real-time insights on narratives, opponents, and public sentiment"
+            actions={
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <GlobalSearch />
+                <Button
+                  variant={isCustomizing ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setIsCustomizing(!isCustomizing)}
+                  className="flex items-center justify-center gap-2 flex-shrink-0"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span className="hidden sm:inline">{isCustomizing ? 'Exit Customize' : 'Customize'}</span>
+                  <span className="sm:hidden">Edit</span>
+                </Button>
               </div>
-              
+            }
+          />
+
+          <main className="flex-1 overflow-y-auto">
+          <div className="max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-6">
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="w-full sm:w-auto overflow-x-auto">
+                  <TabsTrigger value="overview" className="text-xs sm:text-sm whitespace-nowrap">
+                    <span className="hidden sm:inline">📊 Overview</span>
+                    <span className="sm:hidden">📊</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="analytics" className="text-xs sm:text-sm whitespace-nowrap">
+                    <span className="hidden sm:inline">📈 Analytics</span>
+                    <span className="sm:hidden">📈</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="monitoring" className="text-xs sm:text-sm whitespace-nowrap">
+                    <span className="hidden sm:inline">🔍 Monitoring</span>
+                    <span className="sm:hidden">🔍</span>
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
               <Tabs value={range} onValueChange={setRange}>
                 <TabsList className="w-full sm:w-auto">
                   <TabsTrigger value="24h" className="text-xs sm:text-sm flex-1 sm:flex-none">
@@ -742,8 +736,6 @@ export default function Page() {
                         data={supportBaseData}
                         loading={supportLoading}
                         error={supportError}
-                        campaignId={selectedCampaign !== 'all' ? selectedCampaign : undefined}
-                        campaignName={selectedCampaign !== 'all' ? campaigns?.find(c => c.id === selectedCampaign)?.name : undefined}
                       />
                     </motion.div>
                   )}
@@ -843,13 +835,28 @@ export default function Page() {
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-4">
-                          <div className="text-center py-8">
-                            <div className="text-muted-foreground">
-                              <ActivityLogIcon className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                              <p className="text-sm">No recent activity available</p>
-                              <p className="text-xs text-muted-foreground mt-1">Activity will appear when monitoring is active</p>
-                            </div>
-                          </div>
+                          {recentActivity.map((activity) => {
+                            const Icon = getActivityIcon(activity.type)
+                            return (
+                              <div key={activity.id} className="flex items-start gap-3">
+                                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                                  <Icon className="w-4 h-4 text-muted-foreground" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm text-foreground">{activity.content}</p>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <Badge className={`text-xs ${getSentimentColor(activity.sentiment)}`}>
+                                      {activity.sentiment}
+                                    </Badge>
+                                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                      <ClockIcon className="w-3 h-3" />
+                                      {activity.time}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            )
+                          })}
                         </div>
                       </CardContent>
                     </Card>
@@ -874,9 +881,11 @@ export default function Page() {
                 </div>
               </div>
             </TabsContent>
-        </Tabs>
-        </div>
-      </main>
-    </PageLayout>
-  )
+            </Tabs>
+            </div>
+            </main>
+          </div>
+        </PageLayout>
+      </ProtectedRoute>
+    )
   }

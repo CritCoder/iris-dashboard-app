@@ -435,15 +435,11 @@ select {
 }
 
 html {
-  /* Removed scroll-behavior: smooth to prevent conflicts with JavaScript scroll handling */
+  scroll-behavior: smooth;
 }
 
 body {
-  /* Removed overflow-x: hidden to prevent scroll freeze */
-  overflow-y: auto; /* Ensure vertical scrolling is enabled */
-  overflow-x: auto; /* Allow horizontal scrolling when needed */
-  min-height: 100vh; /* Ensure full viewport height */
-  position: relative; /* Establish positioning context */
+  overflow-x: hidden;
 }
 
 /* Improve animation performance */
@@ -452,34 +448,6 @@ body {
 .pressable {
   will-change: auto;
   transform: translateZ(0);
-}
-
-/* Ensure proper scrolling behavior */
-* {
-  scroll-behavior: auto; /* Override any smooth scrolling that might interfere */
-}
-
-/* Fix for scroll containers */
-.overflow-y-auto,
-.overflow-auto {
-  scroll-behavior: auto;
-  -webkit-overflow-scrolling: touch; /* Enable momentum scrolling on iOS */
-}
-
-/* Prevent background clipping during loading */
-.h-screen {
-  min-height: 100vh;
-  position: relative;
-}
-
-/* Ensure proper flex behavior */
-.flex {
-  min-height: 0; /* Allow flex items to shrink below content size */
-}
-
-/* Prevent layout shifts during loading */
-.min-h-0 {
-  min-height: 0;
 }
 
 /* Leaflet Map Custom Styles */

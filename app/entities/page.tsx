@@ -403,9 +403,9 @@ export default function EntitiesPage() {
 
         <div className="flex-1 flex overflow-hidden">
           {/* Left Sidebar - Filters */}
-          <div className="hidden xl:block xl:w-80 2xl:w-96 border-r border-gray-700/50 bg-black/80 backdrop-blur-xl overflow-y-auto">
+          <div className="hidden md:block md:w-72 lg:w-80 2xl:w-96 border-r border-border bg-card/30 backdrop-blur-xl sticky top-[var(--header-height)] h-[calc(100vh-var(--header-height))] overflow-y-auto">
             <div className="p-4 sm:p-6">
-              <h2 className="text-xl font-bold text-white mb-6">Entities</h2>
+              <h2 className="text-xl font-bold text-foreground mb-6">Entities</h2>
               
               <FilterSection title="PRIMARY">
                 <FilterItem 

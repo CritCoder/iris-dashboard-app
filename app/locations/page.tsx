@@ -528,7 +528,7 @@ export default function LocationsPage() {
                 <div className="flex items-center gap-2">
                   <Sheet>
                     <SheetTrigger asChild>
-                      <Button variant="outline" size="sm" className="lg:hidden">Filters</Button>
+                      <Button variant="outline" size="sm" className="md:hidden">Filters</Button>
                     </SheetTrigger>
                     <SheetContent side="left" className="p-0 w-[85%] max-w-sm">
                       <div className="p-4 sm:p-6 overflow-y-auto h-full">
@@ -586,9 +586,9 @@ export default function LocationsPage() {
             </div>
 
             <div className="flex-1 overflow-hidden">
-              <div className="h-full w-full grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-0">
+              <div className="h-full w-full grid grid-cols-1 md:grid-cols-[288px_1fr] lg:grid-cols-[280px_1fr] gap-0">
                 {/* Left Sidebar Filters */}
-                <div className="hidden lg:flex flex-col border-r border-border overflow-hidden">
+                <div className="hidden md:flex flex-col border-r border-border overflow-hidden sticky top-[var(--header-height)] h-[calc(100vh-var(--header-height))]">
                   <div className="flex-1 overflow-y-auto p-3 pt-2 space-y-4">
                     <FilterSection title="PRIMARY">
                       <FilterItem 

@@ -155,7 +155,7 @@ export default function OSINTToolsPage() {
         <AnimatedPage className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
 
         {/* Tools Grid */}
-        <AnimatedGrid staggerDelay={0.05} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <AnimatedGrid stagger={0.05} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTools.map((tool) => {
             const IconComponent = tool.icon
             return (

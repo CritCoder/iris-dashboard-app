@@ -61,8 +61,39 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
     )
   }
 
-  // TODO: Integrate posts API to fetch posts for this profile
-  const samplePosts: any[] = []
+  // Sample posts data - in real app, fetch from API
+  const samplePosts = [
+    {
+      id: '1',
+      content: 'Sample post content from this profile. This is a great update about recent activities and insights.',
+      timestamp: '2 weeks ago',
+      likes: 3900,
+      comments: 124,
+      shares: 86,
+      views: 25000,
+      platform: profile.platform
+    },
+    {
+      id: '2',
+      content: 'Another interesting post with valuable information for followers.',
+      timestamp: '3 weeks ago',
+      likes: 729,
+      comments: 10,
+      shares: 250,
+      views: 10000,
+      platform: profile.platform
+    },
+    {
+      id: '3',
+      content: 'Keep an eye on the night sky in October—you might catch a falling star!',
+      timestamp: '1 month ago',
+      likes: 4300,
+      comments: 729,
+      shares: 298,
+      views: 15000,
+      platform: profile.platform
+    }
+  ]
 
   const getPlatformIcon = (platform: string) => {
     switch (platform.toLowerCase()) {
@@ -124,27 +155,13 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
             <div className="flex-shrink-0">
               {/* Cover Image */}
               <div className="h-48 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/5 relative">
-                {profile.profileBannerUrl ? (
+                {profile.avatar && (
                   <img
-                    src={profile.profileBannerUrl}
+                    src={profile.avatar}
                     alt="Cover"
                     className="w-full h-full object-cover opacity-30"
-                    onError={(e) => {
-                      console.log('Cover image failed to load:', profile.profileBannerUrl)
-                      e.currentTarget.style.display = 'none'
-                    }}
                   />
-                ) : profile.profileImageUrl ? (
-                  <img
-                    src={profile.profileImageUrl}
-                    alt="Cover"
-                    className="w-full h-full object-cover opacity-20"
-                    onError={(e) => {
-                      console.log('Profile image as cover failed to load:', profile.profileImageUrl)
-                      e.currentTarget.style.display = 'none'
-                    }}
-                  />
-                ) : null}
+                )}
               </div>
 
               {/* Profile Info Overlay */}
@@ -153,21 +170,17 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                   {/* Avatar */}
                   <div className="relative">
                     <div className="w-32 h-32 rounded-full bg-background border-4 border-background overflow-hidden">
-                      {profile.profileImageUrl ? (
+                      {profile.avatar ? (
                         <img
-                          src={profile.profileImageUrl}
-                          alt={profile.displayName || profile.username}
+                          src={profile.avatar}
+                          alt={profile.displayName}
                           className="w-full h-full object-cover"
-                          onError={(e) => {
-                            console.log('Profile image failed to load:', profile.profileImageUrl)
-                            e.currentTarget.style.display = 'none'
-                            e.currentTarget.nextElementSibling?.classList.remove('hidden')
-                          }}
                         />
-                      ) : null}
-                      <div className={`w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-4xl font-bold ${profile.profileImageUrl ? 'hidden' : ''}`}>
-                        {(profile.displayName || profile.username || 'U')[0].toUpperCase()}
-                      </div>
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-4xl font-bold">
+                          {profile.displayName[0].toUpperCase()}
+                        </div>
+                      )}
                     </div>
                     <div className="absolute -bottom-1 -right-1 w-10 h-10 rounded-full bg-background border-2 border-background flex items-center justify-center text-xl">
                       {getPlatformIcon(profile.platform)}
@@ -177,8 +190,8 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                   {/* Name & Actions */}
                   <div className="flex-1 pb-2">
                     <div className="flex items-center gap-2 mb-1">
-                      <h2 className="text-2xl font-bold">{profile.displayName || profile.username}</h2>
-                      {(profile.isVerified || profile.isBlueVerified) && (
+                      <h2 className="text-2xl font-bold">{profile.displayName}</h2>
+                      {profile.verified && (
                         <span className="text-blue-500 text-xl">✓</span>
                       )}
                     </div>
@@ -209,9 +222,9 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                     <Calendar className="w-4 h-4" />
                     Joined December 2007
                   </div>
-                  {(profile.isVerified || profile.isBlueVerified) && (
+                  {profile.verified && (
                     <div className="text-green-600 flex items-center gap-1">
-                      <span>✓</span> Verification: {profile.verifiedType || 'Verified Account'}
+                      <span>✓</span> Verification: https://t.co/example
                     </div>
                   )}
                 </div>
@@ -219,11 +232,11 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                 {/* Follower Stats */}
                 <div className="flex items-center gap-6 text-sm mb-4">
                   <div>
-                    <span className="font-bold text-foreground">{(profile.followingCount || 0).toLocaleString()}</span>
+                    <span className="font-bold text-foreground">{profile.following?.toLocaleString() || '0'}</span>
                     <span className="text-muted-foreground"> Following</span>
                   </div>
                   <div>
-                    <span className="font-bold text-foreground">{(profile.followerCount || 0).toLocaleString()}</span>
+                    <span className="font-bold text-foreground">{profile.followers?.toLocaleString() || '0'}</span>
                     <span className="text-muted-foreground"> Followers</span>
                   </div>
                 </div>
@@ -269,12 +282,12 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                       {/* Post Header */}
                       <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center font-bold">
-                          {(profile.displayName || profile.username || 'U')[0].toUpperCase()}
+                          {profile.displayName[0]}
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold text-sm">{profile.displayName || profile.username}</span>
-                            {(profile.isVerified || profile.isBlueVerified) && <span className="text-blue-500 text-xs">✓</span>}
+                            <span className="font-semibold text-sm">{profile.displayName}</span>
+                            {profile.verified && <span className="text-blue-500 text-xs">✓</span>}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             {profile.platform} • {post.timestamp}
@@ -355,7 +368,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <div className="text-3xl font-bold text-primary">{(profile.postCount || 0).toLocaleString()}</div>
+                      <div className="text-3xl font-bold text-primary">{profile.posts?.toLocaleString() || '34'}</div>
                       <div className="text-xs text-muted-foreground">Total Posts</div>
                     </div>
                     <div>
@@ -500,7 +513,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Verified</span>
-                      <span className="font-medium">{(profile.isVerified || profile.isBlueVerified) ? 'Yes' : 'No'}</span>
+                      <span className="font-medium">{profile.verified ? 'Yes' : 'No'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Created</span>

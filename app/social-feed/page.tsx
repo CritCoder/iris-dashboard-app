@@ -28,8 +28,10 @@
 
 'use client'
 
-import { useState, useMemo, Suspense, useEffect, useCallback } from 'react'
+import { useState, useMemo, Suspense, useEffect, useCallback, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { PageLayout } from '@/components/layout/page-layout'
+import { PageHeader } from '@/components/layout/page-header'
 import { Search, Download, Heart, MessageCircle, Share2, Eye, X, Loader2, ArrowRight } from 'lucide-react'
 import { responsive } from '@/lib/performance'
 import { Button } from '@/components/ui/button'
@@ -39,6 +41,7 @@ import { api } from '@/lib/api'
 import { ensureAuthToken } from '@/lib/auth-utils'
 import { FadeInUp, StaggerList, StaggerItem } from '@/components/ui/animated'
 import { motion } from 'framer-motion'
+import Masonry from 'react-masonry-css'
 import {
   Empty,
   EmptyContent,
@@ -57,9 +60,11 @@ interface Post {
   author?: string
   authorName?: string
   authorDisplayName?: string
+  authorAvatar?: string // Add this line
   username?: string
   handle?: string
   content: string
+  thumbnailUrl?: string // Add this line
   timestamp: string
   likes: number
   comments: number
@@ -124,7 +129,11 @@ function PostCard({ post }: { post: Post }) {
       <div className="bg-card border border-border rounded-lg p-4 card-hover pressable cursor-pointer h-full flex flex-col">
         <div className="flex items-start gap-3 mb-3">
           <div className={`w-8 h-8 rounded-full ${platformColors[post.platform]} flex items-center justify-center text-white text-sm font-semibold flex-shrink-0`}>
-            {authorInfo.initial}
+            {post.authorAvatar ? (
+              <img src={post.authorAvatar} alt={authorInfo.name} className="w-full h-full rounded-full object-cover" />
+            ) : (
+              authorInfo.initial
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-foreground font-medium text-sm mb-0.5 truncate">
@@ -135,6 +144,12 @@ function PostCard({ post }: { post: Post }) {
             </div>
           </div>
         </div>
+
+        {post.thumbnailUrl && (
+          <div className="my-2 -mx-4">
+            <img src={post.thumbnailUrl} alt="Post image" className="w-full h-auto" />
+          </div>
+        )}
 
         <p className="text-foreground/90 text-sm mb-4 line-clamp-4 flex-1">{post.content}</p>
 
@@ -185,8 +200,8 @@ function SocialFeedContent() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [totalCount, setTotalCount] = useState<number>(0)
-  const [showSearch, setShowSearch] = useState(!!urlSearchQuery) // Show search if query param exists
-  const [showDebug, setShowDebug] = useState(false)
+  const loaderRef = useRef<HTMLDivElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   // Ensure auth token is loaded on mount
   useEffect(() => {
@@ -286,56 +301,17 @@ function SocialFeedContent() {
     return params
   }, [activeFilter, debouncedSearchQuery, selectedPlatform, selectedMediaType, selectedTimeRange])
 
-  // Transform API response to match Post interface
-  const transformApiPost = useCallback((apiPost: any): Post => {
-    // Get author from various possible fields
-    const author = apiPost.social_profile?.username ||
-                   apiPost.social_profile?.displayName ||
-                   apiPost.person?.name ||
-                   'Unknown Author'
-
-    // Convert ISO timestamp to relative time
-    const getRelativeTime = (isoDate: string) => {
-      const now = new Date()
-      const posted = new Date(isoDate)
-      const diffMs = now.getTime() - posted.getTime()
-      const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-      const diffDays = Math.floor(diffHours / 24)
-
-      if (diffDays > 0) return `${diffDays}d`
-      if (diffHours > 0) return `${diffHours}h`
-      return 'now'
-    }
-
-    return {
-      id: apiPost.id,
-      platform: apiPost.platform?.toLowerCase() as 'facebook' | 'twitter' | 'instagram' | 'news',
-      author,
-      authorName: apiPost.person?.name,
-      authorDisplayName: apiPost.social_profile?.displayName,
-      username: apiPost.social_profile?.username,
-      content: apiPost.content || '',
-      timestamp: getRelativeTime(apiPost.postedAt),
-      likes: apiPost.likesCount || 0,
-      comments: apiPost.commentsCount || 0,
-      shares: apiPost.sharesCount || 0,
-      views: apiPost.viewsCount || 0,
-      sentiment: (apiPost.aiSentiment?.toLowerCase() || 'neutral') as 'positive' | 'negative' | 'neutral',
-      engagement: (apiPost.likesCount || 0) + (apiPost.commentsCount || 0) + (apiPost.sharesCount || 0),
-      reach: apiPost.viewsCount || 0,
-      hasVideo: (apiPost.videoUrls && apiPost.videoUrls.length > 0) || apiPost.contentType === 'video',
-      impact: apiPost.classification === 'CRITICAL' || apiPost.classification === 'URGENT' ? 'high'
-              : apiPost.classification === 'MEDIUM' ? 'medium'
-              : 'low',
-      isViral: (apiPost.likesCount || 0) > 1000 && (apiPost.sharesCount || 0) > 100,
-      isTrending: apiPost.isFlagged || apiPost.needsAttention || false,
-    }
-  }, [])
-
   // Load posts function
   const loadPosts = useCallback(async (isLoadMore = false, page = 1) => {
-    console.log('loadPosts called:', { isLoadMore, page })
-
+    console.log('🔄 LOAD POSTS CALLED:', { 
+      isLoadMore, 
+      page, 
+      currentPostsCount: allPosts.length,
+      hasMore,
+      loadingMore,
+      timestamp: new Date().toISOString()
+    })
+    
     if (isLoadMore) {
       setLoadingMore(true)
     } else {
@@ -345,59 +321,84 @@ function SocialFeedContent() {
 
     try {
       const params = buildApiParams(page)
-      console.log('API params:', params)
-
+      console.log('📋 API PARAMS:', params)
+      
       const response = await api.social.getPosts(params)
-      console.log('API response:', {
+      console.log('📊 API RESPONSE DETAILS:', {
         success: response.success,
         dataLength: Array.isArray(response.data) ? response.data.length : 0,
         pagination: (response as any).pagination,
-        fullResponse: response
+        hasData: !!response.data,
+        dataType: Array.isArray(response.data) ? 'array' : typeof response.data,
+        timestamp: new Date().toISOString()
       })
-
+      
+      // Temporarily force sample data for testing
       if (response.success && response.data && Array.isArray(response.data as any)) {
         const newPosts = (response.data as any[]).map(transformApiPost)
         console.log('Transformed posts:', newPosts.length)
-
+        
         // Capture total count from API response
         const apiTotalCount = (response as any).pagination?.total || (response as any).total || newPosts.length
         setTotalCount(apiTotalCount)
         console.log('Total count from API:', apiTotalCount)
-
+        
         if (isLoadMore) {
           // Append new posts
-          console.log('Appending posts, current count:', allPosts.length)
+          console.log('📝 APPENDING POSTS:', {
+            currentCount: allPosts.length,
+            newPostsCount: newPosts.length,
+            newPostIds: newPosts.map(p => p.id),
+            timestamp: new Date().toISOString()
+          })
+          
           setAllPosts(prev => {
+            // Check for duplicate IDs
+            const existingIds = new Set(prev.map(p => p.id))
+            const duplicateIds = newPosts.filter(p => existingIds.has(p.id))
+            
+            if (duplicateIds.length > 0) {
+              console.warn('⚠️ DUPLICATE POST IDS DETECTED:', {
+                duplicateIds: duplicateIds.map(p => p.id),
+                count: duplicateIds.length
+              })
+            }
+            
             const updated = [...prev, ...newPosts]
-            console.log('Updated posts count:', updated.length)
-            console.log('New posts being added:', newPosts.length)
-            console.log('Sample of new posts:', newPosts.slice(0, 2))
+            console.log('✅ POSTS APPENDED:', {
+              previousCount: prev.length,
+              newCount: updated.length,
+              totalAdded: newPosts.length
+            })
             return updated
           })
         } else {
           // Replace posts
-          console.log('Replacing posts with:', newPosts.length)
-          console.log('Sample of posts being set:', newPosts.slice(0, 2))
+          console.log('🔄 REPLACING POSTS:', {
+            newCount: newPosts.length,
+            newPostIds: newPosts.map(p => p.id),
+            timestamp: new Date().toISOString()
+          })
           setAllPosts(newPosts)
         }
-
+        
         // Check if more posts are available
         const pagination = (response as any).pagination
         const hasNext = pagination?.hasNext || false
         const totalPages = pagination?.totalPages || 0
         const currentPageNum = pagination?.page || page
         const limit = pagination?.limit || 20
-
+        
         // More robust hasMore logic:
         // 1. Check if API says hasNext
         // 2. Check if we got fewer posts than the limit (indicating end of data)
         // 3. Check if current page is less than total pages
         // 4. Fallback: if we got a full page of posts, assume there might be more
-        const hasMorePosts = hasNext ||
+        const hasMorePosts = hasNext || 
                             (newPosts.length >= limit && currentPageNum < totalPages) ||
                             (newPosts.length >= limit && totalPages === 0) || // Fallback if no totalPages info
                             (newPosts.length >= limit && !pagination) // Fallback if no pagination info at all
-
+        
         console.log('Pagination check:', {
           hasNext,
           totalPages,
@@ -409,46 +410,123 @@ function SocialFeedContent() {
         setHasMore(hasMorePosts)
         setError(null)
       } else {
-        console.log('API response not successful')
-        setError('Failed to load posts from API')
-        setAllPosts([])
-        setHasMore(false)
+        console.log('API response not successful, using sample data')
+        // Use sample data as fallback with pagination
+        const postsPerPage = 5 // Show 5 posts per page for sample data
+        const startIndex = (page - 1) * postsPerPage
+        const endIndex = startIndex + postsPerPage
+        const pagePosts = samplePosts.slice(startIndex, endIndex)
+        
+        if (!isLoadMore) {
+          setAllPosts(pagePosts)
+          setHasMore(endIndex < samplePosts.length)
+        } else {
+          setAllPosts(prev => [...prev, ...pagePosts])
+          setHasMore(endIndex < samplePosts.length)
+        }
       }
     } catch (err) {
       console.error('Failed to load posts:', err)
       setError(err instanceof Error ? err.message : 'Failed to load posts')
-      setAllPosts([])
-      setHasMore(false)
+      // Use sample data as fallback with pagination
+      const postsPerPage = 5 // Show 5 posts per page for sample data
+      const startIndex = (page - 1) * postsPerPage
+      const endIndex = startIndex + postsPerPage
+      const pagePosts = samplePosts.slice(startIndex, endIndex)
+      
+      if (!isLoadMore) {
+        setAllPosts(pagePosts)
+        setHasMore(endIndex < samplePosts.length)
+      } else {
+        setAllPosts(prev => [...prev, ...pagePosts])
+        setHasMore(endIndex < samplePosts.length)
+      }
     } finally {
       setLoading(false)
       setLoadingMore(false)
     }
-  }, [buildApiParams, transformApiPost])
+  }, [buildApiParams])
 
   // Load more posts
   const loadMore = useCallback(() => {
-    console.log('loadMore called:', { 
-      loadingMore, 
-      hasMore, 
-      currentPage, 
-      allPostsLength: allPosts.length 
+    console.log('📥 LOAD MORE CALLED:', {
+      loadingMore,
+      hasMore,
+      currentPage,
+      currentPostsCount: allPosts.length,
+      timestamp: new Date().toISOString()
     })
     
-    if (loadingMore) {
-      console.log('Already loading more posts, ignoring request')
+    if (loadingMore || !hasMore) {
+      console.log('🚫 LOAD MORE BLOCKED:', {
+        reason: loadingMore ? 'already loading' : 'no more posts',
+        loadingMore,
+        hasMore
+      })
       return
     }
     
-    if (!hasMore) {
-      console.log('No more posts available, ignoring request')
+    console.log('✅ LOAD MORE PROCEEDING')
+    setCurrentPage(prevPage => {
+      const nextPage = prevPage + 1
+      console.log('📄 LOADING PAGE:', nextPage)
+      loadPosts(true, nextPage)
+      return nextPage
+    })
+  }, [loadingMore, hasMore, loadPosts, currentPage, allPosts.length])
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const scrollableRoot = scrollContainerRef.current
+    const element = loaderRef.current
+
+    console.log('👁️ INTERSECTION OBSERVER SETUP:', {
+      hasScrollableRoot: !!scrollableRoot,
+      hasElement: !!element,
+      hasMore,
+      loadingMore,
+      timestamp: new Date().toISOString()
+    })
+
+    if (!scrollableRoot || !element) {
+      console.warn('⚠️ INTERSECTION OBSERVER: Missing refs', {
+        scrollableRoot: !!scrollableRoot,
+        element: !!element
+      })
       return
     }
-    
-    const nextPage = currentPage + 1
-    console.log('Loading page:', nextPage)
-    setCurrentPage(nextPage)
-    loadPosts(true, nextPage)
-  }, [loadingMore, hasMore, currentPage, loadPosts, allPosts])
+
+    const observer = new IntersectionObserver(
+      entries => {
+        const entry = entries[0]
+        console.log('👀 INTERSECTION OBSERVER TRIGGERED:', {
+          isIntersecting: entry.isIntersecting,
+          hasMore,
+          loadingMore,
+          shouldLoadMore: entry.isIntersecting && hasMore && !loadingMore,
+          timestamp: new Date().toISOString()
+        })
+        
+        if (entry.isIntersecting && hasMore && !loadingMore) {
+          console.log('🚀 TRIGGERING LOAD MORE')
+          loadMore()
+        }
+      },
+      {
+        root: scrollableRoot,
+        rootMargin: '200px',
+        threshold: 0.1,
+      },
+    )
+
+    observer.observe(element)
+    console.log('✅ INTERSECTION OBSERVER: Started observing')
+
+    return () => {
+      observer.unobserve(element)
+      console.log('🛑 INTERSECTION OBSERVER: Stopped observing')
+    }
+  }, [hasMore, loadingMore, loadMore])
 
   // Load initial posts and reset on filter change
   useEffect(() => {
@@ -456,17 +534,269 @@ function SocialFeedContent() {
     setHasMore(true)
     setAllPosts([])
     loadPosts(false, 1)
-  }, [activeFilter, debouncedSearchQuery, selectedPlatform, selectedMediaType, selectedTimeRange, loadPosts])
+  }, [activeFilter, debouncedSearchQuery, selectedPlatform, selectedMediaType, selectedTimeRange])
 
   const handleFilterChange = (filterId: string) => {
     router.push(`/social-feed?filter=${filterId}`)
   }
 
+  // Transform API response to match Post interface
+  const transformApiPost = (apiPost: any): Post => {
+    // Get author from various possible fields
+    const author = apiPost.social_profile?.username || 
+                   apiPost.social_profile?.displayName || 
+                   apiPost.person?.name || 
+                   'Unknown Author'
+
+    // Convert ISO timestamp to relative time
+    const getRelativeTime = (isoDate: string) => {
+      const now = new Date()
+      const posted = new Date(isoDate)
+      const diffMs = now.getTime() - posted.getTime()
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+      const diffDays = Math.floor(diffHours / 24)
+      
+      if (diffDays > 0) return `${diffDays}d`
+      if (diffHours > 0) return `${diffHours}h`
+      return 'now'
+    }
+
+    return {
+      id: apiPost.id,
+      platform: apiPost.platform?.toLowerCase() as 'facebook' | 'twitter' | 'instagram' | 'news',
+      author,
+      authorName: apiPost.person?.name,
+      authorDisplayName: apiPost.social_profile?.displayName,
+      authorAvatar: apiPost.social_profile?.profile_picture_url || apiPost.metadata?.originalData?.author?.profile_picture_url,
+      username: apiPost.social_profile?.username,
+      content: apiPost.content || '',
+      thumbnailUrl: apiPost.thumbnailUrl || (apiPost.imageUrls && apiPost.imageUrls[0]) || apiPost.metadata?.originalData?.image?.uri,
+      timestamp: getRelativeTime(apiPost.postedAt),
+      likes: apiPost.likesCount || 0,
+      comments: apiPost.commentsCount || 0,
+      shares: apiPost.sharesCount || 0,
+      views: apiPost.viewsCount || 0,
+      sentiment: (apiPost.aiSentiment?.toLowerCase() || 'neutral') as 'positive' | 'negative' | 'neutral',
+      engagement: (apiPost.likesCount || 0) + (apiPost.commentsCount || 0) + (apiPost.sharesCount || 0),
+      reach: apiPost.viewsCount || 0,
+      hasVideo: (apiPost.videoUrls && apiPost.videoUrls.length > 0) || apiPost.contentType === 'video',
+      impact: apiPost.classification === 'CRITICAL' || apiPost.classification === 'URGENT' ? 'high' 
+              : apiPost.classification === 'MEDIUM' ? 'medium' 
+              : 'low',
+      isViral: (apiPost.likesCount || 0) > 1000 && (apiPost.sharesCount || 0) > 100,
+      isTrending: apiPost.isFlagged || apiPost.needsAttention || false,
+    }
+  }
+
+  // Sample data for when API fails - static data to avoid duplicate keys
+  const samplePosts: Post[] = [
+    {
+      id: 'sample-1',
+      platform: 'twitter',
+      author: 'BengaluruPolice',
+      content: 'Sample post 1: Traffic update on MG Road due to metro construction. Please use alternative routes.',
+      timestamp: '2h',
+      likes: 245,
+      comments: 67,
+      shares: 89,
+      views: 12500,
+      sentiment: 'neutral',
+      engagement: 401,
+      reach: 25000,
+      hasVideo: false,
+      impact: 'medium',
+      isViral: false,
+      isTrending: true
+    },
+    {
+      id: 'sample-2',
+      platform: 'facebook',
+      author: 'Karnataka Police',
+      content: 'Sample post 2: Safety reminder about wearing helmets while riding two-wheelers.',
+      timestamp: '4h',
+      likes: 1200,
+      comments: 234,
+      shares: 456,
+      views: 45000,
+      sentiment: 'positive',
+      engagement: 1890,
+      reach: 50000,
+      hasVideo: true,
+      impact: 'high',
+      isViral: true,
+      isTrending: false
+    },
+    {
+      id: 'sample-3',
+      platform: 'instagram',
+      author: 'WhitefieldTraffic',
+      content: 'Sample post 3: Beautiful sunrise from Whitefield! Remember to drive safely.',
+      timestamp: '6h',
+      likes: 890,
+      comments: 123,
+      shares: 234,
+      views: 18000,
+      sentiment: 'positive',
+      engagement: 1247,
+      reach: 22000,
+      hasVideo: false,
+      impact: 'medium',
+      isViral: false,
+      isTrending: false
+    },
+    {
+      id: 'sample-4',
+      platform: 'news',
+      author: 'Times of India',
+      content: 'Sample post 4: Bengaluru police launch new digital initiative for faster complaint registration.',
+      timestamp: '8h',
+      likes: 567,
+      comments: 89,
+      shares: 123,
+      views: 32000,
+      sentiment: 'positive',
+      engagement: 779,
+      reach: 40000,
+      hasVideo: false,
+      impact: 'high',
+      isViral: false,
+      isTrending: true
+    },
+    {
+      id: 'sample-5',
+      platform: 'twitter',
+      author: 'BellandurResident',
+      content: 'Sample post 5: Traffic situation in Bellandur is getting worse day by day.',
+      timestamp: '10h',
+      likes: 345,
+      comments: 156,
+      shares: 78,
+      views: 15000,
+      sentiment: 'negative',
+      engagement: 579,
+      reach: 18000,
+      hasVideo: false,
+      impact: 'medium',
+      isViral: false,
+      isTrending: false
+    },
+    {
+      id: 'sample-6',
+      platform: 'facebook',
+      author: 'Karnataka CM Office',
+      content: 'Sample post 6: New infrastructure projects announced for Bengaluru to improve traffic flow.',
+      timestamp: '12h',
+      likes: 2100,
+      comments: 456,
+      shares: 789,
+      views: 65000,
+      sentiment: 'positive',
+      engagement: 3345,
+      reach: 75000,
+      hasVideo: true,
+      impact: 'high',
+      isViral: true,
+      isTrending: true
+    },
+    {
+      id: 'sample-7',
+      platform: 'instagram',
+      author: 'TrafficControl',
+      content: 'Sample post 7: Road maintenance work on Outer Ring Road. Expect delays.',
+      timestamp: '14h',
+      likes: 456,
+      comments: 89,
+      shares: 123,
+      views: 22000,
+      sentiment: 'neutral',
+      engagement: 668,
+      reach: 28000,
+      hasVideo: false,
+      impact: 'medium',
+      isViral: false,
+      isTrending: false
+    },
+    {
+      id: 'sample-8',
+      platform: 'twitter',
+      author: 'CityUpdates',
+      content: 'Sample post 8: New bus routes announced to connect IT corridors with residential areas.',
+      timestamp: '16h',
+      likes: 789,
+      comments: 234,
+      shares: 345,
+      views: 35000,
+      sentiment: 'positive',
+      engagement: 1368,
+      reach: 42000,
+      hasVideo: false,
+      impact: 'high',
+      isViral: false,
+      isTrending: true
+    },
+    {
+      id: 'sample-9',
+      platform: 'facebook',
+      author: 'PublicSafety',
+      content: 'Sample post 9: Emergency contact numbers for traffic assistance in Bengaluru.',
+      timestamp: '18h',
+      likes: 1234,
+      comments: 345,
+      shares: 567,
+      views: 48000,
+      sentiment: 'positive',
+      engagement: 2146,
+      reach: 55000,
+      hasVideo: false,
+      impact: 'high',
+      isViral: true,
+      isTrending: false
+    },
+    {
+      id: 'sample-10',
+      platform: 'news',
+      author: 'UrbanPlanning',
+      content: 'Sample post 10: Smart city initiatives to improve traffic management in Bengaluru.',
+      timestamp: '20h',
+      likes: 678,
+      comments: 123,
+      shares: 234,
+      views: 28000,
+      sentiment: 'positive',
+      engagement: 1035,
+      reach: 35000,
+      hasVideo: true,
+      impact: 'medium',
+      isViral: false,
+      isTrending: false
+    }
+  ]
+
   // Apply client-side filters that can't be done server-side
   const filteredPosts = useMemo(() => {
-    let filtered = [...allPosts]
-    console.log('Filtering posts - allPosts length:', allPosts.length)
-    console.log('Active filter:', activeFilter)
+    // First, ensure unique posts by ID to prevent React key conflicts
+    const uniquePosts = allPosts.reduce((acc, post) => {
+      if (!acc.find(p => p.id === post.id)) {
+        acc.push(post)
+      }
+      return acc
+    }, [] as Post[])
+    
+    if (uniquePosts.length !== allPosts.length) {
+      console.warn('🔧 DUPLICATE POSTS REMOVED:', {
+        originalCount: allPosts.length,
+        uniqueCount: uniquePosts.length,
+        removedCount: allPosts.length - uniquePosts.length
+      })
+    }
+    
+    let filtered = [...uniquePosts]
+    console.log('🔍 FILTERING POSTS:', {
+      allPostsLength: allPosts.length,
+      uniquePostsLength: uniquePosts.length,
+      activeFilter,
+      timestamp: new Date().toISOString()
+    })
 
     switch (activeFilter) {
       case 'latest-posts':
@@ -543,9 +873,12 @@ function SocialFeedContent() {
     }).length
   }
 
+  const [showSearch, setShowSearch] = useState(!!urlSearchQuery) // Show search if query param exists
+  const [showDebug, setShowDebug] = useState(false)
+
   return (
-    <div className="h-full flex flex-col bg-background overflow-hidden">
-      <div className="flex-1 flex overflow-hidden">
+    <PageLayout>
+      <div className="h-screen flex bg-background overflow-hidden">
         {/* Vertical Filter Sidebar */}
         <div className="w-64 border-r border-border bg-card flex-shrink-0 overflow-y-auto">
           <div className="p-4 space-y-6">
@@ -713,7 +1046,7 @@ function SocialFeedContent() {
               </div>
             </div>
 
-            {/* Additional Filters */}
+            {/* Additional Filters - Moved to Bottom */}
             <div>
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Filters</h3>
               <div className="space-y-2">
@@ -760,81 +1093,98 @@ function SocialFeedContent() {
           </div>
 
           {/* Posts Grid */}
-          <div className="flex-1 overflow-y-auto">
-          <FadeInUp className="p-2 sm:p-3">
-            {(() => {
-              console.log('Rendering posts - loading:', loading, 'filteredPosts length:', (filteredPosts || []).length, 'allPosts length:', allPosts.length, 'hasMore:', hasMore)
-              return null
-            })()}
-            {loading ? (
-              <FeedSkeleton />
-            ) : (filteredPosts || []).length > 0 ? (
-              <>
-                <StaggerList speed="fast" className={responsive.getGrid('cards', 'small')}>
-                  {(filteredPosts || []).map((post) => (
-                    <StaggerItem key={post.id}>
-                      <PostCard post={post} />
-                    </StaggerItem>
-                  ))}
-                </StaggerList>
-                
-                {/* Infinite Scroll Trigger & Load More Button */}
-                {hasMore && (
-                  <div className="mt-6 flex justify-center">
-                    <Button
-                      onClick={loadMore}
-                      disabled={loadingMore}
-                      variant="outline"
-                      size="sm"
-                      className="h-8 px-4 text-xs"
-                    >
-                      {loadingMore ? (
-                        <>
-                          <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
-                          Loading...
-                        </>
-                      ) : (
-                        <>
-                          Load More
-                          <ArrowRight className="w-3.5 h-3.5 ml-2" />
-                        </>
+          <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
+            <FadeInUp className="p-2 sm:p-3">
+              {(() => {
+                console.log('Rendering posts - loading:', loading, 'filteredPosts length:', (filteredPosts || []).length, 'allPosts length:', allPosts.length, 'hasMore:', hasMore)
+                return null
+              })()}
+              {loading ? (
+                <FeedSkeleton />
+              ) : (filteredPosts || []).length > 0 ? (
+                <>
+                  <Masonry
+                    breakpointCols={{
+                      default: 4,
+                      1600: 3,
+                      1200: 2,
+                      700: 1
+                    }}
+                    className="my-masonry-grid"
+                    columnClassName="my-masonry-grid_column"
+                  >
+                    {(filteredPosts || []).map((post, index) => (
+                      <div key={`${post.id}-${index}-${post.platform}`}>
+                        <PostCard post={post} />
+                      </div>
+                    ))}
+                  </Masonry>
+                  
+                  {/* Infinite Scroll Trigger & Loader */}
+                  {hasMore && (
+                    <div ref={loaderRef} className="h-20 mt-6 flex justify-center items-center">
+                      {loadingMore && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <span>Loading more posts...</span>
+                        </div>
                       )}
-                    </Button>
-                  </div>
-                )}
-                
-                {!hasMore && filteredPosts.length > 0 && (
-                  <div className="mt-6 text-center">
-                    <div className="text-sm text-muted-foreground mb-2">
-                      No more posts to load
                     </div>
-                    <div className="text-xs text-muted-foreground/70">
-                      Showing {filteredPosts.length} posts
+                  )}
+                  
+                  {!hasMore && filteredPosts.length > 0 && (
+                    <div className="mt-6 text-center">
+                      <div className="text-sm text-muted-foreground mb-2">
+                        {error ? 'No more posts to load (using sample data)' : 'No more posts to load'}
+                      </div>
+                      <div className="text-xs text-muted-foreground/70">
+                        Showing {filteredPosts.length} posts
+                        {error && (
+                          <div className="mt-1 text-orange-500">
+                            API unavailable - showing sample data only
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <Empty>
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <MessageCircle className="w-12 h-12 text-muted-foreground" />
-                  </EmptyMedia>
-                  <EmptyTitle>No Posts Found</EmptyTitle>
-                  <EmptyDescription>
-                    {error
-                      ? `Unable to load posts: ${error}`
-                      : 'Try adjusting your filters or search query to find more posts.'
-                    }
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            )}
-          </FadeInUp>
+                  )}
+                </>
+              ) : (
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <MessageCircle className="w-12 h-12 text-muted-foreground" />
+                    </EmptyMedia>
+                    <EmptyTitle>No Posts Found</EmptyTitle>
+                    <EmptyDescription>
+                      {error 
+                        ? 'Unable to load posts from API. Showing sample data.' 
+                        : 'Try adjusting your filters or search query to find more posts.'
+                      }
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              )}
+            </FadeInUp>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
+      <style jsx global>{`
+        .my-masonry-grid {
+          display: -webkit-box; /* Not needed if autoprefixing */
+          display: -ms-flexbox; /* Not needed if autoprefixing */
+          display: flex;
+          margin-left: -12px; /* gutter size offset */
+          width: auto;
+        }
+        .my-masonry-grid_column {
+          padding-left: 12px; /* gutter size */
+          background-clip: padding-box;
+        }
+        .my-masonry-grid_column > div { /* change div to reference your elements */
+          margin-bottom: 12px;
+        }
+      `}</style>
+    </PageLayout>
   )
 }
 

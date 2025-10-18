@@ -143,9 +143,31 @@ function FilterItem({
   )
 }
 
+// Utility function to parse location name from URL parameter
+function parseLocationName(locationId: string): string {
+  try {
+    // Decode URL encoding
+    const decoded = decodeURIComponent(locationId)
+    
+    // Handle LOCATION|delhi format - extract the actual location name
+    if (decoded.startsWith('LOCATION|')) {
+      const locationName = decoded.split('|')[1] || decoded
+      // Capitalize first letter
+      return locationName.charAt(0).toUpperCase() + locationName.slice(1).toLowerCase()
+    }
+    
+    // Handle other formats or return as-is if no special parsing needed
+    return decoded
+  } catch (error) {
+    // Fallback to original if decoding fails
+    return locationId
+  }
+}
+
 export default function LocationDetailPage() {
   const params = useParams()
   const locationId = params.id as string
+  const parsedLocationName = parseLocationName(locationId)
 
   const [activeTab, setActiveTab] = useState('latest')
   const [activeFilter, setActiveFilter] = useState('all-locations')
@@ -218,7 +240,7 @@ export default function LocationDetailPage() {
     return filtered
   }, [postsData, searchQuery])
 
-  const locationName = locationInfo?.name || locationId.replace(/-/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+  const locationName = locationInfo?.name || parsedLocationName
   const totalMentions = locationInfo?.totalMentions || 0
   const lastSeen = locationInfo?.lastSeen ? new Date(locationInfo.lastSeen).toLocaleString() : 'N/A'
 
