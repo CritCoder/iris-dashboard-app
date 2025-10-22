@@ -613,6 +613,9 @@ export const locationApi = {
 
 // OSINT External APIs
 export const osintApi = {
+  breachedDataSearch: (data: { query: string; page?: number; size?: number }) =>
+    apiClient.post('/api/osint/breached-data-search', data),
+
   ironVeilSearch: (data: { entityType?: string; query: string; filters?: any; org: string; firNo: string }) =>
     apiClient.post('/api/osint/ironveil/search', data),
 

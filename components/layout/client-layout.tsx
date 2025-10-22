@@ -40,11 +40,9 @@ export function ClientLayout({ children }: ClientLayoutProps) {
       <IconSidebar />
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col w-full min-w-0 ml-20 p-4 pr-0">
-        <div className="flex-1 flex flex-col w-full h-full bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl overflow-hidden">
-          {children}
-        </div>
-      </main>
+      <div className="flex-1 flex flex-col overflow-hidden w-full min-w-0 bg-background ml-16">
+        {children}
+      </div>
 
       {/* Quick Actions Command Palette */}
       <QuickActions />
