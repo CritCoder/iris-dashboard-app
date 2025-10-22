@@ -1132,25 +1132,25 @@ function CampaignDetailPage() {
                   />
                   <div className="flex-1 overflow-y-auto">
                     {activeProfileTabId === 'profiles-grid' ? (
-                      <div className="p-4 sm:p-6">
+                <div className="p-4 sm:p-6">
                         {selectedNavItem ? (
-                           <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <h2 className="text-xl font-semibold text-foreground">{selectedNavItem}</h2>
-                                <button
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-xl font-semibold text-foreground">{selectedNavItem}</h2>
+                        <button
                                   onClick={() => updateUrlParams({ navItem: undefined })}
-                                  className="text-sm text-primary hover:text-primary/80 transition-colors mt-1"
-                                >
-                                  ← Back to All Profiles
-                                </button>
-                              </div>
-                            </div>
-                            {profilesLoading ? (
-                              <div className="flex items-center justify-center h-64">
+                          className="text-sm text-primary hover:text-primary/80 transition-colors mt-1"
+                        >
+                          ← Back to All Profiles
+                        </button>
+                      </div>
+                    </div>
+                    {profilesLoading ? (
+                      <div className="flex items-center justify-center h-64">
                                 <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full"></div>
-                              </div>
-                            ) : profilesError ? (
+                      </div>
+                    ) : profilesError ? (
                               <p className="text-red-500">{profilesError}</p>
                             ) : (
                               <ProfileList
@@ -1162,18 +1162,18 @@ function CampaignDetailPage() {
                             )}
                           </div>
                         ) : profilesLoading ? (
-                          <div className="flex items-center justify-center h-64">
+                      <div className="flex items-center justify-center h-64">
                             <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full"></div>
-                          </div>
+                        </div>
                         ) : profilesError ? (
                           <p className="text-red-500">{profilesError}</p>
-                        ) : (
-                          <ProfileList
-                            profiles={allProfiles}
-                            campaignId={campaignId}
-                            defaultView="grid"
+                    ) : (
+                      <ProfileList
+                        profiles={allProfiles}
+                        campaignId={campaignId}
+                        defaultView="grid"
                             onProfileClick={handleProfileClick}
-                          />
+                      />
                         )}
                       </div>
                     ) : (
@@ -1208,12 +1208,12 @@ function CampaignDetailPage() {
                           />
                         ) : (
                            <div className="flex items-center justify-center h-64">
-                            <div className="text-center text-muted-foreground">
-                              <CubeIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <div className="text-center text-muted-foreground">
+                        <CubeIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
                               <p className="text-sm">No entities found</p>
                               <p className="text-xs">Try adjusting your filters</p>
-                            </div>
-                          </div>
+                      </div>
+                    </div>
                         )}
                       </div>
                     ) : (
@@ -1259,7 +1259,7 @@ function CampaignDetailPage() {
                       </div>
                     </div>
                   )}
-                </div>
+                  </div>
               )}
 
               {activeAnalysisTab === 'locations' && selectedLocation && (

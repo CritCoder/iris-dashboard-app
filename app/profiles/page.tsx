@@ -86,7 +86,7 @@ function ProfilesPageContent() {
   )
 
   return (
-    <PageLayout>
+      <PageLayout>
       <div className="h-screen flex bg-background overflow-hidden">
         <ProfilesSidebar
           onFilterChange={handleFilterChange}
@@ -106,7 +106,7 @@ function ProfilesPageContent() {
               />
             </div>
           </div>
-          
+
           <TabBar
             tabs={tabs}
             activeTabId={activeTabId}
@@ -136,23 +136,23 @@ function ProfilesPageContent() {
                     onProfileClick={handleProfileClick}
                   />
                 ) : (
-                  <Empty>
-                    <EmptyHeader>
-                      <EmptyMedia variant="icon">
-                        <Users className="w-12 h-12 text-muted-foreground" />
-                      </EmptyMedia>
-                      <EmptyTitle>No Profiles Found</EmptyTitle>
-                      <EmptyDescription>
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <Users className="w-12 h-12 text-muted-foreground" />
+              </EmptyMedia>
+              <EmptyTitle>No Profiles Found</EmptyTitle>
+              <EmptyDescription>
                         Try adjusting your filters or search query.
-                      </EmptyDescription>
-                    </EmptyHeader>
-                  </Empty>
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
                 )}
               </div>
             ) : (
               activeProfile && <ProfileDetailView profile={activeProfile} onClose={() => handleTabClose(activeTabId)} />
-            )}
-          </div>
+        )}
+        </div>
         </div>
       </div>
     </PageLayout>
