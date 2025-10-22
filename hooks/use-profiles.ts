@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { profileApi } from '@/lib/api'
 
 interface SocialProfile {
   id: string
@@ -95,38 +96,20 @@ export function useProfiles({
       setError(null)
 
       try {
-        // Build query parameters
-        const params = new URLSearchParams({
-          limit: limit.toString(),
-        })
-
-        // Add optional filters
-        if (page > 1) params.append('page', page.toString())
-        if (campaignId) params.append('campaignId', campaignId)
-        if (platform) params.append('platform', platform)
-        if (minFollowers) params.append('minFollowers', minFollowers.toString())
-        if (maxFollowers) params.append('maxFollowers', maxFollowers.toString())
-        if (minPosts) params.append('minPosts', minPosts.toString())
-        if (maxPosts) params.append('maxPosts', maxPosts.toString())
-        if (isVerified !== undefined) params.append('isVerified', isVerified.toString())
-        if (accountType) params.append('accountType', accountType)
-
-        const response = await fetch(
-          `https://irisnet.wiredleap.com/api/social/profiles?${params.toString()}`,
-          {
-            headers: {
-              'Accept': '*/*',
-              'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbWY1Mmx5NWQwMDAyejI2aHBjYTd6aHQ1Iiwib3JnYW5pemF0aW9uSWQiOiJjbWRpcmpxcjIwMDAwejI4cG8yZW9uMHlmIiwiaWF0IjoxNzYwNDYxOTI5LCJleHAiOjE3NjA1NDgzMjl9.0ENbbqq1_ENPbW0xoc3TnQ4B5bmqfkdIfdFEZvX84t4',
-              'Content-Type': 'application/json',
-            },
-          }
-        )
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
+        const params = {
+          page,
+          limit,
+          campaignId,
+          platform,
+          minFollowers,
+          maxFollowers,
+          minPosts,
+          maxPosts,
+          isVerified,
+          accountType,
         }
 
-        const result: ProfilesApiResponse = await response.json()
+        const result = await profileApi.getAll(params)
 
         if (result.success) {
           setData(result.data.data || [])

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { socialApi } from '@/lib/api'
 
 interface PostAuthor {
   id: string
@@ -130,39 +131,21 @@ export function usePosts({
       setError(null)
 
       try {
-        // Build query parameters
-        const params = new URLSearchParams({
-          page: page.toString(),
-          limit: limit.toString(),
-        })
-
-        // Add optional filters
-        if (campaignId) params.append('campaignId', campaignId)
-        if (platform) params.append('platform', platform)
-        if (sentiment) params.append('sentiment', sentiment)
-        if (minLikesCount) params.append('min_likesCount', minLikesCount.toString())
-        if (minSharesCount) params.append('min_sharesCount', minSharesCount.toString())
-        if (minCommentsCount) params.append('min_commentsCount', minCommentsCount.toString())
-        if (minViewsCount) params.append('min_viewsCount', minViewsCount.toString())
-        if (startDate) params.append('startDate', startDate)
-        if (endDate) params.append('endDate', endDate)
-
-        const response = await fetch(
-          `https://irisnet.wiredleap.com/api/social/posts?${params.toString()}`,
-          {
-            headers: {
-              'Accept': '*/*',
-              'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbWY1Mmx5NWQwMDAyejI2aHBjYTd6aHQ1Iiwib3JnYW5pemF0aW9uSWQiOiJjbWRpcmpxcjIwMDAwejI4cG8yZW9uMHlmIiwiaWF0IjoxNzYwNDYxOTI5LCJleHAiOjE3NjA1NDgzMjl9.0ENbbqq1_ENPbW0xoc3TnQ4B5bmqfkdIfdFEZvX84t4',
-              'Content-Type': 'application/json',
-            },
-          }
-        )
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
+        const params = {
+          page,
+          limit,
+          campaignId,
+          platform,
+          sentiment,
+          min_likesCount: minLikesCount,
+          min_sharesCount: minSharesCount,
+          min_commentsCount: minCommentsCount,
+          min_viewsCount: minViewsCount,
+          startDate,
+          endDate
         }
 
-        const result: PostsApiResponse = await response.json()
+        const result = await socialApi.getPosts(params)
 
         if (result.success) {
           setData(result.data || [])
