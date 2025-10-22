@@ -1,7 +1,7 @@
 // API Service Layer for OSINT Turbo Dashboard
 // Base configuration and utility functions
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://irisnet.wiredleap.com'
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
 // Types for API responses
 export interface ApiResponse<T = any> {
@@ -533,6 +533,7 @@ export const profileApi = {
     location?: string
     personStatus?: string
     search?: string
+    campaignId?: string
   }) => apiClient.get('/api/social/profiles', params),
 
   getAllUnlimited: () => apiClient.get('/api/social/profiles/all'),

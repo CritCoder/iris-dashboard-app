@@ -50,7 +50,7 @@ export function ProfileDetailView({ profile, onClose }: ProfileDetailViewProps) 
         if (sentiment) params.append('sentiment', sentiment)
         
         const response = await fetch(
-          `https://irisnet.wiredleap.com/api/social/profiles/${profile.id}/posts?${params.toString()}`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/social/profiles/${profile.id}/posts?${params.toString()}`,
           {
             headers: {
               'Accept': '*/*',
@@ -89,7 +89,7 @@ export function ProfileDetailView({ profile, onClose }: ProfileDetailViewProps) 
       
       try {
         const response = await fetch(
-          `https://irisnet.wiredleap.com/api/social/profiles/${profile.id}`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/social/profiles/${profile.id}`,
           {
             headers: {
               'Accept': '*/*',
@@ -133,7 +133,7 @@ export function ProfileDetailView({ profile, onClose }: ProfileDetailViewProps) 
       if (sentiment) params.append('sentiment', sentiment)
       
       const response = await fetch(
-        `https://irisnet.wiredleap.com/api/social/profiles/${profile.id}/posts?${params.toString()}`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/social/profiles/${profile.id}/posts?${params.toString()}`,
         {
           headers: {
             'Accept': '*/*',

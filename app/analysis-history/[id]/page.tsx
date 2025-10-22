@@ -9,7 +9,7 @@ import {
   MinusCircleIcon, FaceFrownIcon, ChevronRightIcon,
   UsersIcon, ChatBubbleBottomCenterTextIcon, HandThumbUpIcon, UserIcon,
   BuildingOfficeIcon, ExclamationTriangleIcon, MagnifyingGlassIcon,
-  FlagIcon, BuildingLibraryIcon
+  FlagIcon, BuildingLibraryIcon, HomeIcon
 } from '@heroicons/react/24/outline'
 import { FaTwitter, FaFacebook, FaInstagram, FaYoutube, FaReddit } from 'react-icons/fa'
 import { Button } from '@/components/ui/button'
@@ -29,6 +29,11 @@ import { useCampaigns } from '@/hooks/use-campaigns'
 import { useSocialPosts } from '@/hooks/use-api'
 import { useProfiles, convertToProfileCardFormat } from '@/hooks/use-profiles'
 import { ProfileList } from '@/components/profiles/profile-list'
+import { useEntityAnalytics, useLocationAnalytics } from '@/hooks/use-api'
+import { EntityList } from '@/components/entities/entity-list'
+import { EntityDetailView } from '@/components/entities/entity-detail-view'
+import { LocationList } from '@/components/locations/location-list'
+import { LocationDetailView } from '@/components/locations/location-detail-view'
 import { startMonitoring, stopMonitoring } from '@/lib/api/campaigns'
 import { convertToPostCardFormat } from '@/lib/utils'
 import ErrorBoundary from '@/components/ui/error-boundary'
@@ -179,6 +184,8 @@ function CampaignDetailPage() {
     (getUrlParam('tab', 'social-feed') as any) || 'social-feed'
   )
   const [selectedNavItem, setSelectedNavItem] = useState<string | null>(() => getUrlParam('navItem') || null)
+  const [selectedEntity, setSelectedEntity] = useState<any>(null)
+  const [selectedLocation, setSelectedLocation] = useState<any>(null)
 
   // Sync URL parameters with state
   useEffect(() => {
@@ -272,6 +279,66 @@ function CampaignDetailPage() {
     total: profilesTotal
   } = useProfiles(profileApiParams)
 
+  // Derive entity API parameters from URL
+  const entityApiParams = useMemo(() => {
+    const params: any = {
+    campaignId: campaignId,
+    limit: 50,
+    }
+
+    const type = getUrlParam('type')
+    const category = getUrlParam('category')
+    const sentiment = getUrlParam('sentiment')
+    const minMentions = getUrlParam('minMentions')
+    const timeRange = getUrlParam('timeRange')
+    const sortBy = getUrlParam('sortBy')
+
+    if (type && type !== 'all') params.type = type
+    if (category && category !== 'all') params.category = category
+    if (sentiment && sentiment !== 'all') params.sentiment = sentiment
+    if (minMentions) params.minMentions = parseInt(minMentions)
+    if (timeRange) params.timeRange = timeRange
+    if (sortBy) params.sortBy = sortBy
+
+    return params
+  }, [campaignId, searchParams])
+
+  // Fetch entities for the current campaign
+  const {
+    data: entitiesData,
+    loading: entitiesLoading,
+    error: entitiesError
+  } = useEntityAnalytics(entityApiParams)
+
+  // Derive location API parameters from URL
+  const locationApiParams = useMemo(() => {
+    const params: any = {
+      campaignId: campaignId,
+      limit: 50,
+    }
+
+    const location = getUrlParam('location')
+    const sentiment = getUrlParam('sentiment')
+    const minMentions = getUrlParam('minMentions')
+    const timeRange = getUrlParam('timeRange')
+    const platform = getUrlParam('platform')
+
+    if (location && location !== 'all') params.location = location
+    if (sentiment && sentiment !== 'all') params.sentiment = sentiment
+    if (minMentions) params.minMentions = parseInt(minMentions)
+    if (timeRange) params.timeRange = timeRange
+    if (platform && platform !== 'all') params.platform = platform
+
+    return params
+  }, [campaignId, searchParams])
+
+  // Fetch locations for the current campaign
+  const {
+    data: locationsData,
+    loading: locationsLoading,
+    error: locationsError
+  } = useLocationAnalytics(locationApiParams)
+
   const [isMonitoring, setIsMonitoring] = useState(true)
   const [isTogglingMonitoring, setIsTogglingMonitoring] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
@@ -292,8 +359,8 @@ function CampaignDetailPage() {
 
   // Handle menu item selection with URL updates
   const handleMenuItemSelect = (item: any, tabId: string) => {
-    // Special handling for "All Posts" and "All Authors" - clear all filters
-    if (item.name === 'All Posts' || item.name === 'All Authors') {
+    // Special handling for "All Posts", "All Authors", "All Entities", and "All Locations" - clear all filters
+    if (item.name === 'All Posts' || item.name === 'All Authors' || item.name === 'All Entities' || item.name === 'All Locations') {
       updateUrlParams({ tab: tabId, navItem: item.name }, true)
       return
     }
@@ -336,6 +403,26 @@ function CampaignDetailPage() {
   // Handle tab change
   const handleTabChange = (tabId: string) => {
     updateUrlParams({ tab: tabId })
+  }
+
+  // Handle entity click
+  const handleEntityClick = (entity: any) => {
+    setSelectedEntity(entity)
+  }
+
+  // Handle entity back
+  const handleEntityBack = () => {
+    setSelectedEntity(null)
+  }
+
+  // Handle location click
+  const handleLocationClick = (location: any) => {
+    setSelectedLocation(location)
+  }
+
+  // Handle location back
+  const handleLocationBack = () => {
+    setSelectedLocation(null)
   }
 
   const menuItems = [
@@ -478,7 +565,30 @@ function CampaignDetailPage() {
       title: 'Locations',
       description: 'Where is the action happening',
       icon: MapPinIcon,
-      subItems: []
+      subItems: [
+        {
+          title: 'Primary',
+          items: [
+            { name: 'All Locations', icon: GlobeAltIcon, params: {} },
+          ],
+        },
+        {
+          title: 'Engagement & Impact',
+          items: [
+            { name: 'High Impact Locations', icon: FireIcon, params: { minMentions: '100' } },
+            { name: 'Trending Locations', icon: ArrowTrendingUpIcon, params: { timeRange: '24h' } },
+            { name: 'Frequently Mentioned', icon: ChartBarIcon, params: { sortBy: 'totalMentions' } },
+          ],
+        },
+        {
+          title: 'Sentiment Based',
+          items: [
+            { name: 'Negative Locations', icon: FaceFrownIcon, params: { sentiment: 'NEGATIVE' } },
+            { name: 'Positive Locations', icon: FaceSmileIcon, params: { sentiment: 'POSITIVE' } },
+            { name: 'Controversial Locations', icon: ExclamationTriangleIcon, params: { sentiment: 'MIXED' } },
+          ],
+        },
+      ]
     }
   ]
 
@@ -662,8 +772,8 @@ function CampaignDetailPage() {
               </div>
             </div>
 
-            {/* Center: Platform Filters */}
-            <div className="flex items-center gap-2">
+            {/* Center: Platform Filters - Commented out for now */}
+            {/* <div className="flex items-center gap-2">
               <Select value={selectedSentiment} onValueChange={(value) => updateUrlParams({ sentiment: value })}>
                 <SelectTrigger className="w-[140px] h-8">
                   <SelectValue placeholder="All Sentiments" />
@@ -713,7 +823,7 @@ function CampaignDetailPage() {
                   {currentCampaign?.metrics.platformDistribution?.instagram || 0}
                 </Button>
               </div>
-            </div>
+            </div> */}
 
             {/* Right: Action Buttons */}
             <div className="flex items-center gap-2">
@@ -1018,31 +1128,89 @@ function CampaignDetailPage() {
                 </div>
               )}
 
-              {activeAnalysisTab === 'entities' && (
-                <div className="space-y-6">
-                  <div className="bg-card border border-border rounded-lg p-6">
-                    <h3 className="text-foreground font-semibold mb-4">Entities - What is being talked about</h3>
-                    <div className="h-64 bg-muted/20 rounded-lg flex items-center justify-center">
+              {activeAnalysisTab === 'entities' && !selectedEntity && (
+                <div className="p-4 sm:p-6">
+                  {entitiesLoading ? (
+                    <div className="flex items-center justify-center h-64">
                       <div className="text-center text-muted-foreground">
-                        <CubeIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>Entity analysis content will be displayed here</p>
+                        <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                        <p className="text-sm">Loading entities...</p>
                       </div>
                     </div>
+                  ) : entitiesError ? (
+                    <div className="flex items-center justify-center h-64">
+                      <div className="text-center text-muted-foreground">
+                        <p className="text-sm text-red-500 mb-2">Failed to load entities</p>
+                        <p className="text-xs">{entitiesError}</p>
+                      </div>
+                    </div>
+                  ) : entitiesData && Array.isArray(entitiesData) && entitiesData.length > 0 ? (
+                    <EntityList
+                      entities={entitiesData}
+                      onEntityClick={handleEntityClick}
+                      defaultView="grid"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-64">
+                      <div className="text-center text-muted-foreground">
+                        <CubeIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p className="text-sm">No entities found</p>
+                        <p className="text-xs">Try adjusting your filters or search for specific entities</p>
+                      </div>
+                    </div>
+                  )}
                   </div>
+              )}
+
+              {activeAnalysisTab === 'entities' && selectedEntity && (
+                <div className="h-full">
+                  <EntityDetailView 
+                    entity={selectedEntity} 
+                    onBack={handleEntityBack}
+                  />
                 </div>
               )}
 
-              {activeAnalysisTab === 'locations' && (
-                <div className="space-y-6">
-                  <div className="bg-card border border-border rounded-lg p-6">
-                    <h3 className="text-foreground font-semibold mb-4">Locations - Where is the action happening</h3>
-                    <div className="h-64 bg-muted/20 rounded-lg flex items-center justify-center">
+              {activeAnalysisTab === 'locations' && !selectedLocation && (
+                <div className="p-4 sm:p-6">
+                  {locationsLoading ? (
+                    <div className="flex items-center justify-center h-64">
                       <div className="text-center text-muted-foreground">
-                        <MapPinIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>Location analysis content will be displayed here</p>
+                        <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                        <p className="text-sm">Loading locations...</p>
                       </div>
                     </div>
-                  </div>
+                  ) : locationsError ? (
+                    <div className="flex items-center justify-center h-64">
+                      <div className="text-center text-muted-foreground">
+                        <p className="text-sm text-red-500 mb-2">Failed to load locations</p>
+                        <p className="text-xs">{locationsError}</p>
+                      </div>
+                    </div>
+                  ) : locationsData && Array.isArray(locationsData) && locationsData.length > 0 ? (
+                    <LocationList
+                      locations={locationsData}
+                      onLocationClick={handleLocationClick}
+                      defaultView="grid"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-64">
+                      <div className="text-center text-muted-foreground">
+                        <MapPinIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p className="text-sm">No locations found</p>
+                        <p className="text-xs">Try adjusting your filters or search for specific locations</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeAnalysisTab === 'locations' && selectedLocation && (
+                <div className="h-full">
+                  <LocationDetailView 
+                    location={selectedLocation} 
+                    onBack={handleLocationBack}
+                  />
                 </div>
               )}
 
