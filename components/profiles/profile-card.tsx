@@ -11,16 +11,16 @@ import Link from 'next/link'
 export interface Profile {
   id: string
   username: string
-  displayName: string
+  displayName?: string | null
   platform: 'facebook' | 'twitter' | 'instagram' | 'youtube' | 'reddit' | 'tiktok'
   profileImageUrl?: string
-  bio: string
-  followerCount: number
-  followingCount: number
-  postCount: number
+  bio?: string | null
+  followerCount?: number | null
+  followingCount?: number | null
+  postCount?: number | null
   isVerified: boolean
   isBlueVerified: boolean
-  accountType: string
+  accountType?: string
   lastPostAt?: string
   website?: string
   location?: string
@@ -52,14 +52,16 @@ export function ProfileCard({ profile, view = 'grid', campaignId = '1', onClick 
   }
 
   // Format numbers
-  const formatNumber = (num: number): string => {
+  const formatNumber = (num: number | null | undefined): string => {
+    if (num === null || num === undefined) return '0'
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
     if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
     return num.toString()
   }
 
   // Get account type color
-  const getAccountTypeColor = (type: string) => {
+  const getAccountTypeColor = (type: string | null | undefined) => {
+    if (!type) return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
     switch (type.toLowerCase()) {
       case 'business': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
       case 'creator': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
@@ -74,16 +76,16 @@ export function ProfileCard({ profile, view = 'grid', campaignId = '1', onClick 
         <TableCell>
           <div className="flex items-center gap-3">
             <Avatar className="w-10 h-10">
-              <AvatarImage src={profile.profileImageUrl} alt={profile.displayName} />
+              <AvatarImage src={profile.profileImageUrl} alt={profile.displayName || profile.username} />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                {profile.displayName.charAt(0).toUpperCase()}
+                {(profile.displayName || profile.username)?.charAt(0).toUpperCase() || 'P'}
               </AvatarFallback>
             </Avatar>
             <div className="flex items-center gap-2">
               <IconComponent className="w-4 h-4 text-muted-foreground" />
               <div>
                 <div className="flex items-center gap-1">
-                  <span className="text-sm font-medium text-foreground">{profile.displayName}</span>
+                  <span className="text-sm font-medium text-foreground">{profile.displayName || profile.username}</span>
                   {profile.isVerified && (
                     <CheckCircle className="w-3 h-3 text-blue-500" />
                   )}
@@ -137,9 +139,9 @@ export function ProfileCard({ profile, view = 'grid', campaignId = '1', onClick 
         <Card className="hover:bg-accent/20 transition-colors cursor-pointer p-4 h-20">
           <div className="flex items-center gap-4 h-full">
             <Avatar className="w-12 h-12 flex-shrink-0">
-              <AvatarImage src={profile.profileImageUrl} alt={profile.displayName} />
+              <AvatarImage src={profile.profileImageUrl} alt={profile.displayName || profile.username} />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                {profile.displayName.charAt(0).toUpperCase()}
+                {(profile.displayName || profile.username)?.charAt(0).toUpperCase() || 'P'}
               </AvatarFallback>
             </Avatar>
 
@@ -149,7 +151,7 @@ export function ProfileCard({ profile, view = 'grid', campaignId = '1', onClick 
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-foreground font-medium text-sm truncate">{profile.displayName}</span>
+                  <span className="text-foreground font-medium text-sm truncate">{profile.displayName || profile.username}</span>
                   {profile.isVerified && <CheckCircle className="w-3 h-3 text-blue-500 flex-shrink-0" />}
                   {profile.isBlueVerified && <CheckCircle className="w-3 h-3 text-blue-400 flex-shrink-0" />}
                   <span className="text-muted-foreground text-xs">@{profile.username}</span>
@@ -189,14 +191,14 @@ export function ProfileCard({ profile, view = 'grid', campaignId = '1', onClick 
         <CardHeader className="pb-3 flex-shrink-0">
           <div className="flex items-center gap-3">
             <Avatar className="w-16 h-16">
-              <AvatarImage src={profile.profileImageUrl} alt={profile.displayName} />
+              <AvatarImage src={profile.profileImageUrl} alt={profile.displayName || profile.username} />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-lg">
-                {profile.displayName.charAt(0).toUpperCase()}
+                {(profile.displayName || profile.username)?.charAt(0).toUpperCase() || 'P'}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-foreground font-semibold text-sm truncate">{profile.displayName}</h3>
+                <h3 className="text-foreground font-semibold text-sm truncate">{profile.displayName || profile.username}</h3>
                 {profile.isVerified && <CheckCircle className="w-4 h-4 text-blue-500 flex-shrink-0" />}
                 {profile.isBlueVerified && <CheckCircle className="w-4 h-4 text-blue-400 flex-shrink-0" />}
               </div>

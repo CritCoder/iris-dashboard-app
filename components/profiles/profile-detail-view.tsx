@@ -1,13 +1,24 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { ProfileHeader } from './profile-header'
 import { ProfilePostTabs } from './profile-post-tabs'
 import { ProfileStats } from './profile-stats'
 import { PostCard } from '@/components/posts/post-card'
 import { convertToPostCardFormat } from '@/lib/utils'
-import { useAuth } from '@/contexts/auth-context'
-import { Loader2 } from 'lucide-react'
+import { useProfilePosts, useProfileDetails } from '@/hooks/use-api'
+import { Loader2, Grid, List, Table as TableIcon } from 'lucide-react'
+import { PostCardSkeleton } from '@/components/skeletons/post-card-skeleton'
+import { Button } from '@/components/ui/button'
+import {
+  Table as UITable,
+  TableBody,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Skeleton } from '@/components/ui/skeleton'
+
 
 interface ProfileDetailViewProps {
   profile: any
@@ -15,217 +26,150 @@ interface ProfileDetailViewProps {
 }
 
 export function ProfileDetailView({ profile, onClose }: ProfileDetailViewProps) {
-  const { token } = useAuth()
-  const [posts, setPosts] = useState<any[]>([])
-  const [stats, setStats] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('latest')
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 20,
-    total: 0,
-    totalPages: 0,
-    hasNext: false,
-    hasPrev: false
-  })
-  const [loadingMore, setLoadingMore] = useState(false)
+  const [view, setView] = useState<'grid' | 'list' | 'table'>('grid')
 
-  // Fetch profile posts
-  useEffect(() => {
-    const fetchPosts = async () => {
-      if (!profile?.id || !token) return
-      
-      setLoading(true)
-      try {
-        // Determine sentiment filter based on active tab
-        let sentiment = null
-        if (activeTab === 'positive') sentiment = 'POSITIVE'
-        else if (activeTab === 'negative') sentiment = 'NEGATIVE'
-        
-        const params = new URLSearchParams({
-          page: pagination.page.toString(),
-          limit: pagination.limit.toString(),
-        })
-        
-        if (sentiment) params.append('sentiment', sentiment)
-        
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/social/profiles/${profile.id}/posts?${params.toString()}`,
-          {
-            headers: {
-              'Accept': '*/*',
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          }
-        )
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-        
-        const result = await response.json()
-        
-        if (result.success) {
-          setPosts(result.data?.posts || result.data || [])
-          if (result.data?.pagination || result.pagination) {
-            setPagination(result.data?.pagination || result.pagination)
-          }
-        }
-      } catch (error) {
-        console.error('Failed to fetch profile posts:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    
-    fetchPosts()
-  }, [profile?.id, activeTab, token])
+  const postApiParams: { sort: string; sentiment?: string } = { sort: 'latest' }
+  if (activeTab === 'positive') postApiParams.sentiment = 'POSITIVE'
+  if (activeTab === 'negative') postApiParams.sentiment = 'NEGATIVE'
+  if (activeTab === 'top') postApiParams.sort = 'top'
 
-  // Fetch profile details and stats
-  useEffect(() => {
-    const fetchProfileDetails = async () => {
-      if (!profile?.id || !token) return
-      
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/social/profiles/${profile.id}`,
-          {
-            headers: {
-              'Accept': '*/*',
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          }
-        )
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-        
-        const result = await response.json()
-        
-        if (result.success && result.data) {
-          setStats(result.data.stats || null)
-        }
-      } catch (error) {
-        console.error('Failed to fetch profile details:', error)
-      }
-    }
-    
-    fetchProfileDetails()
-  }, [profile?.id, token])
-
-  const handleLoadMore = async () => {
-    if (loadingMore || !pagination.hasNext) return
-    
-    setLoadingMore(true)
-    try {
-      let sentiment = null
-      if (activeTab === 'positive') sentiment = 'POSITIVE'
-      else if (activeTab === 'negative') sentiment = 'NEGATIVE'
-      
-      const params = new URLSearchParams({
-        page: (pagination.page + 1).toString(),
-        limit: pagination.limit.toString(),
-      })
-      
-      if (sentiment) params.append('sentiment', sentiment)
-      
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/social/profiles/${profile.id}/posts?${params.toString()}`,
-        {
-          headers: {
-            'Accept': '*/*',
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      )
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
-      const result = await response.json()
-      
-      if (result.success) {
-        setPosts(prevPosts => [...prevPosts, ...(result.data?.posts || result.data || [])])
-        if (result.data?.pagination || result.pagination) {
-          setPagination(result.data?.pagination || result.pagination)
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load more posts:', error)
-    } finally {
-      setLoadingMore(false)
-    }
+  const {
+    data: postsData,
+    loading: postsLoading,
+    error: postsError,
+  } = useProfilePosts(profile.id, postApiParams)
+  
+  const { 
+    data: profileDetails, 
+    loading: detailsLoading,
+    error: detailsError 
+  } = useProfileDetails(profile.id)
+  
+  if (detailsLoading || !profileDetails) {
+    return (
+      <div className="h-full w-full flex bg-background p-4">
+        <div className="w-3/4 pr-4">
+          <Skeleton className="h-40 w-full" />
+          <div className="mt-4 space-y-4">
+            <PostCardSkeleton view="list" count={5} />
+          </div>
+        </div>
+        <div className="w-1/4">
+          <Skeleton className="h-full w-full" />
+        </div>
+      </div>
+    )
   }
+
+  const posts = postsData || []
+  const stats = profileDetails.stats || null
+  const fullProfile = profileDetails.profile || profile
 
   if (!profile) return null
 
+  const renderPosts = () => {
+    if (postsLoading) {
+      return (
+        <div className="p-4 space-y-4">
+          <PostCardSkeleton view={view === 'table' ? 'list' : view} count={view === 'grid' ? 6 : 3} />
+        </div>
+      )
+    }
+
+    if (postsError) {
+      return (
+        <div className="h-full flex items-center justify-center">
+          <p className="text-red-500">{postsError}</p>
+        </div>
+      )
+    }
+
+    if (posts.length === 0) {
+      return (
+        <div className="h-full flex items-center justify-center">
+          <p className="text-muted-foreground">No posts found</p>
+        </div>
+      )
+    }
+
+    const postCards = posts.map((post) => {
+      const formattedPost = convertToPostCardFormat(post)
+      return (
+        <PostCard
+          key={post.id}
+          post={formattedPost}
+          view={view}
+        />
+      )
+    })
+
+    if (view === 'table') {
+      return (
+        <UITable>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Post</TableHead>
+              <TableHead>Content</TableHead>
+              <TableHead className="text-center">Likes</TableHead>
+              <TableHead className="text-center">Comments</TableHead>
+              <TableHead>Posted At</TableHead>
+              <TableHead className="w-24">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>{postCards}</TableBody>
+        </UITable>
+      )
+    }
+
+    if (view === 'grid') {
+      return <div className="p-4 grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">{postCards}</div>
+    }
+
+    return <div className="p-4 space-y-4">{postCards}</div>
+  }
+
   return (
     <div className="h-full w-full flex bg-background">
-      {/* Left Column - Header + Posts (3/4 width) */}
       <div className="w-3/4 flex flex-col border-r border-border">
-        <ProfileHeader profile={profile} onClose={onClose} />
-        <ProfilePostTabs onTabSelect={setActiveTab} activeTab={activeTab} />
+        <ProfileHeader profile={fullProfile} onClose={onClose} />
+        <div className="border-b border-border px-4 py-2 flex justify-between items-center">
+          <ProfilePostTabs onTabSelect={setActiveTab} activeTab={activeTab} />
+          <div className="flex items-center gap-2">
+            <Button
+              variant={view === 'grid' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setView('grid')}
+              className="h-8 px-3"
+            >
+              <Grid className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={view === 'list' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setView('list')}
+              className="h-8 px-3"
+            >
+              <List className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={view === 'table' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setView('table')}
+              className="h-8 px-3"
+            >
+              <TableIcon className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
         
-        {/* Posts Feed */}
         <div className="flex-1 overflow-y-auto">
-          {loading && posts.length === 0 ? (
-            <div className="h-full flex items-center justify-center">
-              <div className="text-center">
-                <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">Loading posts...</p>
-              </div>
-            </div>
-          ) : posts.length === 0 ? (
-            <div className="h-full flex items-center justify-center">
-              <div className="text-center">
-                <p className="text-muted-foreground">No posts found</p>
-              </div>
-            </div>
-          ) : (
-            <div className="p-4 space-y-4">
-              {posts.map((post) => {
-                const formattedPost = convertToPostCardFormat(post)
-                return (
-                  <PostCard
-                    key={post.id}
-                    post={formattedPost}
-                    view="list"
-                  />
-                )
-              })}
-              
-              {/* Load More Button */}
-              {pagination.hasNext && (
-                <div className="text-center py-4">
-                  <button
-                    onClick={handleLoadMore}
-                    disabled={loadingMore}
-                    className="px-6 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  >
-                    {loadingMore ? (
-                      <span className="inline-flex items-center gap-2">
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Loading...
-                      </span>
-                    ) : (
-                      'Load More Posts'
-                    )}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+          {renderPosts()}
         </div>
       </div>
       
-      {/* Right Column - Statistics (1/4 width) */}
       <div className="w-1/4 flex flex-col">
-        <ProfileStats profile={profile} posts={posts} stats={stats} />
+        <ProfileStats profile={fullProfile} posts={posts} stats={stats} />
       </div>
     </div>
   )

@@ -16,9 +16,15 @@ interface ProfileListProps {
   profiles: Profile[]
   campaignId?: string
   defaultView?: 'grid' | 'list' | 'table'
+  onProfileClick?: (profile: Profile) => void
 }
 
-export function ProfileList({ profiles, campaignId = '1', defaultView = 'grid' }: ProfileListProps) {
+export function ProfileList({ 
+  profiles, 
+  campaignId = '1', 
+  defaultView = 'grid',
+  onProfileClick 
+}: ProfileListProps) {
   const [view, setView] = useState<'grid' | 'list' | 'table'>(defaultView)
 
   return (
@@ -76,6 +82,7 @@ export function ProfileList({ profiles, campaignId = '1', defaultView = 'grid' }
                 profile={profile}
                 view="table"
                 campaignId={campaignId}
+                onClick={onProfileClick}
               />
             ))}
           </TableBody>
@@ -88,6 +95,7 @@ export function ProfileList({ profiles, campaignId = '1', defaultView = 'grid' }
               profile={profile}
               view="list"
               campaignId={campaignId}
+              onClick={onProfileClick}
             />
           ))}
         </div>
@@ -99,6 +107,7 @@ export function ProfileList({ profiles, campaignId = '1', defaultView = 'grid' }
               profile={profile}
               view="grid"
               campaignId={campaignId}
+              onClick={onProfileClick}
             />
           ))}
         </div>

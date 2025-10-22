@@ -4,14 +4,16 @@ import { useMemo } from 'react'
 import { Heart, MessageCircle, Share2, Eye, TrendingUp } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface ProfileStatsProps {
   profile: any
   posts: any[]
   stats?: any
+  loading?: boolean
 }
 
-export function ProfileStats({ profile, posts, stats }: ProfileStatsProps) {
+export function ProfileStats({ profile, posts, stats, loading }: ProfileStatsProps) {
   // Calculate statistics from posts
   const calculatedStats = useMemo(() => {
     if (!posts || posts.length === 0) {
@@ -59,6 +61,42 @@ export function ProfileStats({ profile, posts, stats }: ProfileStatsProps) {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`
     return num.toString()
+  }
+
+  if (loading) {
+    return (
+      <div className="h-full overflow-y-auto p-4 space-y-4 bg-muted/20">
+        <Card>
+          <CardHeader className="pb-3">
+            <Skeleton className="h-4 w-1/2" />
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-3">
+            <Skeleton className="h-4 w-1/3" />
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-3">
+            <Skeleton className="h-4 w-1/2" />
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (

@@ -10,7 +10,7 @@ import Link from 'next/link'
 export interface Post {
   id: string
   author: string
-  platform: 'facebook' | 'twitter' | 'instagram'
+  platform: 'facebook' | 'twitter' | 'instagram' | 'youtube' | 'reddit' | 'news' | 'india-news'
   content: string
   timestamp: string
   likes: number
@@ -18,15 +18,18 @@ export interface Post {
   shares: number
   views: number
   sentiment: 'positive' | 'negative' | 'neutral'
+  url?: string
+  thumbnailUrl?: string
+  authorAvatar?: string
 }
 
 interface PostCardProps {
   post: Post
   view?: 'grid' | 'list' | 'table'
-  campaignId?: string
+  href?: string
 }
 
-export function PostCard({ post, view = 'grid', campaignId = '1' }: PostCardProps) {
+export function PostCard({ post, view = 'grid', href }: PostCardProps) {
   const platformIcons = {
     facebook: FacebookIcon,
     twitter: TwitterIcon,
@@ -78,7 +81,7 @@ export function PostCard({ post, view = 'grid', campaignId = '1' }: PostCardProp
           </div>
         </TableCell>
         <TableCell>
-          <Link href={`/analysis-history/${campaignId}/post/${post.id}`}>
+          <Link href={href || `/social-feed/post/${post.id}`}>
             <button className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors">
               <Eye className="w-3 h-3" />
               <span>View</span>
@@ -92,7 +95,7 @@ export function PostCard({ post, view = 'grid', campaignId = '1' }: PostCardProp
 
   if (view === 'list') {
     return (
-      <Link href={`/analysis-history/${campaignId}/post/${post.id}`}>
+      <Link href={href || `/social-feed/post/${post.id}`}>
         <Card className={`hover:bg-accent/20 transition-colors cursor-pointer ${sentimentColors[post.sentiment]} p-4 h-20`}>
           <div className="flex items-center gap-4 h-full">
             <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -139,7 +142,7 @@ export function PostCard({ post, view = 'grid', campaignId = '1' }: PostCardProp
 
   // Default grid view - Twitter-style tweet card
   return (
-    <Link href={`/analysis-history/${campaignId}/post/${post.id}`}>
+    <Link href={href || `/social-feed/post/${post.id}`}>
       <Card className={`hover:bg-accent/5 transition-all duration-200 cursor-pointer border-border/40 hover:border-border/60 hover:shadow-sm bg-card/50 backdrop-blur-sm h-64 flex flex-col`}>
         <div className="p-4 flex flex-col h-full">
           {/* Tweet Header - Avatar, Name, Handle */}

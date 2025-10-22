@@ -37,6 +37,8 @@ import { LocationDetailView } from '@/components/locations/location-detail-view'
 import { startMonitoring, stopMonitoring } from '@/lib/api/campaigns'
 import { convertToPostCardFormat } from '@/lib/utils'
 import ErrorBoundary from '@/components/ui/error-boundary'
+import { TabBar, Tab } from '@/components/ui/tab-bar'
+import { ProfileDetailView } from '@/components/profiles/profile-detail-view'
 
 const samplePosts: Post[] = [
   {
@@ -184,8 +186,20 @@ function CampaignDetailPage() {
     (getUrlParam('tab', 'social-feed') as any) || 'social-feed'
   )
   const [selectedNavItem, setSelectedNavItem] = useState<string | null>(() => getUrlParam('navItem') || null)
-  const [selectedEntity, setSelectedEntity] = useState<any>(null)
   const [selectedLocation, setSelectedLocation] = useState<any>(null)
+
+  // State for profile tabs
+  const [profileTabs, setProfileTabs] = useState<Tab[]>([
+    { id: 'profiles-grid', title: 'All Profiles' },
+  ])
+  const [activeProfileTabId, setActiveProfileTabId] = useState('profiles-grid')
+
+  // State for entity tabs
+  const [entityTabs, setEntityTabs] = useState<Tab[]>([
+    { id: 'entities-grid', title: 'All Entities' },
+  ])
+  const [activeEntityTabId, setActiveEntityTabId] = useState('entities-grid')
+
 
   // Sync URL parameters with state
   useEffect(() => {
@@ -199,6 +213,48 @@ function CampaignDetailPage() {
     setActiveAnalysisTab(tab as any)
     setSelectedNavItem(navItem)
   }, [searchParams])
+
+  // Click handler for opening profile tabs
+  const handleProfileClick = (profile: any) => {
+    const tabExists = profileTabs.find((tab) => tab.id === profile.id)
+    if (!tabExists) {
+      setProfileTabs((prevTabs) => [
+        ...prevTabs,
+        { id: profile.id, title: profile.displayName || profile.username, profileData: profile },
+      ])
+    }
+    setActiveProfileTabId(profile.id)
+  }
+
+  // Close handler for profile tabs
+  const handleTabClose = (tabId: string) => {
+    const newTabs = profileTabs.filter((tab) => tab.id !== tabId)
+    setProfileTabs(newTabs)
+    if (activeProfileTabId === tabId) {
+      setActiveProfileTabId(newTabs[newTabs.length - 1]?.id || 'profiles-grid')
+    }
+  }
+
+  // Click handler for opening entity tabs
+  const handleEntityClick = (entity: any) => {
+    const tabExists = entityTabs.find((tab) => tab.id === entity.id)
+    if (!tabExists) {
+      setEntityTabs((prevTabs) => [
+        ...prevTabs,
+        { id: entity.id, title: entity.name, entityData: entity },
+      ])
+    }
+    setActiveEntityTabId(entity.id)
+  }
+
+  // Close handler for entity tabs
+  const handleEntityTabClose = (tabId: string) => {
+    const newTabs = entityTabs.filter((tab) => tab.id !== tabId)
+    setEntityTabs(newTabs)
+    if (activeEntityTabId === tabId) {
+      setActiveEntityTabId(newTabs[newTabs.length - 1]?.id || 'entities-grid')
+    }
+  }
 
   // Derive API parameters from URL
   const apiParams = useMemo(() => {
@@ -278,6 +334,16 @@ function CampaignDetailPage() {
     error: profilesError,
     total: profilesTotal
   } = useProfiles(profileApiParams)
+
+  // Find the active profile for the detail view
+  const activeProfile = useMemo(() =>
+    profileTabs.find((tab) => tab.id === activeProfileTabId)?.profileData
+  , [profileTabs, activeProfileTabId])
+
+  // Find the active entity for the detail view
+  const activeEntity = useMemo(() =>
+    entityTabs.find((tab) => tab.id === activeEntityTabId)?.entityData
+  , [entityTabs, activeEntityTabId])
 
   // Derive entity API parameters from URL
   const entityApiParams = useMemo(() => {
@@ -406,11 +472,6 @@ function CampaignDetailPage() {
   }
 
   // Handle entity click
-  const handleEntityClick = (entity: any) => {
-    setSelectedEntity(entity)
-  }
-
-  // Handle entity back
   const handleEntityBack = () => {
     setSelectedEntity(null)
   }
@@ -1061,113 +1122,109 @@ function CampaignDetailPage() {
                 )
               )}
 
-              {activeAnalysisTab === 'profiles' && !selectedNavItem && (
-                <div className="p-4 sm:p-6">
-                  {profilesLoading ? (
-                    <div className="flex items-center justify-center h-64">
-                      <div className="text-center text-muted-foreground">
-                        <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-                        <p className="text-sm">Loading profiles...</p>
-                      </div>
-                    </div>
-                  ) : profilesError ? (
-                    <div className="flex items-center justify-center h-64">
-                      <div className="text-center text-muted-foreground">
-                        <p className="text-sm text-red-500 mb-2">Failed to load profiles</p>
-                        <p className="text-xs">{profilesError}</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <ProfileList
-                      profiles={allProfiles}
-                      campaignId={campaignId}
-                      defaultView="grid"
-                    />
-                  )}
-                </div>
-              )}
-
-              {activeAnalysisTab === 'profiles' && selectedNavItem && (
-                <div className="p-4 sm:p-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h2 className="text-xl font-semibold text-foreground">{selectedNavItem}</h2>
-                        <button
-                          onClick={() => {
-                            updateUrlParams({ navItem: undefined })
-                          }}
-                          className="text-sm text-primary hover:text-primary/80 transition-colors mt-1"
-                        >
-                          ← Back to All Profiles
-                        </button>
-                      </div>
-                    </div>
-                    {profilesLoading ? (
-                      <div className="flex items-center justify-center h-64">
-                        <div className="text-center text-muted-foreground">
-                          <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-                          <p className="text-sm">Loading profiles...</p>
-                        </div>
-                      </div>
-                    ) : profilesError ? (
-                      <div className="flex items-center justify-center h-64">
-                        <div className="text-center text-muted-foreground">
-                          <p className="text-sm text-red-500 mb-2">Failed to load profiles</p>
-                          <p className="text-xs">{profilesError}</p>
-                        </div>
+              {activeAnalysisTab === 'profiles' && (
+                <div className="h-full flex flex-col">
+                  <TabBar
+                    tabs={profileTabs}
+                    activeTabId={activeProfileTabId}
+                    onTabClick={setActiveProfileTabId}
+                    onTabClose={handleTabClose}
+                  />
+                  <div className="flex-1 overflow-y-auto">
+                    {activeProfileTabId === 'profiles-grid' ? (
+                      <div className="p-4 sm:p-6">
+                        {selectedNavItem ? (
+                           <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h2 className="text-xl font-semibold text-foreground">{selectedNavItem}</h2>
+                                <button
+                                  onClick={() => updateUrlParams({ navItem: undefined })}
+                                  className="text-sm text-primary hover:text-primary/80 transition-colors mt-1"
+                                >
+                                  ← Back to All Profiles
+                                </button>
+                              </div>
+                            </div>
+                            {profilesLoading ? (
+                              <div className="flex items-center justify-center h-64">
+                                <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full"></div>
+                              </div>
+                            ) : profilesError ? (
+                              <p className="text-red-500">{profilesError}</p>
+                            ) : (
+                              <ProfileList
+                                profiles={allProfiles}
+                                campaignId={campaignId}
+                                defaultView="grid"
+                                onProfileClick={handleProfileClick}
+                              />
+                            )}
+                          </div>
+                        ) : profilesLoading ? (
+                          <div className="flex items-center justify-center h-64">
+                            <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full"></div>
+                          </div>
+                        ) : profilesError ? (
+                          <p className="text-red-500">{profilesError}</p>
+                        ) : (
+                          <ProfileList
+                            profiles={allProfiles}
+                            campaignId={campaignId}
+                            defaultView="grid"
+                            onProfileClick={handleProfileClick}
+                          />
+                        )}
                       </div>
                     ) : (
-                      <ProfileList
-                        profiles={allProfiles}
-                        campaignId={campaignId}
-                        defaultView="grid"
-                      />
+                      activeProfile && <ProfileDetailView profile={activeProfile} onClose={() => handleTabClose(activeProfileTabId)} />
                     )}
                   </div>
                 </div>
               )}
 
-              {activeAnalysisTab === 'entities' && !selectedEntity && (
-                <div className="p-4 sm:p-6">
-                  {entitiesLoading ? (
-                    <div className="flex items-center justify-center h-64">
-                      <div className="text-center text-muted-foreground">
-                        <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-                        <p className="text-sm">Loading entities...</p>
-                      </div>
-                    </div>
-                  ) : entitiesError ? (
-                    <div className="flex items-center justify-center h-64">
-                      <div className="text-center text-muted-foreground">
-                        <p className="text-sm text-red-500 mb-2">Failed to load entities</p>
-                        <p className="text-xs">{entitiesError}</p>
-                      </div>
-                    </div>
-                  ) : entitiesData && Array.isArray(entitiesData) && entitiesData.length > 0 ? (
-                    <EntityList
-                      entities={entitiesData}
-                      onEntityClick={handleEntityClick}
-                      defaultView="grid"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-64">
-                      <div className="text-center text-muted-foreground">
-                        <CubeIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p className="text-sm">No entities found</p>
-                        <p className="text-xs">Try adjusting your filters or search for specific entities</p>
-                      </div>
-                    </div>
-                  )}
-                  </div>
-              )}
-
-              {activeAnalysisTab === 'entities' && selectedEntity && (
-                <div className="h-full">
-                  <EntityDetailView 
-                    entity={selectedEntity} 
-                    onBack={handleEntityBack}
+              {activeAnalysisTab === 'entities' && (
+                <div className="h-full flex flex-col">
+                   <TabBar
+                    tabs={entityTabs}
+                    activeTabId={activeEntityTabId}
+                    onTabClick={setActiveEntityTabId}
+                    onTabClose={handleEntityTabClose}
                   />
+                  <div className="flex-1 overflow-y-auto">
+                    {activeEntityTabId === 'entities-grid' ? (
+                      <div className="p-4 sm:p-6">
+                        {entitiesLoading ? (
+                           <div className="flex items-center justify-center h-64">
+                            <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full"></div>
+                          </div>
+                        ) : entitiesError ? (
+                          <p className="text-red-500">{entitiesError}</p>
+                        ) : entitiesData && Array.isArray(entitiesData) && entitiesData.length > 0 ? (
+                          <EntityList
+                            entities={entitiesData}
+                            onEntityClick={handleEntityClick}
+                            defaultView="grid"
+                          />
+                        ) : (
+                           <div className="flex items-center justify-center h-64">
+                            <div className="text-center text-muted-foreground">
+                              <CubeIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                              <p className="text-sm">No entities found</p>
+                              <p className="text-xs">Try adjusting your filters</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      activeEntity && (
+                        <EntityDetailView
+                          entity={activeEntity}
+                          onBack={() => handleEntityTabClose(activeEntityTabId)}
+                        />
+                      )
+                    )}
+                  </div>
                 </div>
               )}
 

@@ -494,11 +494,55 @@ export function useProfileDetails(id: string) {
 }
 
 export function useProfilePosts(id: string, params?: any) {
-  return usePaginatedApi(
-    (page, limit) => api.profile.getPosts(id, { ...params, page, limit }) as any,
-    params?.page,
-    params?.limit
-  )
+  const [data, setData] = useState<any[]>([])
+  const [pagination, setPagination] = useState({
+    page: params?.page || 1,
+    limit: params?.limit || 20,
+    total: 0,
+    totalPages: 0,
+    hasNext: false,
+    hasPrev: false,
+  })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchData = useCallback(async () => {
+    if (!id) return;
+    try {
+      setLoading(true)
+      setError(null)
+      const response = await api.profile.getPosts(id, params)
+      if (response.success && response.data) {
+        const responseData = response.data as any
+        
+        if (responseData.posts && Array.isArray(responseData.posts)) {
+          setData(responseData.posts)
+          if (responseData.pagination) {
+            setPagination(responseData.pagination)
+          }
+        } else if (Array.isArray(responseData)) {
+          setData(responseData)
+        } else {
+          setData([])
+        }
+      } else {
+        setError(response.message || 'Failed to fetch profile posts')
+        setData([])
+      }
+    } catch (err) {
+      console.warn('Failed to fetch profile posts:', err)
+      setError(err instanceof Error ? err.message : 'An error occurred')
+      setData([])
+    } finally {
+      setLoading(false)
+    }
+  }, [id, JSON.stringify(params)])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  return { data, pagination, loading, error, refetch: fetchData }
 }
 
 // Person hooks
