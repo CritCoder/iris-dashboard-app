@@ -198,12 +198,12 @@ const ToastContainer = () => {
               key={toast.id}
               ref={measureRef(toast)}
               className={clsx(
-                "absolute left-1/2 -translate-x-1/2 bottom-0 rounded-2xl leading-[21px] p-4 h-fit backdrop-blur-xl",
+                "absolute left-1/2 -translate-x-1/2 bottom-0 rounded-2xl leading-[21px] p-4 h-fit backdrop-blur-xl shadow-lg",
                 {
-                  message: "bg-zinc-800/95 text-white border border-zinc-700/50",
-                  success: "bg-blue-600/95 text-white border border-blue-500/50",
-                  warning: "bg-amber-600/95 text-white border border-amber-500/50",
-                  error: "bg-red-600/95 text-white border border-red-500/50"
+                  message: "bg-zinc-800/95 dark:bg-zinc-800/95 text-white border border-zinc-700/50",
+                  success: "bg-green-600 dark:bg-green-600/95 text-white border border-green-500/50",
+                  warning: "bg-amber-500 dark:bg-amber-600/95 text-white border border-amber-500/50",
+                  error: "bg-red-600 dark:bg-red-600/95 text-white border border-red-500/50"
                 }[toast.type],
                 isVisible ? "opacity-100" : "opacity-0",
                 index < lastVisibleStart && "pointer-events-none"

@@ -10,6 +10,15 @@ const publicRoutes = [
   '/signup/verify-otp',
   '/forgot-password/verify-otp',
   '/forgot-password/reset',
+  '/test-animations',
+  '/page-test',
+  '/test-map', // For testing Google Maps
+  '/test-osm', // For testing OpenStreetMap
+  '/social-feed', // Temporarily public for development
+  '/locations', // Temporarily public for development
+  '/profiles', // Temporarily public for development
+  '/analysis-history', // Temporarily public for development
+  '/', // Dashboard temporarily public for development
 ]
 
 // Define static assets and Next.js internals to exclude from middleware

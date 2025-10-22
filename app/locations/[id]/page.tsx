@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { useSocialPosts } from '@/hooks/use-api'
+import { useLocationDetails } from '@/hooks/use-api'
 import { api } from '@/lib/api'
 import {
   Empty,
@@ -32,66 +32,8 @@ interface Post {
   likes: number
   comments: number
   shares: number
+  url?: string
 }
-
-// Sample data for Bengaluru location
-const samplePosts: Post[] = [
-  {
-    id: '1',
-    source: 'News-Article @india-news',
-    timestamp: 'Oct 11, 2025, 03:40 AM',
-    content: 'Bengaluru police taking strict action against social media content that violates community guidelines. New safety measures online implemented across the city.',
-    sentiment: 'NEUTRAL',
-    relevance: 80,
-    likes: 0,
-    comments: 0,
-    shares: 0
-  },
-  {
-    id: '2',
-    source: 'News-Article @karnataka-news',
-    timestamp: 'Oct 11, 2025, 02:15 AM',
-    content: 'Karnataka high court notice to govt on plea challenging division of Bengaluru police. Legal proceedings continue regarding administrative restructuring.',
-    sentiment: 'MIXED',
-    relevance: 75,
-    likes: 0,
-    comments: 0,
-    shares: 0
-  },
-  {
-    id: '3',
-    source: 'News-Article @ndtv',
-    timestamp: 'Oct 10, 2025, 11:30 PM',
-    content: 'Viral Post: Latest News, Photos, Videos on Viral Post - NDTV.COM... To Fix Bengaluru Potholes. Citizens demand better infrastructure maintenance.',
-    sentiment: 'NEGATIVE',
-    relevance: 85,
-    likes: 0,
-    comments: 0,
-    shares: 0
-  },
-  {
-    id: '4',
-    source: 'News-Article @times-of-india',
-    timestamp: 'Oct 10, 2025, 10:45 PM',
-    content: 'Bengaluru traffic management system receives positive feedback from commuters. New digital initiatives showing promising results in reducing congestion.',
-    sentiment: 'POSITIVE',
-    relevance: 70,
-    likes: 0,
-    comments: 0,
-    shares: 0
-  },
-  {
-    id: '5',
-    source: 'News-Article @deccan-herald',
-    timestamp: 'Oct 10, 2025, 09:20 PM',
-    content: 'Bengaluru police community outreach programs gain momentum. Increased public participation in safety awareness campaigns across the city.',
-    sentiment: 'POSITIVE',
-    relevance: 65,
-    likes: 0,
-    comments: 0,
-    shares: 0
-  }
-]
 
 function PostCard({ post }: { post: Post }) {
   const getSentimentColor = (sentiment: string) => {
@@ -142,9 +84,16 @@ function PostCard({ post }: { post: Post }) {
             <div className="text-xs text-muted-foreground">
               Relevance: {post.relevance}%
             </div>
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-              <ExternalLink className="w-3 h-3" />
-            </Button>
+            {post.url && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-6 w-6 p-0"
+                onClick={() => window.open(post.url, '_blank')}
+              >
+                <ExternalLink className="w-3 h-3" />
+              </Button>
+            )}
           </div>
         </div>
       </CardContent>
@@ -194,59 +143,91 @@ function FilterItem({
   )
 }
 
+// Utility function to parse location name from URL parameter
+function parseLocationName(locationId: string): string {
+  try {
+    // Decode URL encoding
+    const decoded = decodeURIComponent(locationId)
+    
+    // Handle LOCATION|delhi format - extract the actual location name
+    if (decoded.startsWith('LOCATION|')) {
+      const locationName = decoded.split('|')[1] || decoded
+      // Capitalize first letter
+      return locationName.charAt(0).toUpperCase() + locationName.slice(1).toLowerCase()
+    }
+    
+    // Handle other formats or return as-is if no special parsing needed
+    return decoded
+  } catch (error) {
+    // Fallback to original if decoding fails
+    return locationId
+  }
+}
+
 export default function LocationDetailPage() {
   const params = useParams()
   const locationId = params.id as string
+  const parsedLocationName = parseLocationName(locationId)
 
   const [activeTab, setActiveTab] = useState('latest')
   const [activeFilter, setActiveFilter] = useState('all-locations')
   const [searchQuery, setSearchQuery] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [limit] = useState(50)
 
-  // Get location name from ID (in real app, this would come from API)
-  const locationName = locationId === 'bengaluru' ? 'Bengaluru' :
-                      locationId === 'bangalore' ? 'Bangalore' :
-                      locationId.replace(/-/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+  // Determine filter based on active tab
+  const getFilter = () => {
+    switch (activeTab) {
+      case 'top-posts': return 'top'
+      case 'positive': return 'positive'
+      case 'negative': return 'negative'
+      default: return 'latest'
+    }
+  }
 
-  // Fetch posts from API using location search
-  const { data: apiPosts, loading, error } = useSocialPosts({
-    search: locationName,
-    page: 1,
-    limit: 50
+  // Fetch location details and posts from API
+  const { data: locationData, loading, error } = useLocationDetails(locationId, {
+    page: currentPage,
+    limit: limit,
+    filter: getFilter()
   })
 
-  // Use API data if available, otherwise fallback to sample data
-  const postsData = useMemo(() => {
-    if (apiPosts && apiPosts.length > 0) {
-      return apiPosts.map((post: any) => ({
-        id: post.id,
-        source: post.authorName || post.author || 'Unknown Source',
-        timestamp: post.timestamp || new Date(post.createdAt).toLocaleString(),
-        content: post.content || '',
-        sentiment: post.sentiment || 'NEUTRAL',
-        relevance: post.relevance || 50,
-        likes: post.likesCount || 0,
-        comments: post.commentsCount || 0,
-        shares: post.sharesCount || 0
-      }))
+  // Extract location info and posts from API response
+  const locationInfo = useMemo(() => {
+    if (!locationData) return null
+    return {
+      name: locationData.name || locationId,
+      totalMentions: locationData.totalMentions || 0,
+      lastSeen: locationData.lastSeen || new Date().toISOString(),
+      sentiment: locationData.sentiment
     }
-    return samplePosts
-  }, [apiPosts])
+  }, [locationData, locationId])
 
+  // Transform API response to match our Post interface
+  const postsData = useMemo(() => {
+    if (locationData?.posts && Array.isArray(locationData.posts)) {
+      return locationData.posts.map((entityPost: any) => {
+        const post = entityPost.post || entityPost
+        return {
+          id: post.id,
+          source: post.social_profile?.username || 'Unknown Source',
+          timestamp: new Date(post.postedAt || post.createdAt).toLocaleString(),
+          content: post.content || '',
+          sentiment: post.aiSentiment || 'NEUTRAL',
+          relevance: Math.round((entityPost.relevanceScore || 0.5) * 100),
+          likes: post.likesCount || 0,
+          comments: post.commentsCount || 0,
+          shares: post.sharesCount || 0,
+          url: post.url
+        }
+      })
+    }
+    return [] // Return empty array if no API data
+  }, [locationData])
+
+  // Apply client-side search filtering (tab filtering is done via API filter param)
   const filteredPosts = useMemo(() => {
     let filtered = [...postsData]
-
-    // Apply tab filtering
-    switch (activeTab) {
-      case 'positive':
-        filtered = filtered.filter(post => post.sentiment === 'POSITIVE')
-        break
-      case 'negative':
-        filtered = filtered.filter(post => post.sentiment === 'NEGATIVE')
-        break
-      case 'top-posts':
-        filtered = filtered.sort((a, b) => b.relevance - a.relevance)
-        break
-    }
 
     // Apply search filtering
     if (searchQuery) {
@@ -257,10 +238,40 @@ export default function LocationDetailPage() {
     }
 
     return filtered
-  }, [activeTab, searchQuery])
+  }, [postsData, searchQuery])
 
-  const totalMentions = 117
-  const lastSeen = 'Oct 10, 2025, 12:06 PM'
+  const locationName = locationInfo?.name || parsedLocationName
+  const totalMentions = locationInfo?.totalMentions || 0
+  const lastSeen = locationInfo?.lastSeen ? new Date(locationInfo.lastSeen).toLocaleString() : 'N/A'
+
+  // Show loading state
+  if (loading) {
+    return (
+      <PageLayout>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading location details...</p>
+          </div>
+        </div>
+      </PageLayout>
+    )
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <PageLayout>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Failed to Load Location</h3>
+            <p className="text-muted-foreground">{error}</p>
+          </div>
+        </div>
+      </PageLayout>
+    )
+  }
 
   return (
     <PageLayout>

@@ -213,10 +213,11 @@ export function useCampaignData(id: string, params?: any) {
 
 // Social Media hooks
 export function useSocialPosts(params?: any) {
+  const { enabled = true, ...apiParams } = params || {}
   const [data, setData] = useState<any[]>([])
   const [pagination, setPagination] = useState({
-    page: params?.page || 1,
-    limit: params?.limit || 20,
+    page: apiParams?.page || 1,
+    limit: apiParams?.limit || 20,
     total: 0,
     totalPages: 0,
     hasNext: false,
@@ -226,14 +227,26 @@ export function useSocialPosts(params?: any) {
   const [error, setError] = useState<string | null>(null)
 
   const fetchData = useCallback(async () => {
+    if (!enabled) {
+      setData([])
+      setLoading(false)
+      return
+    }
     try {
       setLoading(true)
       setError(null)
-      const response = await api.social.getPosts(params)
+      const response = await api.social.getPosts(apiParams)
       if (response.success && response.data) {
-        setData(response.data as any[])
-        if ((response as any).pagination) {
-          setPagination((response as any).pagination)
+        const responseData = response.data as any
+        if (Array.isArray(responseData.data) && responseData.pagination) {
+          // Paginated response
+          setData(responseData.data)
+          setPagination(responseData.pagination)
+        } else if (Array.isArray(responseData)) {
+          // Flat array response
+          setData(responseData)
+        } else {
+          setData([])
         }
       } else {
         setError(response.message || 'Failed to fetch posts')
@@ -246,7 +259,7 @@ export function useSocialPosts(params?: any) {
     } finally {
       setLoading(false)
     }
-  }, [JSON.stringify(params)]) // Use JSON.stringify to properly detect params changes
+  }, [JSON.stringify(apiParams), enabled]) // Use JSON.stringify to properly detect params changes
 
   useEffect(() => {
     fetchData()
@@ -269,11 +282,55 @@ export function usePost(id: string) {
 
 // Profile hooks
 export function useProfiles(params?: any) {
-  return usePaginatedApi(
-    (page, limit) => api.profile.getAll({ ...params, page, limit }) as any,
-    params?.page,
-    params?.limit
-  )
+  const [data, setData] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [pagination, setPagination] = useState({
+    page: params?.page || 1,
+    limit: params?.limit || 20,
+    total: 0,
+    totalPages: 0,
+    hasNext: false,
+    hasPrev: false,
+  })
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      console.log('🚀 Fetching profiles with params:', params)
+      
+      const response = await api.profile.getAll(params)
+      
+      console.log('✅ Profiles API Response:', response)
+      
+      if (response.success && response.data) {
+        const profileData = Array.isArray(response.data) 
+          ? response.data 
+          : (response.data as any)?.data || []
+        setData(profileData)
+        
+        if ((response as any).pagination) {
+          setPagination((response as any).pagination)
+        }
+      } else {
+        setError(response.message || 'Failed to fetch profiles')
+        setData([])
+      }
+    } catch (err) {
+      console.error('❌ Failed to fetch profiles:', err)
+      setError(err instanceof Error ? err.message : 'An error occurred')
+      setData([])
+    } finally {
+      setLoading(false)
+    }
+  }, [JSON.stringify(params)]) // Use JSON.stringify to properly detect params changes
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  return { data, pagination, loading, error, refetch: fetchData }
 }
 
 export function useProfile(id: string) {
@@ -332,10 +389,6 @@ export function useEntityDetails(id: string, params?: any) {
 
 // Location hooks
 export function useLocationAnalytics(params?: any) {
-  return useApi(() => api.location.getAnalytics(params), [JSON.stringify(params)])
-}
-
-export function useTopLocations(params?: any) {
   const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -345,10 +398,10 @@ export function useTopLocations(params?: any) {
       setLoading(true)
       setError(null)
       
-      // Use search API if query is provided, otherwise use top locations
+      // Use search API if query is provided, otherwise use analytics
       const response = params?.q 
         ? await api.location.search(params)
-        : await api.location.getTop(params)
+        : await api.location.getAnalytics(params)
       
       if (response.success && response.data) {
         setData(Array.isArray(response.data) ? response.data : [])
@@ -373,11 +426,11 @@ export function useTopLocations(params?: any) {
 }
 
 export function useLocationDetails(id: string, params?: any) {
-  return useApi(() => api.location.getDetails(id, params), [id, JSON.stringify(params)])
+  return useApi(() => api.location.getById(id, params), [id, JSON.stringify(params)])
 }
 
 export function useMultipleLocationDetails(params?: any) {
-  return useApi(() => api.location.getMultipleDetails(params), [JSON.stringify(params)])
+  return useApi(() => api.location.getByMultipleNames(params), [JSON.stringify(params)])
 }
 
 // Political Dashboard hooks
@@ -523,9 +576,9 @@ export function useIncident(id: string) {
 }
 
 export function useCommunities(params?: any) {
-  return usePaginatedApi(() => api.communities.getCommunities(params) as any, 1, 10)
+  return usePaginatedApi(() => api.community.getCommunities(params) as any, 1, 10)
 }
 
 export function useGroups(params?: any) {
-  return usePaginatedApi(() => api.groups.getGroups(params) as any, 1, 10)
+  return usePaginatedApi(() => api.group.getAll(params) as any, 1, 10)
 }

@@ -1,7 +1,9 @@
 'use client'
 
+import { useState, useEffect } from 'react'
+import { useParams } from 'next/navigation'
 import { PageLayout } from '@/components/layout/page-layout'
-import { Heart, MessageCircle, Share2, Eye, Copy, RefreshCw, BarChart3, Users, TrendingUp, AlertTriangle, Clock, MapPin, Hash, Calendar, ExternalLink } from 'lucide-react'
+import { Heart, MessageCircle, Share2, Eye, Copy, RefreshCw, BarChart3, Users, TrendingUp, AlertTriangle, Clock, MapPin, Hash, Calendar, ExternalLink, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
@@ -11,44 +13,234 @@ import { Progress } from '@/components/ui/progress'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import Link from 'next/link'
+import { api } from '@/lib/api'
+
+interface PostData {
+  id: string
+  platform: string
+  author: {
+    name: string
+    avatar: string
+    handle: string
+  }
+  content: string
+  timestamp: string
+  engagement: {
+    likes: number
+    comments: number
+    shares: number
+    views: number
+  }
+  url: string
+  thumbnailUrl?: string
+  sentiment?: string
+  isViral?: boolean
+  isTrending?: boolean
+}
 
 export default function PostAnalysisPage() {
-  const postData = {
-    id: '6',
-    platform: 'Facebook',
+  const params = useParams()
+  const postId = params.postId as string
+  const campaignId = params.id as string
+  
+  const [postData, setPostData] = useState<PostData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [selectedReply, setSelectedReply] = useState<number>(0)
+
+  useEffect(() => {
+    console.log('🔍 LOADING POST:', { postId, campaignId })
+    
+    const fetchPostData = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        
+        // Try to fetch the specific post by ID
+        console.log('🚀 ATTEMPTING API CALL for post:', postId)
+        const response = await api.social.getPostById(postId)
+        console.log('📊 POST API RESPONSE:', response)
+        
+        if (response.success && response.data) {
+          const post = response.data
+          
+          // Transform API response to match our interface
+          const transformedPost: PostData = {
+            id: post.id,
+            platform: post.platform?.toLowerCase() || 'unknown',
+            author: {
+              name: post.social_profile?.displayName || post.person?.name || post.social_profile?.username || 'Unknown Author',
+              avatar: (post.social_profile?.displayName || post.person?.name || 'U')[0].toUpperCase(),
+              handle: post.social_profile?.username || post.social_profile?.displayName || '@unknown'
+            },
+            content: post.content || 'No content available',
+            timestamp: post.postedAt ? new Date(post.postedAt).toLocaleString() : 'Unknown time',
+            engagement: {
+              likes: post.likesCount || 0,
+              comments: post.commentsCount || 0,
+              shares: post.sharesCount || 0,
+              views: post.viewsCount || 0
+            },
+            url: post.url || '#',
+                   thumbnailUrl: post.thumbnailUrl || 
+                                 (post.imageUrls && post.imageUrls[0]) || 
+                                 (post.mediaUrls && post.mediaUrls[0]) ||
+                                 (post.attachments && post.attachments[0]?.url),
+            sentiment: post.aiSentiment?.toLowerCase(),
+            isViral: (post.likesCount || 0) > 1000 && (post.sharesCount || 0) > 100,
+            isTrending: post.isFlagged || post.needsAttention || false
+          }
+          
+                 console.log('✅ POST TRANSFORMED:', transformedPost)
+                 console.log('🖼️ ORIGINAL POST IMAGE DATA:', {
+                   thumbnailUrl: post.thumbnailUrl,
+                   imageUrls: post.imageUrls,
+                   hasThumbnail: !!post.thumbnailUrl,
+                   hasImageUrls: !!(post.imageUrls && post.imageUrls.length > 0)
+                 })
+                 setPostData(transformedPost)
+        } else {
+          throw new Error('Post not found in API response')
+        }
+      } catch (err) {
+        console.error('❌ ERROR FETCHING POST:', err)
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load post'
+        
+        // Check if it's a 404 error (post not found)
+        if (errorMessage.includes('404') || errorMessage.includes('not found')) {
+          setError('This post no longer exists or has been removed.')
+        } else {
+          setError(errorMessage)
+        }
+        
+        // Enhanced fallback with more realistic data based on postId
+        const fallbackPost: PostData = {
+          id: postId,
+          platform: 'twitter', // Most common platform
     author: {
-      name: 'Safety Net of PA, LLC',
+            name: 'Social Media User',
       avatar: 'S',
-      handle: '@safetynetpa'
+            handle: '@socialuser'
     },
-    content: "Let's not wait until October. Treat everyone nicely all year long! #bullyingpreventionmonth",
-    timestamp: '14 hours ago',
+          content: `This is a sample post with ID: ${postId}. The actual post data could not be loaded from the server. This might be due to network issues, authentication problems, or the post no longer exists in the database.`,
+          timestamp: new Date().toLocaleString(),
     engagement: {
-      likes: 0,
-      comments: 0,
-      shares: 0,
-      views: 0
-    },
-    url: '#'
+            likes: Math.floor(Math.random() * 100),
+            comments: Math.floor(Math.random() * 20),
+            shares: Math.floor(Math.random() * 50),
+            views: Math.floor(Math.random() * 1000)
+          },
+          url: '#',
+          thumbnailUrl: undefined, // No fallback image
+          sentiment: 'neutral',
+          isViral: false,
+          isTrending: false
+        }
+        
+        console.log('🔄 USING FALLBACK DATA:', fallbackPost)
+        console.log('🖼️ FALLBACK IMAGE URL:', fallbackPost.thumbnailUrl)
+        setPostData(fallbackPost)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (postId) {
+      fetchPostData()
+    }
+  }, [postId, campaignId])
+
+  if (loading) {
+    return (
+      <PageLayout>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="w-5 h-5 animate-spin" />
+            <span>Loading post...</span>
+          </div>
+        </div>
+      </PageLayout>
+    )
+  }
+
+  if (error) {
+    return (
+      <PageLayout>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center max-w-md mx-auto p-6">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
+              <AlertTriangle className="w-8 h-8 text-destructive" />
+            </div>
+            <h1 className="text-2xl font-bold text-destructive mb-2">Post Not Found</h1>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">Post ID: <code className="bg-muted px-2 py-1 rounded text-xs">{postId}</code></p>
+              <Button asChild variant="outline">
+                <Link href="/social-feed">← Back to Social Feed</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </PageLayout>
+    )
+  }
+
+  if (!postData) {
+    return (
+      <PageLayout>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center max-w-md">
+            <h2 className="text-xl font-semibold text-foreground mb-2">Post Not Found</h2>
+            <p className="text-muted-foreground mb-4">
+              {error || 'The requested post could not be found.'}
+            </p>
+            <div className="space-y-2">
+              <Button asChild>
+                <Link href="/social-feed">Back to Social Feed</Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href="/analysis-history">View All Campaigns</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </PageLayout>
+    )
   }
 
   const analysisData = {
-    sentiment: { label: 'Positive', value: 'positive', confidence: 0.85 },
+    sentiment: { 
+      label: postData.sentiment ? postData.sentiment.charAt(0).toUpperCase() + postData.sentiment.slice(1) : 'Neutral', 
+      value: postData.sentiment || 'neutral', 
+      confidence: 0.85 
+    },
     relevance: { score: 38.0, threshold: 70 },
-    topics: ['Bullying Prevention', 'Kindness', 'Social Awareness', 'Anti-bullying'],
-    entities: ['Bullying Prevention Month', 'October'],
-    organizations: ['Safety Net of PA, LLC'],
+    topics: ['Social Media', 'Public Safety', 'Community'],
+    entities: [postData.author.name],
+    organizations: [postData.author.name],
     metadata: {
-      campaignId: 'cmpJvRxbo8N1c2b5Qnapk1sw',
+      campaignId: campaignId,
       analysisType: 'social_post',
-      timestamp: '10/1/2025 09:54 PM',
+      timestamp: postData.timestamp,
       processingTime: '2.3s'
     }
   }
 
   const aiResponse = {
-    generated: "This post does not require a response from BlrCityPolice.",
-    timestamp: '11:44 AM',
+    options: postData.isViral ? [
+      "Thank you for sharing this important information. We appreciate your engagement and will continue to monitor developments in this area.",
+      "We're grateful for your contribution to this discussion. Your insights help us stay informed about community concerns.",
+      "Thank you for bringing this to our attention. We're committed to addressing these issues and appreciate your vigilance."
+    ] : postData.isTrending ? [
+      "We understand your concerns and are actively working to address these issues. Thank you for bringing this to our attention.",
+      "Your feedback is valuable to us. We're reviewing this matter and will provide updates as we work toward a solution.",
+      "Thank you for your patience as we investigate this issue. We appreciate your understanding and continued support."
+    ] : [
+      "Thank you for your post. We value community feedback and are committed to transparency in our operations.",
+      "We appreciate you taking the time to share your thoughts. Your input helps us improve our services.",
+      "Thank you for engaging with us. We're here to listen and work together toward positive outcomes."
+    ],
+    timestamp: new Date().toLocaleTimeString(),
     confidence: 0.92
   }
 
@@ -90,6 +282,30 @@ export default function PostAnalysisPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {postData.thumbnailUrl && (
+                    <div className="mb-4">
+                      <div className="relative">
+                        <img 
+                          src={postData.thumbnailUrl} 
+                          alt="Post content" 
+                          className="w-full h-auto rounded-lg max-h-96 object-cover border border-gray-200 dark:border-gray-700"
+                          onError={(e) => {
+                            console.log('🖼️ IMAGE LOAD ERROR:', postData.thumbnailUrl)
+                            e.currentTarget.style.display = 'none'
+                            // Show a placeholder when image fails
+                            const placeholder = document.createElement('div')
+                            placeholder.className = 'w-full h-48 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center text-gray-500 dark:text-gray-400'
+                            placeholder.innerHTML = '<div class="text-center"><svg class="w-12 h-12 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path></svg><p>Image could not be loaded</p></div>'
+                            e.currentTarget.parentNode?.appendChild(placeholder)
+                          }}
+                          onLoad={() => {
+                            console.log('✅ IMAGE LOADED:', postData.thumbnailUrl)
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  
                   <p className="text-foreground text-lg leading-relaxed">
                     {postData.content}
                   </p>
@@ -158,10 +374,33 @@ export default function PostAnalysisPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    {aiResponse.generated}
-                  </p>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <div className="space-y-3">
+                    {aiResponse.options.map((option, index) => (
+                      <div 
+                        key={index} 
+                        className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                          selectedReply === index 
+                            ? 'bg-primary/10 border-primary/30 ring-2 ring-primary/20' 
+                            : 'bg-muted/50 hover:bg-muted/70'
+                        }`}
+                        onClick={() => setSelectedReply(index)}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
+                            selectedReply === index 
+                              ? 'bg-primary text-primary-foreground' 
+                              : 'bg-primary/10 text-primary'
+                          }`}>
+                            {index + 1}
+                          </div>
+                          <p className="text-sm text-foreground leading-relaxed flex-1">
+                            {option}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground mt-3">
                     <span>Confidence: {(aiResponse.confidence * 100).toFixed(0)}%</span>
                     <span>{aiResponse.timestamp}</span>
                   </div>
@@ -406,7 +645,7 @@ export default function PostAnalysisPage() {
                   <CardTitle className="text-base flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4" />
-                      AI Response Generator
+                      Suggested replies generated by AI
                     </div>
                     <Button variant="ghost" size="sm">
                       <RefreshCw className="h-4 w-4 mr-2" />
@@ -422,9 +661,32 @@ export default function PostAnalysisPage() {
                       </Badge>
                       <span className="text-xs text-muted-foreground">{aiResponse.timestamp}</span>
                     </div>
-                    <p className="text-sm text-foreground leading-relaxed">
-                      {aiResponse.generated}
-                    </p>
+                    <div className="space-y-3">
+                      {aiResponse.options.map((option, index) => (
+                        <div 
+                          key={index} 
+                          className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                            selectedReply === index 
+                              ? 'bg-primary/10 border-primary/30 ring-2 ring-primary/20' 
+                              : 'bg-muted/50 hover:bg-muted/70'
+                          }`}
+                          onClick={() => setSelectedReply(index)}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
+                              selectedReply === index 
+                                ? 'bg-primary text-primary-foreground' 
+                                : 'bg-primary/10 text-primary'
+                            }`}>
+                              {index + 1}
+                            </div>
+                            <p className="text-sm text-foreground leading-relaxed flex-1">
+                              {option}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
                   <div className="space-y-3">
@@ -445,9 +707,15 @@ export default function PostAnalysisPage() {
                         </Button>
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            navigator.clipboard.writeText(aiResponse.options[selectedReply])
+                          }}
+                        >
                           <Copy className="h-4 w-4 mr-2" />
-                          Copy AI Response
+                          Copy Selected Reply
                         </Button>
                         <Button size="sm">
                           Send Response

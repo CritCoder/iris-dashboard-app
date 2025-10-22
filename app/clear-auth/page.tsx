@@ -11,8 +11,9 @@ export default function ClearAuthPage() {
 
   const clearAllAuth = () => {
     // Clear localStorage
-    localStorage.removeItem('auth_token')
+    localStorage.removeItem('token')
     localStorage.removeItem('user')
+    localStorage.removeItem('organization')
     
     // Clear sessionStorage
     sessionStorage.clear()

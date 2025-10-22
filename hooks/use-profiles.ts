@@ -112,8 +112,9 @@ export function useProfiles({
         const result = await profileApi.getAll(params)
 
         if (result.success) {
-          setData(result.data.data || [])
-          setTotal(result.data.total || result.data.data?.length || 0)
+          const responseData = result.data as { data: SocialProfile[], total: number }
+          setData(responseData.data || [])
+          setTotal(responseData.total || responseData.data?.length || 0)
         } else {
           throw new Error(result.message || 'Failed to fetch profiles')
         }

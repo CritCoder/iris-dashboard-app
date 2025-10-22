@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
 import { Search, Heart, MessageCircle, Share2, Eye, Plus, FolderPlus, Flag, CheckCircle, Archive, X, Loader2 } from 'lucide-react'
@@ -22,7 +23,7 @@ import {
 interface Post {
   id: string
   author: string
-  platform: 'facebook' | 'twitter' | 'instagram'
+  platform: 'facebook' | 'twitter' | 'instagram' | 'youtube' | 'india-news'
   content: string
   priority: 'LOW' | 'MEDIUM' | 'HIGH'
   timestamp: string
@@ -119,6 +120,9 @@ function PostListItem({ post, isSelected, onClick }: { post: Post; isSelected: b
 }
 
 export default function SocialInboxPage() {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
   const [showAddNote, setShowAddNote] = useState(false)
   const [noteText, setNoteText] = useState('')
@@ -138,17 +142,90 @@ export default function SocialInboxPage() {
     return String(value)
   }
 
-  // Fetch posts that need attention/review - using production API
-  // Removed needsAttention and reviewStatus filters to get all posts
-  const { data: apiPosts, loading, error } = useSocialPosts({
-    page: 1,
-    limit: 100 // Increased limit to fetch more posts
-  })
+  // Derive API params from filters
+  const apiParams = useMemo(() => {
+    const params: any = {
+      page: 1,
+      limit: 100,
+    }
+
+    if (searchQuery.trim()) params.search = searchQuery.trim()
+    if (selectedSentiment !== 'all') params.sentiment = selectedSentiment
+    if (selectedPlatform !== 'all') params.platform = selectedPlatform
+    if (selectedCampaign !== 'all') params.campaignId = selectedCampaign
+    if (selectedTimeRange) params.timeRange = selectedTimeRange
+    if (sortBy) params.sortBy = sortBy
+
+    return params
+  }, [searchQuery, selectedSentiment, selectedPlatform, selectedCampaign, selectedTimeRange, sortBy])
+
+  // Sync URL with filters (non-destructive replace)
+  useEffect(() => {
+    const sp = new URLSearchParams()
+    if (searchQuery.trim()) sp.set('search', searchQuery.trim())
+    if (selectedSentiment !== 'all') sp.set('sentiment', selectedSentiment)
+    if (selectedPlatform !== 'all') sp.set('platform', selectedPlatform)
+    if (selectedCampaign !== 'all') sp.set('campaignId', selectedCampaign)
+    if (selectedTimeRange) sp.set('timeRange', selectedTimeRange)
+    if (sortBy) sp.set('sortBy', sortBy)
+    const qs = sp.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname)
+  }, [searchQuery, selectedSentiment, selectedPlatform, selectedCampaign, selectedTimeRange, sortBy, pathname, router])
+
+  // Initial state from URL on mount
+  useEffect(() => {
+    const s = searchParams.get('search') || ''
+    const sen = searchParams.get('sentiment') || 'all'
+    const plat = searchParams.get('platform') || 'all'
+    const camp = searchParams.get('campaignId') || 'all'
+    const tr = searchParams.get('timeRange') || '24h'
+    const sb = searchParams.get('sortBy') || 'date'
+    setSearchQuery(s)
+    setSelectedSentiment(sen)
+    setSelectedPlatform(plat)
+    setSelectedCampaign(camp)
+    setSelectedTimeRange(tr)
+    setSortBy(sb)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const transformApiPostToPost = (apiPost: any): Post => {
+    let platform: Post['platform'] = 'twitter'; // default
+    if (['facebook', 'twitter', 'instagram', 'youtube'].includes(apiPost.platform)) {
+      platform = apiPost.platform
+    } else if (apiPost.platform === 'news') {
+      platform = 'india-news'
+    }
+
+    return {
+      id: apiPost.id,
+      author: apiPost.person?.name || apiPost.social_profile?.username || 'Unknown Author',
+      platform,
+      content: apiPost.content,
+      priority: apiPost.priority || 'LOW',
+      timestamp: apiPost.postedAt ? new Date(apiPost.postedAt).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      }) : 'Unknown',
+      likes: apiPost.likesCount || 0,
+      comments: apiPost.commentsCount || 0,
+      shares: apiPost.sharesCount || 0,
+      views: apiPost.viewsCount || 0,
+      campaign: apiPost.campaign?.name || 'No Campaign',
+      relevanceScore: apiPost.aiRelevanceScore || 0,
+    }
+  }
+
+  // Fetch posts using current params
+  const { data: apiPosts, loading, error } = useSocialPosts(apiParams)
 
   const { data: inboxStats } = useInboxStats({ timeRange: '7d' })
 
   // Use API data from production database
-  const posts = apiPosts || []
+  const posts = useMemo(() => (apiPosts || []).map(transformApiPostToPost), [apiPosts])
 
   // Auto-select first post when posts are available and no post is selected
   useEffect(() => {
@@ -256,96 +333,95 @@ export default function SocialInboxPage() {
           title="Social Inbox"
           description="New posts from all campaigns"
           actions={
-            <div className="w-full">
-              {/* Mobile: Compact Tab Toggle */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-                {/* Tab Toggle - Mobile Optimized */}
-                <div className="flex items-center bg-muted/50 rounded-md border border-border overflow-hidden w-full sm:w-auto">
-                  <button 
-                    onClick={() => setActiveTab('posts')}
-                    className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-all duration-200 border-r border-border ${
-                      activeTab === 'posts' 
-                        ? 'bg-primary/10 text-primary' 
-                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
-                    }`}
-                  >
-                    <span className="hidden sm:inline">Inbox Posts</span>
-                    <span className="sm:hidden">Posts</span>
-                  </button>
-                  <button 
-                    onClick={() => setActiveTab('notes')}
-                    className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-all duration-200 ${
-                      activeTab === 'notes' 
-                        ? 'bg-primary/10 text-primary' 
-                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
-                    }`}
-                  >
-                    <span className="hidden sm:inline">Saved Notes</span>
-                    <span className="sm:hidden">Notes</span>
-                  </button>
-                </div>
-
-                {/* Search Bar - Mobile Optimized */}
-                <div className="relative flex-1 min-w-0">
-                  <Search className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                  <Input
-                    type="text"
-                    placeholder="Search posts..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-8 sm:pl-10 w-full text-sm"
-                  />
-                </div>
+            <div className="flex items-center gap-2">
+              {/* Tab Toggle - Compact */}
+              <div className="flex items-center bg-muted/50 rounded-md border border-border overflow-hidden">
+                <button
+                  onClick={() => setActiveTab('posts')}
+                  className={`px-4 py-1.5 text-sm font-medium transition-all border-r border-border ${
+                    activeTab === 'posts'
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                  }`}
+                >
+                  Inbox Posts
+                </button>
+                <button
+                  onClick={() => setActiveTab('notes')}
+                  className={`px-4 py-1.5 text-sm font-medium transition-all ${
+                    activeTab === 'notes'
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                  }`}
+                >
+                  Saved Notes
+                </button>
               </div>
 
-              {/* Filters - Collapsible on Mobile */}
-              <div className="mt-3 space-y-2 sm:space-y-0">
-                {/* Primary Filters Row - Always Visible */}
-                <div className="flex flex-wrap items-center gap-2">
-                  {/* Sentiment Filter */}
-                  <select
-                    value={selectedSentiment}
-                    onChange={(e) => setSelectedSentiment(e.target.value)}
-                    className="appearance-none bg-background border border-border rounded-md px-2 sm:px-3 py-1.5 sm:py-2 pr-6 sm:pr-8 text-foreground text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer min-w-0 flex-1 sm:flex-none"
-                    style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
-                  >
-                    <option value="all">All Sentiments</option>
-                    <option value="POSITIVE">Positive</option>
-                    <option value="NEGATIVE">Negative</option>
-                    <option value="NEUTRAL">Neutral</option>
-                    <option value="MIXED">Mixed</option>
-                  </select>
+              {/* Search Bar - Compact */}
+              <div className="relative w-64">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  type="text"
+                  placeholder="Search posts..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-9 text-sm"
+                />
+              </div>
+            </div>
+          }
+        />
 
-                  {/* Platform Filter */}
-                  <select
-                    value={selectedPlatform}
-                    onChange={(e) => setSelectedPlatform(e.target.value)}
-                    className="appearance-none bg-background border border-border rounded-md px-2 sm:px-3 py-1.5 sm:py-2 pr-6 sm:pr-8 text-foreground text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer min-w-0 flex-1 sm:flex-none"
-                    style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
-                  >
-                    <option value="all">All Platforms</option>
-                    <option value="twitter">Twitter</option>
-                    <option value="facebook">Facebook</option>
-                    <option value="instagram">Instagram</option>
-                    <option value="youtube">YouTube</option>
-                    <option value="india-news">India News</option>
-                  </select>
+        {/* Filters Bar - Below Header */}
+        <div className="border-b border-border bg-background px-3 sm:px-4 lg:px-6 py-3">
+          <div className="max-w-[1800px] mx-auto">
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Sentiment Filter */}
+              <select
+                value={selectedSentiment}
+                onChange={(e) => setSelectedSentiment(e.target.value)}
+                className="appearance-none bg-background border border-border rounded-md px-3 py-1.5 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer"
+                style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
+              >
+                <option value="all">All Sentiments</option>
+                <option value="POSITIVE">Positive</option>
+                <option value="NEGATIVE">Negative</option>
+                <option value="NEUTRAL">Neutral</option>
+                <option value="MIXED">Mixed</option>
+              </select>
 
-                  {/* Campaign Filter - Hidden on mobile, shown on larger screens */}
-                  <select
-                    value={selectedCampaign}
-                    onChange={(e) => setSelectedCampaign(e.target.value)}
-                    className="hidden md:block appearance-none bg-background border border-border rounded-md px-3 py-2 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 max-w-[12rem] truncate cursor-pointer"
-                    style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
-                  >
+              {/* Platform Filter */}
+              <select
+                value={selectedPlatform}
+                onChange={(e) => setSelectedPlatform(e.target.value)}
+                className="appearance-none bg-background border border-border rounded-md px-3 py-1.5 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 cursor-pointer"
+                style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
+              >
+                <option value="all">All Platforms</option>
+                <option value="twitter">Twitter</option>
+                <option value="facebook">Facebook</option>
+                <option value="instagram">Instagram</option>
+                <option value="youtube">YouTube</option>
+                <option value="india-news">India News</option>
+              </select>
+
+              {/* Campaign Filter */}
+              <select
+                value={selectedCampaign}
+                onChange={(e) => setSelectedCampaign(e.target.value)}
+                className="appearance-none bg-background border border-border rounded-md px-3 py-1.5 pr-8 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 max-w-[12rem] truncate cursor-pointer"
+                style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23888\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
+              >
                     <option value="all">All Campaigns</option>
                     <option value="cmgjzn11q0001z2alaq70ckwk">Bengaluru Police</option>
                     <option value="cmgjzjpf50001z2yqum0gfs8a">Bengaluru Police</option>
                     <option value="cmgjz4l4k0001z2cknnhlna63">Karnataka</option>
                     <option value="cmghzsbzu0001z2ks8m3lkqwy">Karnataka</option>
                     <option value="cmghlcu8i00b1z2ulan0hltsc">Person: Namma Karnataka Sene</option>
-                    <option value="cmggordtg00ahz2ulvpwmh2c2">https://www.facebook.com/share/17Uviu2NRS/</option>
-                    <option value="cmggomfez00adz2ulbx65o7ta">[8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/15hQEYpsJg/ [8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/19QKn8syac/ [8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/1A6jV8udxm/ [8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/17Uviu2NRS/</option>
+                    {/* Facebook tracking links hidden - experimental feature */}
+                    {/* <option value="cmggordtg00ahz2ulvpwmh2c2">https://www.facebook.com/share/17Uviu2NRS/</option> */}
+                    {/* <option value="cmggomfez00adz2ulbx65o7ta">[8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/15hQEYpsJg/ [8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/19QKn8syac/ [8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/1A6jV8udxm/ [8:20 pm, 7/10/2025] Manju Cdr Ccps: https://www.facebook.com/share/17Uviu2NRS/</option> */}
                     <option value="cmgf1njtx000hz2ulnb7tt1o5">Namma Karnataka Sene</option>
                     <option value="cmgf1hd160003z2ul846zyil1">Namma Karnataka Sene</option>
                     <option value="cmgf0cqjl006tz21oqzh47ko2">Person: kiran_murthy_</option>

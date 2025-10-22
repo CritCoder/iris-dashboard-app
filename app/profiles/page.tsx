@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { PageLayout } from '@/components/layout/page-layout'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import { PageHeader } from '@/components/layout/page-header'
-import { Search, Users, MapPin, Calendar, MessageSquare, Heart, Share2, Eye, Download, Filter } from 'lucide-react'
+import { Search, Users, MapPin, Calendar, MessageSquare, Heart, Share2, Eye, Download, Filter, ArrowRight, TrendingUp, ThumbsDown, ThumbsUp, Twitter, Facebook, Instagram } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -20,6 +21,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/components/ui/empty'
+import { ProfilesGridSkeleton } from '@/components/skeletons/profile-card-skeleton'
 
 interface Profile {
   id: string
@@ -40,6 +42,8 @@ interface Profile {
 }
 
 function ProfileCard({ profile }: { profile: Profile }) {
+  const router = useRouter()
+  
   const getPlatformColor = (platform: string) => {
     switch (platform.toLowerCase()) {
       case 'twitter': return 'bg-sky-500'
@@ -50,89 +54,127 @@ function ProfileCard({ profile }: { profile: Profile }) {
     }
   }
 
+  const getPlatformIcon = (platform: string) => {
+    switch (platform.toLowerCase()) {
+      case 'twitter': return '𝕏'
+      case 'facebook': return '📘'
+      case 'instagram': return '📷'
+      case 'youtube': return '▶️'
+      default: return '🌐'
+    }
+  }
+
   const getSentimentColor = (sentiment?: string) => {
     switch (sentiment) {
-      case 'positive': return 'text-green-600 bg-green-50 border-green-200'
-      case 'negative': return 'text-red-600 bg-red-50 border-red-200'
-      case 'neutral': return 'text-gray-600 bg-gray-50 border-gray-200'
-      default: return 'text-gray-600 bg-gray-50 border-gray-200'
+      case 'positive': return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30'
+      case 'negative': return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30'
+      case 'neutral': return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-950/30'
+      default: return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-950/30'
     }
   }
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-6">
-        <div className="flex items-start gap-4">
-          <div className="relative">
-            <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-foreground font-semibold">
-              {profile.avatar || profile.displayName[0]}
-            </div>
-            <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full ${getPlatformColor(profile.platform)} border-2 border-background`} />
-          </div>
-          
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold text-foreground truncate">{profile.displayName}</h3>
-              {profile.verified && (
-                <Badge variant="secondary" className="text-xs">
-                  ✓
-                </Badge>
-              )}
-              {profile.blueVerified && (
-                <Badge variant="default" className="text-xs">
-                  Blue
-                </Badge>
-              )}
-            </div>
-            
-            <div className="text-sm text-muted-foreground mb-2">
-              @{profile.username} · {profile.platform}
-            </div>
-            
-            {profile.bio && (
-              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{profile.bio}</p>
-            )}
-            
-            <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-              <span className="flex items-center gap-1">
-                <Users className="w-3 h-3" />
-                {profile.followers.toLocaleString()}
-              </span>
-              <span className="flex items-center gap-1">
-                <MessageSquare className="w-3 h-3" />
-                {profile.posts.toLocaleString()}
-              </span>
-              {profile.engagement && (
-                <span className="flex items-center gap-1">
-                  <Heart className="w-3 h-3" />
-                  {profile.engagement.toLocaleString()}
-                </span>
-              )}
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {profile.location && (
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <MapPin className="w-3 h-3" />
-                    {profile.location}
-                  </span>
-                )}
-                {profile.lastActive && (
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Calendar className="w-3 h-3" />
-                    {profile.lastActive}
-                  </span>
+    <Card 
+      className="hover:shadow-lg transition-all hover:border-primary/50 group cursor-pointer"
+      onClick={() => router.push(`/profiles/${profile.id}`)}
+    >
+      <CardContent className="p-4">
+        {/* Header Row */}
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="relative flex-shrink-0">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-foreground font-bold text-lg border-2 border-primary/20 overflow-hidden">
+                {profile.avatar ? (
+                  <img
+                    src={profile.avatar}
+                    alt={profile.displayName}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    crossOrigin="anonymous"
+                    onError={(e) => {
+                      // Fallback to initials on image error
+                      const target = e.target as HTMLImageElement
+                      target.style.display = 'none'
+                      if (target.parentElement) {
+                        target.parentElement.innerHTML = profile.displayName[0].toUpperCase()
+                      }
+                    }}
+                  />
+                ) : (
+                  profile.displayName[0].toUpperCase()
                 )}
               </div>
-              
-              {profile.sentiment && (
-                <Badge className={`text-xs ${getSentimentColor(profile.sentiment)}`}>
-                  {profile.sentiment}
-                </Badge>
-              )}
+              <div className={`absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full ${getPlatformColor(profile.platform)} border-2 border-background flex items-center justify-center text-[10px]`}>
+                {getPlatformIcon(profile.platform)}
+              </div>
+            </div>
+            
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <h3 className="font-semibold text-foreground truncate text-sm">{profile.displayName}</h3>
+                {profile.verified && (
+                  <span className="text-blue-500 flex-shrink-0" title="Verified">✓</span>
+                )}
+                {profile.blueVerified && (
+                  <Badge variant="default" className="text-[10px] h-4 px-1">Blue</Badge>
+                )}
+              </div>
+              <div className="text-xs text-muted-foreground truncate">@{profile.username}</div>
             </div>
           </div>
+
+          {profile.sentiment && (
+            <Badge variant="outline" className={`text-[10px] h-5 px-1.5 flex-shrink-0 ${getSentimentColor(profile.sentiment)}`}>
+              {profile.sentiment}
+            </Badge>
+          )}
+        </div>
+
+        {/* Bio */}
+        {profile.bio && (
+          <p className="text-xs text-muted-foreground line-clamp-2 mb-3 leading-relaxed">
+            {profile.bio}
+          </p>
+        )}
+
+        {/* Stats Grid - Compact 3 columns */}
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          <div className="text-center p-2 rounded-md bg-muted/50 hover:bg-muted transition-colors">
+            <div className="text-xs font-semibold text-foreground">{profile.followers.toLocaleString()}</div>
+            <div className="text-[10px] text-muted-foreground">Followers</div>
+          </div>
+          <div className="text-center p-2 rounded-md bg-muted/50 hover:bg-muted transition-colors">
+            <div className="text-xs font-semibold text-foreground">{profile.posts.toLocaleString()}</div>
+            <div className="text-[10px] text-muted-foreground">Posts</div>
+          </div>
+          <div className="text-center p-2 rounded-md bg-muted/50 hover:bg-muted transition-colors">
+            <div className="text-xs font-semibold text-foreground">{(profile.engagement || 0).toLocaleString()}</div>
+            <div className="text-[10px] text-muted-foreground">Engagement</div>
+          </div>
+        </div>
+
+        {/* Footer Meta */}
+        <div className="flex items-center justify-between pt-2 border-t border-border">
+          <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+            {profile.location && (
+              <span className="flex items-center gap-1 truncate max-w-[120px]">
+                <MapPin className="w-3 h-3 flex-shrink-0" />
+                {profile.location}
+              </span>
+            )}
+            {profile.lastActive && (
+              <span className="flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                {profile.lastActive}
+              </span>
+            )}
+          </div>
+          
+          <Button size="sm" variant="ghost" className="h-6 px-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+            View
+            <ArrowRight className="w-3 h-3 ml-1" />
+          </Button>
         </div>
       </CardContent>
     </Card>
@@ -140,9 +182,24 @@ function ProfileCard({ profile }: { profile: Profile }) {
 }
 
 export default function ProfilesPage() {
+  const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState('')
   const [activeFilter, setActiveFilter] = useState('all')
   const [sortBy, setSortBy] = useState('followers')
+
+  // Read filter and platform from URL params
+  useEffect(() => {
+    const filterParam = searchParams.get('filter')
+    const platformParam = searchParams.get('platform')
+    
+    if (filterParam) {
+      setActiveFilter(filterParam)
+    } else if (platformParam) {
+      setActiveFilter(platformParam)
+    } else {
+      setActiveFilter('all')
+    }
+  }, [searchParams])
 
   // Build API params based on search and filter
   const apiParams = useMemo(() => {
@@ -154,8 +211,33 @@ export default function ProfilesPage() {
       params.search = searchQuery
     }
 
-    // Apply filter-based params
+    // Apply filter-based params from sidebar
     switch (activeFilter) {
+      case 'high-impact':
+        params.minFollowers = 50000
+        params.minEngagement = 5000
+        break
+      case 'high-reach':
+        params.minFollowers = 100000
+        break
+      case 'engaged':
+        params.minEngagement = 10000
+        break
+      case 'negative':
+        params.sentiment = 'NEGATIVE'
+        break
+      case 'positive':
+        params.sentiment = 'POSITIVE'
+        break
+      case 'twitter':
+        params.platform = 'twitter'
+        break
+      case 'facebook':
+        params.platform = 'facebook'
+        break
+      case 'instagram':
+        params.platform = 'instagram'
+        break
       case 'verified':
         params.isVerified = true
         break
@@ -168,21 +250,22 @@ export default function ProfilesPage() {
       case 'active':
         params.personStatus = 'active'
         break
-      case 'twitter':
-        params.platform = 'twitter'
-        break
-      case 'facebook':
-        params.platform = 'facebook'
-        break
-      case 'instagram':
-        params.platform = 'instagram'
-        break
     }
 
     return params
   }, [searchQuery, activeFilter])
 
   const { data: profiles, loading, error } = useProfiles(apiParams)
+  
+  // Log for debugging
+  useEffect(() => {
+    if (error) {
+      console.error('Profiles error:', error)
+    }
+    if (profiles) {
+      console.log('Profiles data sample:', profiles?.slice?.(0, 2) || profiles)
+    }
+  }, [error, profiles])
   
   // Normalize API response into a flat array of Profile objects
   const allProfiles: Profile[] = useMemo(() => {
@@ -198,12 +281,29 @@ export default function ProfilesPage() {
           : []
 
     // Best-effort field normalization
-    return list.map((p: any) => {
+    return list.map((p: any, index: number) => {
       const platformGuess = p?.platform
         || (p?.twitterUrl ? 'twitter'
             : p?.facebookUrl ? 'facebook'
             : p?.instagramUrl ? 'instagram'
             : 'twitter')
+
+      const avatarUrl = p?.avatar || p?.profileImageUrl || p?.profile_image_url || p?.image
+      
+      // Debug log for first 3 profiles to check avatar URLs
+      if (index < 3) {
+        console.log(`Profile ${index} avatar check:`, {
+          username: p?.username,
+          hasAvatar: !!avatarUrl,
+          avatarUrl: avatarUrl,
+          rawFields: {
+            avatar: p?.avatar,
+            profileImageUrl: p?.profileImageUrl,
+            profile_image_url: p?.profile_image_url,
+            image: p?.image
+          }
+        })
+      }
 
       return {
         id: String(p?.id || p?._id || p?.username || p?.userName || Math.random()),
@@ -217,7 +317,7 @@ export default function ProfilesPage() {
         blueVerified: !!(p?.blueVerified ?? p?.isBlueVerified),
         location: p?.location,
         bio: p?.bio || p?.description || p?.profile_bio,
-        avatar: p?.avatar,
+        avatar: avatarUrl,
         lastActive: p?.lastActive,
         engagement: p?.engagement,
         sentiment: p?.sentiment,
@@ -265,29 +365,58 @@ export default function ProfilesPage() {
       <PageLayout>
         <PageHeader
           title="Social Profiles"
-          description="Manage and analyze social media profiles"
+          description="Loading profiles..."
         />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 9 }).map((_, i) => (
-              <Card key={i} className="animate-pulse">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-full bg-secondary" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 w-3/4 bg-secondary rounded" />
-                      <div className="h-3 w-1/2 bg-secondary rounded" />
-                      <div className="h-3 w-full bg-secondary rounded" />
-                      <div className="h-3 w-2/3 bg-secondary rounded" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          <ProfilesGridSkeleton count={12} />
+        </div>
+      </PageLayout>
+    )
+  }
+
+  // Show error state with retry option
+  if (error) {
+    return (
+      <PageLayout>
+        <PageHeader
+          title="Social Profiles"
+          description="Unable to load profiles"
+        />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-foreground mb-2">Failed to load profiles</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                {error.includes('401') ? 'Authentication failed. Please try logging in again.' : error}
+              </p>
+              <Button onClick={() => window.location.reload()}>
+                Retry
+              </Button>
+            </div>
           </div>
         </div>
       </PageLayout>
     )
+  }
+
+  // Get filter label for display
+  const getFilterLabel = () => {
+    const filterLabels: Record<string, string> = {
+      'all': 'All Authors',
+      'high-impact': 'High Impact',
+      'high-reach': 'High Reach',
+      'engaged': 'Engaged Posters',
+      'negative': 'Negative Influencers',
+      'positive': 'Positive Influencers',
+      'twitter': 'Twitter Profiles',
+      'facebook': 'Facebook Profiles',
+      'instagram': 'Instagram Profiles',
+      'verified': 'Verified Profiles',
+      'blue-verified': 'Blue Verified',
+      'high-followers': 'High Followers',
+      'active': 'Active Profiles'
+    }
+    return filterLabels[activeFilter] || 'All Authors'
   }
 
   return (
@@ -295,7 +424,7 @@ export default function ProfilesPage() {
       <PageLayout>
       <div className="h-screen flex flex-col overflow-hidden">
       <PageHeader
-        title="Social Profiles"
+        title={`${getFilterLabel()} (${filteredProfiles.length})`}
           description={error ? "Unable to load profiles from the API" : "Manage and analyze social media profiles"}
         actions={
           <div className="flex items-center gap-2">
@@ -325,29 +454,101 @@ export default function ProfilesPage() {
                 className="pl-10"
               />
             </div>
-            <div className="flex gap-2">
-              <select
-                value={activeFilter}
-                onChange={(e) => setActiveFilter(e.target.value)}
-                className="appearance-none bg-background border border-border text-foreground text-sm rounded-lg px-3 py-2 cursor-pointer hover:bg-accent/20 transition-colors"
-              >
-                {(filterOptions || []).map(option => (
-                  <option key={option.id} value={option.id}>
-                    {option.label} ({option.count})
-                  </option>
-                ))}
-              </select>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="appearance-none bg-background border border-border text-foreground text-sm rounded-lg px-3 py-2 cursor-pointer hover:bg-accent/20 transition-colors"
-              >
-                <option value="followers">Sort by Followers</option>
-                <option value="posts">Sort by Posts</option>
-                <option value="engagement">Sort by Engagement</option>
-                <option value="name">Sort by Name</option>
-              </select>
-            </div>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="appearance-none bg-background border border-border text-foreground text-sm rounded-lg px-3 py-2 cursor-pointer hover:bg-accent/20 transition-colors"
+            >
+              <option value="followers">Sort by Followers</option>
+              <option value="posts">Sort by Posts</option>
+              <option value="engagement">Sort by Engagement</option>
+              <option value="name">Sort by Name</option>
+            </select>
+          </div>
+
+          {/* Horizontal Filter Chips */}
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+            <Button
+              variant={activeFilter === 'all' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveFilter('all')}
+              className="flex items-center gap-2 whitespace-nowrap"
+            >
+              <Users className="w-4 h-4" />
+              All Authors
+            </Button>
+            <Button
+              variant={activeFilter === 'high-impact' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveFilter('high-impact')}
+              className="flex items-center gap-2 whitespace-nowrap"
+            >
+              <TrendingUp className="w-4 h-4" />
+              High Impact
+            </Button>
+            <Button
+              variant={activeFilter === 'high-reach' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveFilter('high-reach')}
+              className="flex items-center gap-2 whitespace-nowrap"
+            >
+              <Eye className="w-4 h-4" />
+              High Reach
+            </Button>
+            <Button
+              variant={activeFilter === 'engaged' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveFilter('engaged')}
+              className="flex items-center gap-2 whitespace-nowrap"
+            >
+              <MessageSquare className="w-4 h-4" />
+              Engaged Posters
+            </Button>
+            <Button
+              variant={activeFilter === 'negative' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveFilter('negative')}
+              className="flex items-center gap-2 whitespace-nowrap"
+            >
+              <ThumbsDown className="w-4 h-4" />
+              Negative
+            </Button>
+            <Button
+              variant={activeFilter === 'positive' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveFilter('positive')}
+              className="flex items-center gap-2 whitespace-nowrap"
+            >
+              <ThumbsUp className="w-4 h-4" />
+              Positive
+            </Button>
+            <Button
+              variant={activeFilter === 'twitter' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveFilter('twitter')}
+              className="flex items-center gap-2 whitespace-nowrap"
+            >
+              <Twitter className="w-4 h-4" />
+              Twitter
+            </Button>
+            <Button
+              variant={activeFilter === 'facebook' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveFilter('facebook')}
+              className="flex items-center gap-2 whitespace-nowrap"
+            >
+              <Facebook className="w-4 h-4" />
+              Facebook
+            </Button>
+            <Button
+              variant={activeFilter === 'instagram' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveFilter('instagram')}
+              className="flex items-center gap-2 whitespace-nowrap"
+            >
+              <Instagram className="w-4 h-4" />
+              Instagram
+            </Button>
           </div>
         </div>
 

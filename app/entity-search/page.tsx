@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { PageLayout } from '@/components/layout/page-layout'
-import { PageHeader } from '@/components/layout/page-header'
 import { Search, User, MapPin, CreditCard, Car, FileText, Phone, Loader2, CheckCircle2, XCircle, AlertCircle, Building2, Hash, Users2, MessageSquare, FileCheck, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -279,6 +278,293 @@ function PUCCard({ pucData }: { pucData: any }) {
   )
 }
 
+function renderFormattedResult(result: SearchResult) {
+  const data = result.data?.data || result.data
+  
+  // IronVeil search results
+  if (result.type.startsWith('ironveil-') && data?.result) {
+    const searchResult = data.result
+    
+    if (searchResult.success && searchResult.data) {
+      return (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-sm text-green-600">
+            <CheckCircle2 className="w-4 h-4" />
+            <span className="font-medium">Data Found</span>
+          </div>
+          
+          <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-sm">Search ID:</span>
+                <span className="text-xs font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                  {data.searchId || 'N/A'}
+                </span>
+              </div>
+              
+              {searchResult.data && typeof searchResult.data === 'object' && (
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm">Found Data:</h4>
+                  <div className="bg-white dark:bg-gray-900 border rounded p-3 text-xs">
+                    {Object.entries(searchResult.data).map(([key, value]) => (
+                      <div key={key} className="flex justify-between py-1 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+                        <span className="font-medium capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}:</span>
+                        <span className="text-gray-600 dark:text-gray-400">{String(value)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {data.metadata && (
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  <div>Searched: {data.metadata.query}</div>
+                  <div>Source: {data.metadata.source}</div>
+                  <div>Timestamp: {new Date(data.metadata.timestamp).toLocaleString()}</div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )
+    } else {
+      return (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-sm text-orange-600">
+            <AlertCircle className="w-4 h-4" />
+            <span className="font-medium">Search Completed - No Data Found</span>
+          </div>
+          
+          <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-sm">Search ID:</span>
+                <span className="text-xs font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                  {data.searchId || 'N/A'}
+                </span>
+              </div>
+              
+              {searchResult.error && (
+                <div className="text-sm text-orange-700 dark:text-orange-300">
+                  <strong>Error:</strong> {searchResult.error}
+                </div>
+              )}
+              
+              {data.metadata && (
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  <div>Searched: {data.metadata.query}</div>
+                  <div>Source: {data.metadata.source}</div>
+                  <div>Timestamp: {new Date(data.metadata.timestamp).toLocaleString()}</div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )
+    }
+  }
+  
+  // TrueCaller results
+  if (result.type === 'truecaller' && data) {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-sm text-green-600">
+          <CheckCircle2 className="w-4 h-4" />
+          <span className="font-medium">TrueCaller Data Found</span>
+        </div>
+        
+        <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+          <div className="space-y-2">
+            {data.name && (
+              <div className="flex justify-between">
+                <span className="font-medium text-sm">Name:</span>
+                <span className="text-sm">{data.name}</span>
+              </div>
+            )}
+            {data.location && (
+              <div className="flex justify-between">
+                <span className="font-medium text-sm">Location:</span>
+                <span className="text-sm">{data.location}</span>
+              </div>
+            )}
+            {data.carrier && (
+              <div className="flex justify-between">
+                <span className="font-medium text-sm">Carrier:</span>
+                <span className="text-sm">{data.carrier}</span>
+              </div>
+            )}
+            {data.spamScore && (
+              <div className="flex justify-between">
+                <span className="font-medium text-sm">Spam Score:</span>
+                <span className="text-sm">{data.spamScore}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+  
+  // Mobile search results
+  if (result.type.startsWith('mobile-') && data) {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-sm text-green-600">
+          <CheckCircle2 className="w-4 h-4" />
+          <span className="font-medium">Mobile Data Found</span>
+        </div>
+        
+        <div className="bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+          <div className="space-y-2">
+            {Object.entries(data).map(([key, value]) => (
+              <div key={key} className="flex justify-between">
+                <span className="font-medium text-sm capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}:</span>
+                <span className="text-sm">{String(value)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+  
+  // Vehicle search results
+  if (result.type.startsWith('vehicle-') && data) {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-sm text-green-600">
+          <CheckCircle2 className="w-4 h-4" />
+          <span className="font-medium">Vehicle Data Found</span>
+        </div>
+        
+        <div className="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4">
+          <div className="space-y-2">
+            {Object.entries(data).map(([key, value]) => (
+              <div key={key} className="flex justify-between">
+                <span className="font-medium text-sm capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}:</span>
+                <span className="text-sm">{String(value)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+  
+  // Entity analytics results
+  if (result.type === 'entity-analytics' && data) {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-sm text-green-600">
+          <CheckCircle2 className="w-4 h-4" />
+          <span className="font-medium">Entity Analytics Found</span>
+        </div>
+        
+        <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4">
+          <div className="space-y-2">
+            {Array.isArray(data) ? (
+              <div>
+                <div className="font-medium text-sm mb-2">Found {data.length} entities:</div>
+                <div className="space-y-1 max-h-40 overflow-y-auto">
+                  {data.slice(0, 5).map((entity: any, index: number) => (
+                    <div key={index} className="flex justify-between text-xs bg-white dark:bg-gray-900 p-2 rounded">
+                      <span className="font-medium">{entity.name}</span>
+                      <span className="text-gray-500">{entity.type}</span>
+                    </div>
+                  ))}
+                  {data.length > 5 && (
+                    <div className="text-xs text-gray-500 text-center py-1">
+                      ... and {data.length - 5} more entities
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {Object.entries(data).map(([key, value]) => (
+                  <div key={key} className="flex justify-between">
+                    <span className="font-medium text-sm capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}:</span>
+                    <span className="text-sm">{String(value)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+  
+  // Entity search results
+  if (result.type === 'entity-search' && data) {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-sm text-green-600">
+          <CheckCircle2 className="w-4 h-4" />
+          <span className="font-medium">Entity Search Results</span>
+        </div>
+        
+        <div className="bg-teal-50 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-800 rounded-lg p-4">
+          <div className="space-y-2">
+            {Array.isArray(data) ? (
+              <div>
+                <div className="font-medium text-sm mb-2">Found {data.length} matching entities:</div>
+                <div className="space-y-1 max-h-40 overflow-y-auto">
+                  {data.slice(0, 5).map((entity: any, index: number) => (
+                    <div key={index} className="flex justify-between text-xs bg-white dark:bg-gray-900 p-2 rounded">
+                      <span className="font-medium">{entity.name}</span>
+                      <span className="text-gray-500">{entity.type}</span>
+                    </div>
+                  ))}
+                  {data.length > 5 && (
+                    <div className="text-xs text-gray-500 text-center py-1">
+                      ... and {data.length - 5} more entities
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {Object.entries(data).map(([key, value]) => (
+                  <div key={key} className="flex justify-between">
+                    <span className="font-medium text-sm capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}:</span>
+                    <span className="text-sm">{String(value)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+  
+  // Fallback for any other data format
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 text-sm text-green-600">
+        <CheckCircle2 className="w-4 h-4" />
+        <span className="font-medium">Data Found</span>
+      </div>
+      
+      <div className="bg-gray-50 dark:bg-gray-900 border rounded-lg p-4">
+        <div className="space-y-2">
+          {typeof data === 'object' && data !== null ? (
+            Object.entries(data).map(([key, value]) => (
+              <div key={key} className="flex justify-between">
+                <span className="font-medium text-sm capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}:</span>
+                <span className="text-sm">{String(value)}</span>
+              </div>
+            ))
+          ) : (
+            <div className="text-sm">{String(data)}</div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ResultCard({ result, onRetry, searchQuery }: { result: SearchResult; onRetry?: (optionId: string, query: string) => void; searchQuery?: string }) {
   const Icon = result.loading ? Loader2 : result.found ? CheckCircle2 : result.error ? AlertCircle : XCircle
   
@@ -355,7 +641,7 @@ function ResultCard({ result, onRetry, searchQuery }: { result: SearchResult; on
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => onRetry(result.type, searchQuery)}
+                  onClick={() => onRetry(result.type, searchQuery || '')}
                   className="text-xs"
                 >
                   <RefreshCw className="w-3 h-3 mr-1" />
@@ -365,12 +651,10 @@ function ResultCard({ result, onRetry, searchQuery }: { result: SearchResult; on
             )}
           </div>
         ) : result.found && result.data ? (
-          <div className="space-y-2">
-            <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-xs">
-              {JSON.stringify(result.data, null, 2)}
-            </pre>
-                  </div>
-                ) : (
+          <div className="space-y-3">
+            {renderFormattedResult(result)}
+          </div>
+        ) : (
           <Empty>
             <EmptyHeader>
               <EmptyMedia variant="icon">
@@ -423,13 +707,6 @@ export default function EntitySearchPage() {
     setSelectedOptions(filteredOptions.map(opt => opt.id))
   }
 
-  // Auto-select cheapest option (first option) when search type changes
-  useEffect(() => {
-    if (filteredOptions.length > 0) {
-      setSelectedOptions([filteredOptions[0].id])
-    }
-  }, [searchType])
-
   const clearAllOptions = () => {
     setSelectedOptions([])
   }
@@ -480,13 +757,13 @@ export default function EntitySearchPage() {
     } catch (error) {
       console.error('PUC check error:', error)
       
-      if (retryCount < maxRetries && (error instanceof TypeError || error.message.includes('fetch'))) {
+      if (retryCount < maxRetries && (error instanceof TypeError || (error as Error).message?.includes('fetch'))) {
         console.log(`Network error, retrying PUC check (attempt ${retryCount + 1}/${maxRetries})...`)
         await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)))
         return checkPUCStatus(vehicleNumber, vehicleType, retryCount + 1)
       }
       
-      throw new Error(error.message || 'Failed to retrieve PUC data from Karnataka transport department')
+      throw new Error((error as Error).message || 'Failed to retrieve PUC data from Karnataka transport department')
     }
   }
 
@@ -625,7 +902,7 @@ export default function EntitySearchPage() {
       return {
         type: optionId,
         title: option.label,
-        found: result && (result.success || result.status === 'success' || result.data),
+        found: result && (result.success || result.data),
         data: result,
         error: undefined
       }
@@ -729,13 +1006,8 @@ export default function EntitySearchPage() {
   return (
     <PageLayout>
       <div className="h-screen flex flex-col bg-background overflow-hidden">
-        <PageHeader 
-          title="Unified Search" 
-          description="Comprehensive intelligence search across multiple databases"
-        />
-
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-7xl mx-auto p-3 sm:p-4 lg:p-6 xl:p-8 space-y-4 sm:space-y-6">
+        <div className="flex-1 overflow-y-auto flex items-center justify-center">
+          <div className="max-w-4xl w-full mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 space-y-4 sm:space-y-6">
             {/* Search Form */}
             <Card>
               <CardHeader>
@@ -978,7 +1250,7 @@ export default function EntitySearchPage() {
                   </Badge>
                     </div>
 
-                <AnimatedGrid stagger={0.05} className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                <AnimatedGrid className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   {results.map((result, index) => (
                     <AnimatedCard key={`${result.type}-${index}`}>
                       <ResultCard result={result} onRetry={handleRetry} searchQuery={searchQuery} />

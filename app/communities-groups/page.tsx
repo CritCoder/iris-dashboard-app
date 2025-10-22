@@ -1,15 +1,16 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { PageLayout } from '@/components/layout/page-layout'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import { PageHeader } from '@/components/layout/page-header'
-import { Search, Building2, TrendingUp, TrendingDown, BarChart3, Download, Filter, Users, MessageSquare, Calendar, Users2, Shield, Globe } from 'lucide-react'
+import { Search, Building2, TrendingUp, TrendingDown, BarChart3, Download, Filter, Users, MessageSquare, Calendar, Users2, Shield, Globe, Eye, EyeOff, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCommunities, useGroups } from '@/hooks/use-api'
+import { useToast } from '@/hooks/use-toast'
 import {
   Empty,
   EmptyContent,
@@ -54,7 +55,15 @@ interface Group {
 
 type SocialEntity = Community | Group
 
-function SocialEntityCard({ entity }: { entity: SocialEntity }) {
+function SocialEntityCard({ 
+  entity, 
+  isMonitored, 
+  onToggleMonitor 
+}: { 
+  entity: SocialEntity
+  isMonitored: boolean
+  onToggleMonitor: (id: string) => void
+}) {
   const getTypeColor = (type: string, category?: string) => {
     if (category === 'community') {
       switch (type) {
@@ -176,11 +185,34 @@ function SocialEntityCard({ entity }: { entity: SocialEntity }) {
                 )}
               </div>
               
-              {entity.sentiment && (
-                <Badge className={`text-xs ${getSentimentColor(entity.sentiment)}`}>
-                  {entity.sentiment}
-                </Badge>
-              )}
+              <div className="flex items-center gap-2">
+                {entity.sentiment && (
+                  <Badge className={`text-xs ${getSentimentColor(entity.sentiment)}`}>
+                    {entity.sentiment}
+                  </Badge>
+                )}
+                <Button
+                  size="sm"
+                  variant={isMonitored ? "default" : "outline"}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onToggleMonitor(entity.id)
+                  }}
+                  className="h-7 px-3 gap-1.5 text-xs"
+                >
+                  {isMonitored ? (
+                    <>
+                      <Check className="w-3 h-3" />
+                      Monitoring
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="w-3 h-3" />
+                      Monitor
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -194,6 +226,50 @@ export default function CommunitiesGroupsPage() {
   const [activeFilter, setActiveFilter] = useState('all')
   const [sortBy, setSortBy] = useState('members')
   const [viewType, setViewType] = useState<'all' | 'communities' | 'groups'>('all')
+  const [monitoredIds, setMonitoredIds] = useState<Set<string>>(new Set())
+  const { toast } = useToast()
+
+  // Load monitored groups from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('monitored-groups')
+    if (saved) {
+      try {
+        const ids = JSON.parse(saved)
+        setMonitoredIds(new Set(ids))
+      } catch (e) {
+        console.error('Failed to load monitored groups:', e)
+      }
+    }
+  }, [])
+
+  // Save monitored groups to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('monitored-groups', JSON.stringify(Array.from(monitoredIds)))
+  }, [monitoredIds])
+
+  const toggleMonitor = (id: string) => {
+    setMonitoredIds(prev => {
+      const newSet = new Set(prev)
+      const isAdding = !newSet.has(id)
+      
+      if (isAdding) {
+        newSet.add(id)
+        toast({
+          title: "Added to Watchlist",
+          description: "This group is now being monitored.",
+        })
+      } else {
+        newSet.delete(id)
+        toast({
+          title: "Removed from Watchlist",
+          description: "This group is no longer being monitored.",
+          variant: "destructive"
+        })
+      }
+      
+      return newSet
+    })
+  }
 
   // Build API params based on search and filter
   const communitiesParams = useMemo(() => {
@@ -232,104 +308,10 @@ export default function CommunitiesGroupsPage() {
 
   const { data: communities, loading: communitiesLoading, error: communitiesError } = useCommunities(communitiesParams)
   const { data: groups, loading: groupsLoading, error: groupsError } = useGroups(groupsParams)
-  
-  // Sample data for when API fails
-  const sampleCommunities: Community[] = [
-    {
-      id: '1',
-      name: 'Karnataka Politics Discussion',
-      type: 'political',
-      members: 125000,
-      posts: 5600,
-      platform: 'Reddit',
-      description: 'Discussion forum for Karnataka state politics, elections, and governance issues.',
-      created: '3 years ago',
-      lastActive: '1 hour ago',
-      engagement: 25000,
-      sentiment: 'neutral',
-      activityLevel: 'high',
-      category: 'community'
-    },
-    {
-      id: '2',
-      name: 'Bengaluru Tech Community',
-      type: 'professional',
-      members: 89000,
-      posts: 3200,
-      platform: 'Discord',
-      description: 'Professional community for tech workers in Bengaluru to network and share opportunities.',
-      created: '2 years ago',
-      lastActive: '2 hours ago',
-      engagement: 18000,
-      sentiment: 'positive',
-      activityLevel: 'high',
-      category: 'community'
-    },
-    {
-      id: '3',
-      name: 'Karnataka Social Issues',
-      type: 'social',
-      members: 67000,
-      posts: 4800,
-      platform: 'Facebook',
-      description: 'Community discussing social issues, welfare programs, and citizen concerns in Karnataka.',
-      created: '4 years ago',
-      lastActive: '30 minutes ago',
-      engagement: 15000,
-      sentiment: 'negative',
-      activityLevel: 'moderate',
-      category: 'community'
-    }
-  ]
 
-  const sampleGroups: Group[] = [
-    {
-      id: '1',
-      name: 'Bengaluru Police Community',
-      type: 'public',
-      members: 45000,
-      posts: 1200,
-      platform: 'Facebook',
-      description: 'Official community for Bengaluru Police updates, safety tips, and citizen engagement.',
-      created: '2 years ago',
-      lastActive: '2 hours ago',
-      engagement: 8900,
-      sentiment: 'positive',
-      category: 'Government'
-    },
-    {
-      id: '2',
-      name: 'Karnataka Traffic Updates',
-      type: 'public',
-      members: 32000,
-      posts: 890,
-      platform: 'Telegram',
-      description: 'Real-time traffic updates and road condition reports for Karnataka state.',
-      created: '1 year ago',
-      lastActive: '30 minutes ago',
-      engagement: 5600,
-      sentiment: 'neutral',
-      category: 'Transport'
-    },
-    {
-      id: '3',
-      name: 'Bellandur Residents Forum',
-      type: 'private',
-      members: 8500,
-      posts: 2340,
-      platform: 'WhatsApp',
-      description: 'Private forum for Bellandur area residents to discuss local issues and community updates.',
-      created: '3 years ago',
-      lastActive: '1 hour ago',
-      engagement: 2300,
-      sentiment: 'negative',
-      category: 'Community'
-    }
-  ]
-
-  // Use API data if available and no error, otherwise use sample data
-  const allCommunities = (communities && communities.length > 0 && !communitiesError) ? communities.map(c => ({ ...c, category: 'community' })) : sampleCommunities
-  const allGroups = (groups && groups.length > 0 && !groupsError) ? groups : sampleGroups
+  // Use API data if available, otherwise use empty arrays
+  const allCommunities = (communities && communities.length > 0 && !communitiesError) ? communities.map(c => ({ ...c, category: 'community' })) : []
+  const allGroups = (groups && groups.length > 0 && !groupsError) ? groups : []
 
   // Combine all entities
   const allEntities: SocialEntity[] = useMemo(() => {
@@ -342,6 +324,14 @@ export default function CommunitiesGroupsPage() {
     if (!allEntities || !Array.isArray(allEntities)) return []
 
     let filtered = [...allEntities]
+
+    // Apply monitored filter
+    if (activeFilter === 'monitored') {
+      filtered = filtered.filter(e => monitoredIds.has(e.id))
+    } else if (activeFilter !== 'all') {
+      // Apply other filters (existing logic)
+      // Filter by type, platform, etc.
+    }
 
     // Apply sorting
     switch (sortBy) {
@@ -360,10 +350,11 @@ export default function CommunitiesGroupsPage() {
     }
 
     return filtered
-  }, [allEntities, sortBy])
+  }, [allEntities, sortBy, activeFilter, monitoredIds])
 
   const filterOptions = [
     { id: 'all', label: 'All', count: allEntities.length },
+    { id: 'monitored', label: '👁️ Watchlist', count: allEntities.filter(e => monitoredIds.has(e.id)).length },
     { id: 'communities', label: 'Communities', count: allCommunities.length },
     { id: 'groups', label: 'Groups', count: allGroups.length },
     { id: 'political', label: 'Political', count: allEntities.filter(e => e.type === 'political').length },
@@ -387,7 +378,7 @@ export default function CommunitiesGroupsPage() {
           title="Communities & Groups"
           description="Manage and analyze social media communities and groups"
         />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div className="max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 9 }).map((_, i) => (
               <Card key={i} className="animate-pulse">
@@ -415,7 +406,7 @@ export default function CommunitiesGroupsPage() {
       <PageLayout>
         <PageHeader
           title="Communities & Groups"
-          description={error ? "Manage and analyze social media communities and groups (showing sample data)" : "Manage and analyze social media communities and groups"}
+          description="Manage and analyze social media communities and groups"
           actions={
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" className="gap-2">
@@ -430,7 +421,7 @@ export default function CommunitiesGroupsPage() {
           }
         />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div className="max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-8 min-h-[calc(100vh-200px)] flex flex-col">
           {/* View Type Toggle */}
           <div className="mb-6">
             <div className="flex gap-2">
@@ -496,25 +487,32 @@ export default function CommunitiesGroupsPage() {
             </div>
           </div>
 
-          {/* Entities Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(filteredEntities || []).map((entity) => (
-              <SocialEntityCard key={entity.id} entity={entity} />
-            ))}
-          </div>
-
-          {filteredEntities.length === 0 && !loading && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <Users2 className="w-12 h-12 text-muted-foreground" />
-                </EmptyMedia>
-                <EmptyTitle>No Communities or Groups Found</EmptyTitle>
-                <EmptyDescription>
-                  Try adjusting your search criteria or filters to find more communities and groups.
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
+          {/* Content Area */}
+          {filteredEntities.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {(filteredEntities || []).map((entity, index) => (
+                <SocialEntityCard 
+                  key={`${entity.id}-${index}`} 
+                  entity={entity} 
+                  isMonitored={monitoredIds.has(entity.id)}
+                  onToggleMonitor={toggleMonitor}
+                />
+              ))}
+            </div>
+          ) : !loading && (
+            <div className="flex-1 flex items-center justify-center">
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <Users2 className="w-12 h-12 text-muted-foreground" />
+                  </EmptyMedia>
+                  <EmptyTitle>No Communities or Groups Found</EmptyTitle>
+                  <EmptyDescription>
+                    Try adjusting your search criteria or filters to find more communities and groups.
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            </div>
           )}
         </div>
       </PageLayout>

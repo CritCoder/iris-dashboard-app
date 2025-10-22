@@ -1,20 +1,78 @@
 import * as React from "react"
+import { motion } from "framer-motion"
 
 import { cn } from "@/lib/utils"
+import { cardVariants, fadeInUpVariants } from "@/lib/motion"
 
-const Card = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm",
-      className
-    )}
-    {...props}
-  />
-))
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  disableAnimation?: boolean
+  hoverEffect?: boolean
+  fadeIn?: boolean
+}
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, disableAnimation = false, hoverEffect = false, fadeIn = false, ...props }, ref) => {
+    // No animation
+    if (disableAnimation) {
+      return (
+        <div
+          ref={ref}
+          className={cn(
+            "rounded-lg border bg-card text-card-foreground shadow-sm will-change-transform",
+            className
+          )}
+          {...props}
+        />
+      )
+    }
+
+    // With hover effect
+    if (hoverEffect) {
+      return (
+        <motion.div
+          ref={ref}
+          className={cn(
+            "rounded-lg border bg-card text-card-foreground shadow-sm will-change-transform",
+            className
+          )}
+          variants={cardVariants}
+          initial="initial"
+          whileHover="hover"
+          {...props}
+        />
+      )
+    }
+
+    // With fade in
+    if (fadeIn) {
+      return (
+        <motion.div
+          ref={ref}
+          className={cn(
+            "rounded-lg border bg-card text-card-foreground shadow-sm will-change-transform",
+            className
+          )}
+          variants={fadeInUpVariants}
+          initial="hidden"
+          animate="visible"
+          {...props}
+        />
+      )
+    }
+
+    // Default (no animation for backward compatibility)
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          "rounded-lg border bg-card text-card-foreground shadow-sm",
+          className
+        )}
+        {...props}
+      />
+    )
+  }
+)
 Card.displayName = "Card"
 
 const CardHeader = React.forwardRef<

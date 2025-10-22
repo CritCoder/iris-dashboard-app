@@ -87,13 +87,16 @@ export default function LoginPage() {
           } else {
             // For mobile login, send OTP
             const phoneNumber = `${formData.countryCode}${formData.mobile}`
+            // Remove the + sign from the beginning of the phone number if present
+            const cleanPhoneNumber = phoneNumber.startsWith('+') ? phoneNumber.substring(1) : phoneNumber;
+            
             const response = await fetch(`${API_URL}/api/auth/otpLogin`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                phoneNumber: phoneNumber
+                phoneNumber: cleanPhoneNumber
               })
             })
 
@@ -116,9 +119,9 @@ export default function LoginPage() {
               error(result.error?.message || result.message || 'Failed to send OTP')
             }
           }
-    } catch (error) {
+    } catch (err) {
       error('Failed to send OTP. Please try again.')
-      console.error('Login error:', error)
+      console.error('Login error:', err)
     } finally {
       setIsLoading(false)
     }

@@ -8,7 +8,7 @@ import {
   Home, Mail, Play, BarChart3, Globe, Users, Hash, MapPin, Building,
   Search, Shield, ChevronRight, X,
   TrendingUp, Eye, MessageSquare, Sparkles, Target, AlertTriangle, Activity,
-  Newspaper, Video, Smile, Meh, Frown, User
+  Newspaper, Video, Smile, Meh, Frown, User, MessageCircle
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
@@ -129,9 +129,9 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
 
   const exploreItems = useMemo<NavItemData[]>(() => [
     { id: 'social-feed', label: 'Social Feed', icon: Globe, href: '/social-feed', submenu: 'social-feed' },
-    { id: 'profiles', label: 'Profiles', icon: Users, href: '/profiles', submenu: 'profiles' },
-    { id: 'entities', label: 'Entities', icon: Hash, href: '/entities', submenu: 'entities' },
-    { id: 'locations', label: 'Locations', icon: MapPin, href: '/locations', submenu: 'locations' },
+    { id: 'profiles', label: 'Profiles', icon: Users, href: '/profiles' },
+    { id: 'entities', label: 'Entities', icon: Hash, href: '/entities' },
+    { id: 'locations', label: 'Locations', icon: MapPin, href: '/locations' },
     { id: 'groups', label: 'Groups & Organizations', icon: Building, href: '/organizations' },
   ], [])
 
@@ -150,7 +150,7 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
         { id: 'viral-negative', label: 'Viral Negative', icon: AlertTriangle, href: '/social-feed?filter=viral-negative' },
         { id: 'trending', label: 'Trending Discussions', icon: MessageCircle, href: '/social-feed?filter=trending' },
         { id: 'high-engagement', label: 'High Engagement', icon: BarChart3, href: '/social-feed?filter=high-engagement' },
-        { id: 'high-reach', label: 'High Reach, Low Engagement', icon: Eye, href: '/social-feed?filter=high-reach' },
+        { id: 'high-reach', label: 'High Reach/Low Engage', icon: Eye, href: '/social-feed?filter=high-reach' },
         { id: 'viral-potential', label: 'Viral Potential', icon: Activity, href: '/social-feed?filter=viral-potential' },
       ]
     },
@@ -174,96 +174,10 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
     }
   ], [])
 
-  const profilesSubmenu = useMemo(() => [
-    {
-      category: 'PRIMARY',
-      items: [
-        { id: 'all-authors', label: 'All Authors', icon: Users, href: '/profiles?filter=all' },
-      ]
-    },
-    {
-      category: 'ENGAGEMENT & IMPACT',
-      items: [
-        { id: 'high-impact-authors', label: 'High Impact Authors', icon: TrendingUp, href: '/profiles?filter=high-impact' },
-        { id: 'high-reach-authors', label: 'High Reach Authors', icon: Eye, href: '/profiles?filter=high-reach' },
-        { id: 'frequent-posters', label: 'Frequent Posters', icon: MessageSquare, href: '/profiles?filter=frequent' },
-      ]
-    },
-    {
-      category: 'SENTIMENT BASED',
-      items: [
-        { id: 'negative-influencers', label: 'Negative Influencers', icon: Frown, href: '/profiles?filter=negative' },
-        { id: 'positive-influencers', label: 'Positive Influencers', icon: Smile, href: '/profiles?filter=positive' },
-      ]
-    },
-    {
-      category: 'PLATFORMS',
-      items: [
-        { id: 'twitter-influencers', label: 'Twitter Influencers', icon: MessageSquare, href: '/profiles?filter=twitter' },
-        { id: 'facebook-pages', label: 'Facebook Pages', icon: Users, href: '/profiles?filter=facebook' },
-        { id: 'instagram-influencers', label: 'Instagram Influencers', icon: MapPin, href: '/profiles?filter=instagram' },
-      ]
-    }
-  ], [])
-
-  const entitiesSubmenu = useMemo(() => [
-    {
-      category: 'PRIMARY',
-      items: [
-        { id: 'all-entities', label: 'All Entities', icon: Hash, href: '/entities?filter=all' },
-        { id: 'all-topics', label: 'All Topics', icon: Hash, href: '/entities?filter=topics' },
-        { id: 'all-people', label: 'All People', icon: User, href: '/entities?filter=people' },
-        { id: 'all-organizations', label: 'All Organizations', icon: Building, href: '/entities?filter=organizations' },
-      ]
-    },
-    {
-      category: 'ENGAGEMENT & IMPACT',
-      items: [
-        { id: 'high-impact-entities', label: 'High Impact Entities', icon: TrendingUp, href: '/entities?filter=high-impact' },
-        { id: 'trending-topics', label: 'Trending Topics', icon: Activity, href: '/entities?filter=trending' },
-        { id: 'frequently-mentioned', label: 'Frequently Mentioned', icon: MessageSquare, href: '/entities?filter=frequent' },
-      ]
-    },
-    {
-      category: 'SENTIMENT BASED',
-      items: [
-        { id: 'negative-entities', label: 'Negative Entities', icon: Frown, href: '/entities?filter=negative' },
-        { id: 'positive-entities', label: 'Positive Entities', icon: Smile, href: '/entities?filter=positive' },
-        { id: 'controversial', label: 'Controversial', icon: AlertTriangle, href: '/entities?filter=controversial' },
-      ]
-    }
-  ], [])
-
-  const locationsSubmenu = useMemo(() => [
-    {
-      category: 'PRIMARY',
-      items: [
-        { id: 'all-locations', label: 'All Locations', icon: MapPin, href: '/locations?filter=all' },
-        { id: 'high-impact-locations', label: 'High Impact Locations', icon: TrendingUp, href: '/locations?filter=high-impact' },
-        { id: 'trending-locations', label: 'Trending Locations', icon: Activity, href: '/locations?filter=trending' },
-        { id: 'frequently-mentioned-locations', label: 'Frequently Mentioned', icon: MessageSquare, href: '/locations?filter=frequent' },
-      ]
-    },
-    {
-      category: 'SENTIMENT BASED',
-      items: [
-        { id: 'negative-locations', label: 'Negative Locations', icon: Frown, href: '/locations?filter=negative' },
-        { id: 'positive-locations', label: 'Positive Locations', icon: Smile, href: '/locations?filter=positive' },
-        { id: 'controversial-locations', label: 'Controversial', icon: AlertTriangle, href: '/locations?filter=controversial' },
-      ]
-    }
-  ], [])
-
   const getSubmenuContent = (submenuId: string) => {
     switch (submenuId) {
       case 'social-feed':
         return socialFeedSubmenu
-      case 'profiles':
-        return profilesSubmenu
-      case 'entities':
-        return entitiesSubmenu
-      case 'locations':
-        return locationsSubmenu
       default:
         return []
     }

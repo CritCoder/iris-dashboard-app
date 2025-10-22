@@ -14,10 +14,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { DashboardSkeleton } from '@/components/skeletons/dashboard-skeleton'
 import { useState, useMemo, useEffect } from 'react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Settings, Grid3X3, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react'
+import { Settings, Grid3X3, Eye, EyeOff, AlertCircle, Loader2, Globe, Mail, UserSearch, ArrowRight } from 'lucide-react'
 import { TrendingUp, TrendingDown, Hash } from 'lucide-react'
 import {
   ChatBubbleIcon,
@@ -40,7 +41,8 @@ import {
   useOpponentNarratives,
   useSupportBaseEnergy 
 } from '@/hooks/use-api'
-// import { AnimatedPage, div, Card } from '@/components/ui/animated'
+import { motion } from 'framer-motion'
+import { staggerContainerVariants, listItemVariants, fadeInUpVariants } from '@/lib/motion'
 
 // Helper function to format numbers
 const formatNumber = (num: number): string => {
@@ -71,10 +73,8 @@ export default function Page() {
     'total-mentions': true,
     'sentiment-score': true,
     'active-campaigns': true,
-    'threat-level': true,
     'trending-topics': true,
     'topic-sentiment': true,
-    'influencer-tracker': true,
     'opponent-narrative': true,
     'support-base': true
   })
@@ -103,19 +103,31 @@ export default function Page() {
     { id: 5, type: 'trend', content: 'Crime prevention discussions rising', time: '15m ago', sentiment: 'positive' }
   ]
 
+  // Sample fallback data for trending topics
+  const sampleTrendingTopics = [
+    { topic: 'Bengaluru Traffic', mentions: 2450, change: '+12%', sentiment: 'negative' },
+    { topic: 'Police Reforms', mentions: 1890, change: '+8%', sentiment: 'positive' },
+    { topic: 'Crime Prevention', mentions: 1654, change: '+5%', sentiment: 'positive' },
+    { topic: 'Women Safety', mentions: 1230, change: '-3%', sentiment: 'neutral' }
+  ]
+
   // Process trending topics from API
   const trendingTopics = useMemo(() => {
-    if (!campaignThemes || typeof campaignThemes !== 'object' || !('themes' in campaignThemes)) return []
-    
+    if (!campaignThemes || typeof campaignThemes !== 'object' || !('themes' in campaignThemes)) {
+      return sampleTrendingTopics
+    }
+
     const themes = (campaignThemes as any).themes
-    if (!themes) return []
-    
+    if (!themes) return sampleTrendingTopics
+
     const allThemes: any[] = [
       ...(themes.positive || []),
       ...(themes.negative || []),
       ...(themes.neutral || [])
     ]
-    
+
+    if (allThemes.length === 0) return sampleTrendingTopics
+
     return allThemes.slice(0, 4).map(campaign => ({
       topic: campaign.campaignName || 'Unknown Campaign',
       mentions: campaign.metrics?.totalPosts || 0,
@@ -169,14 +181,6 @@ export default function Page() {
       size: 'small'
     },
     {
-      id: 'threat-level',
-      title: 'Threat Level',
-      description: 'Security threat assessment',
-      icon: LockClosedIcon,
-      color: 'gray',
-      size: 'small'
-    },
-    {
       id: 'trending-topics',
       title: 'Trending Topics',
       description: 'Hot topics and discussions',
@@ -190,14 +194,6 @@ export default function Page() {
       description: 'Sentiment heatmap analysis',
       icon: Hash,
       color: 'blue',
-      size: 'large'
-    },
-    {
-      id: 'influencer-tracker',
-      title: 'Influencer Tracker',
-      description: 'Key influencer monitoring',
-      icon: PersonIcon,
-      color: 'purple',
       size: 'large'
     },
     {
@@ -237,47 +233,83 @@ export default function Page() {
     setEnabledCards(newEnabledCards as typeof enabledCards)
   }
 
+  // Primary Intelligence Tools data with Japanese-inspired colors
+  const primaryOptions = [
+    {
+      id: 'social-monitoring',
+      title: 'Social Media Monitoring',
+      description: 'Advanced social media intelligence gathering and analysis across all platforms',
+      icon: Globe,
+      href: '/start-analysis',
+      features: ['Real-time monitoring', 'Multi-platform analysis', 'Sentiment tracking', 'Trend identification'],
+      color: 'bg-[#4A90E2]', // Sora Iro (Sky Blue)
+      darkColor: 'bg-[#3A7BC8]'
+    },
+    {
+      id: 'smart-inbox',
+      title: 'Smart AI Inbox',
+      description: 'Aggregated smart AI-driven inbox that helps you manage all inboxes in one place',
+      icon: Mail,
+      href: '/social-inbox',
+      features: ['AI-powered filtering', 'Unified inbox view', 'Smart categorization', 'Priority management'],
+      color: 'bg-[#7C9D96]', // Rokusho (Verdigris Green)
+      darkColor: 'bg-[#6B8B7E]'
+    },
+    {
+      id: 'entity-search',
+      title: 'Entity Search',
+      description: 'Find super important details of a person across vehicle, mobile number, and more',
+      icon: UserSearch,
+      href: '/entity-search',
+      features: ['Vehicle details', 'Mobile number lookup', 'Address verification', 'Comprehensive profiles'],
+      color: 'bg-[#9B72AA]', // Fuji Murasaki (Wisteria Purple)
+      darkColor: 'bg-[#89629A]'
+    }
+  ]
+
   return (
     <ProtectedRoute>
       <PageLayout>
-      <PageHeader
-        title="Intelligence Dashboard"
-        description="Real-time insights on narratives, opponents, and public sentiment"
-        actions={
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-            <GlobalSearch />
-            <Button
-              variant={isCustomizing ? "default" : "outline"}
-              size="sm"
-              onClick={() => setIsCustomizing(!isCustomizing)}
-              className="flex items-center justify-center gap-2 flex-shrink-0"
-            >
-              <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">{isCustomizing ? 'Exit Customize' : 'Customize'}</span>
-              <span className="sm:hidden">Edit</span>
-            </Button>
-          </div>
-        }
-      />
+        <div className="h-screen flex flex-col bg-background overflow-hidden">
+          <PageHeader
+            title="Intelligence Dashboard"
+            description="Real-time insights on narratives, opponents, and public sentiment"
+            actions={
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <GlobalSearch />
+                <Button
+                  variant={isCustomizing ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setIsCustomizing(!isCustomizing)}
+                  className="flex items-center justify-center gap-2 flex-shrink-0"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span className="hidden sm:inline">{isCustomizing ? 'Exit Customize' : 'Customize'}</span>
+                  <span className="sm:hidden">Edit</span>
+                </Button>
+              </div>
+            }
+          />
 
-      <main className="flex-1 overflow-y-auto">
-        <div className="max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-8">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <main className="flex-1 overflow-y-auto">
+          <div className="max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-6">
-              <TabsList className="w-full sm:w-auto overflow-x-auto">
-                <TabsTrigger value="overview" className="text-xs sm:text-sm whitespace-nowrap">
-                  <span className="hidden sm:inline">📊 Overview</span>
-                  <span className="sm:hidden">📊</span>
-                </TabsTrigger>
-                <TabsTrigger value="analytics" className="text-xs sm:text-sm whitespace-nowrap">
-                  <span className="hidden sm:inline">📈 Analytics</span>
-                  <span className="sm:hidden">📈</span>
-                </TabsTrigger>
-                <TabsTrigger value="monitoring" className="text-xs sm:text-sm whitespace-nowrap">
-                  <span className="hidden sm:inline">🔍 Monitoring</span>
-                  <span className="sm:hidden">🔍</span>
-                </TabsTrigger>
-              </TabsList>
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="w-full sm:w-auto overflow-x-auto">
+                  <TabsTrigger value="overview" className="text-xs sm:text-sm whitespace-nowrap">
+                    <span className="hidden sm:inline">📊 Overview</span>
+                    <span className="sm:hidden">📊</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="analytics" className="text-xs sm:text-sm whitespace-nowrap">
+                    <span className="hidden sm:inline">📈 Analytics</span>
+                    <span className="sm:hidden">📈</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="monitoring" className="text-xs sm:text-sm whitespace-nowrap">
+                    <span className="hidden sm:inline">🔍 Monitoring</span>
+                    <span className="sm:hidden">🔍</span>
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
               <Tabs value={range} onValueChange={setRange}>
                 <TabsList className="w-full sm:w-auto">
                   <TabsTrigger value="24h" className="text-xs sm:text-sm flex-1 sm:flex-none">
@@ -295,484 +327,565 @@ export default function Page() {
                 </TabsList>
               </Tabs>
             </div>
-
-            {/* Customization Panel - Global for all tabs */}
-            {isCustomizing && (
-              <div className="mb-6 p-3 sm:p-6 bg-blue-50 dark:bg-blue-950/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <Grid3X3 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                    <h3 className="text-sm sm:text-lg font-semibold text-blue-900 dark:text-blue-100">Customize Dashboard</h3>
-                    <Badge variant="secondary" className="text-[10px] sm:text-xs whitespace-nowrap">
-                      {Object.values(enabledCards).filter(Boolean).length}/{Object.keys(enabledCards).length}
-                    </Badge>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={toggleAllCards}
-                    className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-100 w-full sm:w-auto justify-center"
-                  >
-                    {Object.values(enabledCards).every(Boolean) ? (
-                      <>
-                        <EyeOff className="w-4 h-4" />
-                        <span className="text-xs sm:text-sm">Hide All</span>
-                      </>
-                    ) : (
-                      <>
-                        <Eye className="w-4 h-4" />
-                        <span className="text-xs sm:text-sm">Show All</span>
-                      </>
-                    )}
-                  </Button>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-                  {dashboardCards.map((card) => {
-                    const isEnabled = enabledCards[card.id as keyof typeof enabledCards]
-                    return (
-                    <div
-                      key={card.id}
-                      className={`p-3 sm:p-4 border-2 rounded-lg transition-all duration-200 cursor-pointer hover:shadow-md ${
-                          isEnabled
-                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30 shadow-md'
-                          : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800/50 hover:border-blue-300'
-                      }`}
-                      onClick={() => toggleCard(card.id)}
+            
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              {/* Customization Panel - Global for all tabs */}
+              {isCustomizing && (
+                <div className="mb-6 p-3 sm:p-6 bg-blue-50 dark:bg-blue-950/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <Grid3X3 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                      <h3 className="text-sm sm:text-lg font-semibold text-blue-900 dark:text-blue-100">Customize Dashboard</h3>
+                      <Badge variant="secondary" className="text-[10px] sm:text-xs whitespace-nowrap">
+                        {Object.values(enabledCards).filter(Boolean).length}/{Object.keys(enabledCards).length}
+                      </Badge>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={toggleAllCards}
+                      className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-100 w-full sm:w-auto justify-center"
                     >
-                      <div className="flex items-start gap-2 sm:gap-3">
-                        <Checkbox
-                          id={card.id}
-                            checked={isEnabled}
-                          onCheckedChange={() => toggleCard(card.id)}
-                          className="mt-0.5 flex-shrink-0"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                              <card.icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 ${isEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
-                              <span className={`text-xs sm:text-sm font-medium ${isEnabled ? 'text-blue-900 dark:text-blue-100' : 'text-foreground'}`}>
-                              {card.title}
-                            </span>
-                              {isEnabled && (
-                              <Badge variant="default" className="text-[10px] sm:text-xs bg-blue-600 text-white">
-                                Active
-                              </Badge>
-                            )}
+                      {Object.values(enabledCards).every(Boolean) ? (
+                        <>
+                          <EyeOff className="w-4 h-4" />
+                          <span className="text-xs sm:text-sm">Hide All</span>
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="w-4 h-4" />
+                          <span className="text-xs sm:text-sm">Show All</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                    {dashboardCards.map((card) => {
+                      const isEnabled = enabledCards[card.id as keyof typeof enabledCards]
+                      return (
+                      <div
+                        key={card.id}
+                        className={`p-3 sm:p-4 border-2 rounded-lg transition-all duration-200 cursor-pointer hover:shadow-md ${
+                            isEnabled
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30 shadow-md'
+                            : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800/50 hover:border-blue-300'
+                        }`}
+                        onClick={() => toggleCard(card.id)}
+                      >
+                        <div className="flex items-start gap-2 sm:gap-3">
+                          <Checkbox
+                            id={card.id}
+                              checked={isEnabled}
+                            onCheckedChange={() => toggleCard(card.id)}
+                            className="mt-0.5 flex-shrink-0"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                                <card.icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 ${isEnabled ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                                <span className={`text-xs sm:text-sm font-medium ${isEnabled ? 'text-blue-900 dark:text-blue-100' : 'text-foreground'}`}>
+                                {card.title}
+                              </span>
+                                {isEnabled && (
+                                <Badge variant="default" className="text-[10px] sm:text-xs bg-blue-600 text-white">
+                                  Active
+                                </Badge>
+                              )}
+                            </div>
+                              <p className={`text-[10px] sm:text-xs mt-1 ${isEnabled ? 'text-blue-700 dark:text-blue-300' : 'text-muted-foreground'}`}>
+                              {card.description}
+                            </p>
                           </div>
-                            <p className={`text-[10px] sm:text-xs mt-1 ${isEnabled ? 'text-blue-700 dark:text-blue-300' : 'text-muted-foreground'}`}>
-                            {card.description}
-                          </p>
                         </div>
                       </div>
-                    </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-          <TabsContent value="overview">
-            <div className="animate-in fade-in duration-200">
-
-              {/* CRITICAL ALERT BAR - Highest Priority */}
-              <div className="mb-6 p-4 bg-red-950/20 border border-red-900/50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                  <div className="flex-1">
-                    <p className="text-red-400 font-semibold text-sm">⚠️ CRITICAL ALERT</p>
-                    <p className="text-red-300 text-xs">Traffic Management sentiment dropped 15% this week - Immediate attention required</p>
+                      )
+                    })}
                   </div>
-                  <Button variant="destructive" size="sm">View Details</Button>
                 </div>
-              </div>
+              )}
 
-              {/* CUSTOMIZABLE 3x3 DASHBOARD GRID */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
-                {/* Row 1 - Small Cards */}
-                {enabledCards['total-mentions'] && (
-                  <Card>
-                    <Card className="border-2 border-blue-500/30 bg-gradient-to-br from-blue-950/40 to-blue-900/20 shadow-lg">
-                      <CardContent className="p-4 sm:p-6">
-                        {statsLoading ? (
-                          <div className="space-y-3">
-                            <Skeleton className="h-4 w-24" />
-                            <Skeleton className="h-8 w-32" />
-                            <Skeleton className="h-3 w-28" />
-                          </div>
-                        ) : (
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xs font-medium text-blue-300 uppercase tracking-wide">Total Mentions</p>
-                              <p className="text-3xl font-black text-white mb-1">
-                                {quickStats && typeof quickStats === 'object' && quickStats !== null && 'overview' in quickStats && (quickStats as any).overview?.totalPosts 
-                                  ? formatNumber((quickStats as any).overview.totalPosts) 
-                                  : '0'}
-                              </p>
-                            <p className="text-xs text-green-400 flex items-center gap-1 font-bold">
-                              <TrendingUp className="w-3 h-3" />
-                                Tracked across platforms
-                            </p>
-                          </div>
-                          <div className="w-14 h-14 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center">
-                            <ChatBubbleIcon className="w-7 h-7 text-blue-400" />
-                          </div>
-                        </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </Card>
-                )}
+            <TabsContent value="overview">
+              <div className="animate-in fade-in duration-200">
 
-                {enabledCards['sentiment-score'] && (
-                  <Card>
-                    <Card className="border-2 border-green-500/30 bg-gradient-to-br from-green-950/40 to-green-900/20 shadow-lg">
-                      <CardContent className="p-4 sm:p-6">
-                        {statsLoading ? (
-                          <div className="space-y-3">
-                            <Skeleton className="h-4 w-24" />
-                            <Skeleton className="h-8 w-32" />
-                            <Skeleton className="h-3 w-28" />
-                          </div>
-                        ) : (
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xs font-medium text-green-300 uppercase tracking-wide">Sentiment Score</p>
-                              <p className="text-3xl font-black text-white mb-1">
-                                {quickStats && typeof quickStats === 'object' && quickStats !== null && 'sentiment' in quickStats && (quickStats as any).sentiment?.positive?.percentage 
-                                  ? `${(quickStats as any).sentiment.positive.percentage}%` 
-                                  : '0%'}
-                              </p>
-                            <p className="text-xs text-green-400 flex items-center gap-1 font-bold">
-                              <TrendingUp className="w-3 h-3" />
-                                Positive sentiment
-                            </p>
-                          </div>
-                          <div className="w-14 h-14 rounded-xl bg-green-500/20 border border-green-400/30 flex items-center justify-center">
-                            <HeartIcon className="w-7 h-7 text-green-400" />
-                          </div>
-                        </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </Card>
-                )}
+                {/* CRITICAL ALERT BAR - Highest Priority */}
+                <motion.div
+                  className="mb-6 p-4 bg-red-600 border border-red-700 rounded-lg shadow-lg"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                >
+                  <div className="flex items-center gap-3">
+                    <motion.div
+                      className="w-2 h-2 bg-white rounded-full"
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    />
+                    <div className="flex-1">
+                      <p className="text-white font-semibold text-sm">⚠️ CRITICAL ALERT</p>
+                      <p className="text-red-50 text-xs">Traffic Management sentiment dropped 15% this week - Immediate attention required</p>
+                    </div>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="bg-red-800 hover:bg-red-900 text-white border-none"
+                      onClick={() => window.location.href = '/social-feed?filter=negative&search=Traffic%20Management'}
+                    >
+                      View Details
+                    </Button>
+                  </div>
+                </motion.div>
 
-                {enabledCards['active-campaigns'] && (
-                  <Card>
-                    <Card className="border border-border/50 bg-card/50">
-                      <CardContent className="p-4 sm:p-6">
-                        {themesLoading ? (
-                          <div className="space-y-3">
-                            <Skeleton className="h-4 w-24" />
-                            <Skeleton className="h-8 w-20" />
-                            <Skeleton className="h-3 w-28" />
-                          </div>
-                        ) : (
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-muted-foreground">Active Campaigns</p>
-                              <p className="text-2xl font-bold text-foreground">
-                                {campaignThemes && typeof campaignThemes === 'object' && campaignThemes !== null && 'summary' in campaignThemes && (campaignThemes as any).summary?.totalCampaigns || 0}
-                              </p>
-                            <p className="text-xs text-blue-500 flex items-center gap-1 font-medium">
-                              <ActivityLogIcon className="w-3 h-3" />
-                                {campaignThemes && typeof campaignThemes === 'object' && campaignThemes !== null && 'summary' in campaignThemes && (campaignThemes as any).summary?.positiveCount || 0} positive campaigns
-                            </p>
-                          </div>
-                          <div className="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center">
-                            <BarChartIcon className="w-6 h-6 text-purple-400" />
-                          </div>
-                        </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </Card>
-                )}
+                {/* PRIMARY INTELLIGENCE TOOLS SECTION */}
+                <motion.div 
+                  className="mb-8"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  <div className="mb-6">
+                    <h2 className="text-2xl font-bold text-foreground mb-2">Primary Intelligence Tools</h2>
+                    <p className="text-muted-foreground">Select your primary intelligence gathering method</p>
+                  </div>
 
-                {/* Row 2 - Large Cards */}
-                {enabledCards['trending-topics'] && (
-                  <Card className="lg:col-span-2">
-                    <Card className="border-2 border-orange-500/30 bg-gradient-to-br from-orange-950/20 to-orange-900/10">
-                      <CardHeader className="pb-4">
-                        <CardTitle className="flex items-center gap-2 text-orange-300">
-                          <TrendingUp className="w-5 h-5" />
-                          🔥 Trending Topics
-                        </CardTitle>
-                        <CardDescription className="text-orange-200/80">Most discussed campaign themes</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        {themesLoading ? (
-                          <div className="space-y-3">
-                            {[1, 2, 3, 4].map((i) => (
-                              <div key={i} className="p-3 space-y-2">
-                                <Skeleton className="h-5 w-48" />
-                                <Skeleton className="h-4 w-32" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {primaryOptions.map((option, index) => {
+                      const IconComponent = option.icon
+                      return (
+                        <motion.div
+                          key={option.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.6, delay: index * 0.1 }}
+                          whileHover={{ scale: 1.02, y: -4 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="h-full"
+                        >
+                          <Card
+                            className={`cursor-pointer transition-all duration-300 hover:shadow-2xl border-0 bg-card h-full flex flex-col overflow-hidden group`}
+                            onClick={() => window.location.href = option.href}
+                          >
+                            <CardHeader className={`${option.color} relative overflow-hidden pb-6`}>
+                              {/* Decorative pattern overlay */}
+                              <div className="absolute inset-0 opacity-10">
+                                <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/20 -translate-y-1/2 translate-x-1/2"></div>
+                                <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-white/10 translate-y-1/2 -translate-x-1/2"></div>
                               </div>
-                            ))}
-                          </div>
-                        ) : trendingTopics.length === 0 ? (
-                          <div className="text-center py-8">
-                            <p className="text-muted-foreground">No trending topics available</p>
-                          </div>
-                        ) : (
-                        <div className="space-y-3">
-                          {trendingTopics.map((topic, index) => {
-                              const isHighVolume = topic.mentions > 100
-                            const isNegative = topic.sentiment === 'negative'
-                            return (
-                              <div 
-                                key={index} 
-                                className={`flex items-center justify-between cursor-pointer p-3 rounded-lg transition-all duration-200 ${
-                                  isHighVolume 
-                                    ? 'bg-orange-500/10 border border-orange-400/30 hover:bg-orange-500/20' 
-                                    : 'bg-muted/30 hover:bg-muted/50'
-                                } ${isNegative ? 'ring-1 ring-red-500/30' : ''}`}
-                                onClick={() => {
-                                  window.location.href = `/social-feed?filter=all-posts&search=${encodeURIComponent(topic.topic)}`
-                                }}
-                              >
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <p className={`font-semibold ${isHighVolume ? 'text-white' : 'text-foreground'} ${isNegative ? 'text-red-400' : ''}`}>
-                                      {topic.topic}
-                                    </p>
-                                    {isHighVolume && <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full font-bold">HOT</span>}
+
+                              <div className="relative flex items-start justify-between">
+                                <div className="flex items-start gap-4 flex-1">
+                                  <div className={`p-3.5 rounded-xl bg-white/15 backdrop-blur-md text-white border border-white/20 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                                    <IconComponent className="w-7 h-7" strokeWidth={1.5} />
                                   </div>
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                      <span className="font-bold text-orange-400">{formatNumber(topic.mentions)}</span> mentions
-                                  </p>
+                                  <div className="flex-1">
+                                    <CardTitle className="text-white text-lg font-bold mb-2">
+                                      {option.title}
+                                    </CardTitle>
+                                    <CardDescription className="text-white/90 text-sm leading-relaxed line-clamp-2">
+                                      {option.description}
+                                    </CardDescription>
+                                  </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  <Badge className={`text-xs font-bold ${
-                                    topic.sentiment === 'positive' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
-                                    topic.sentiment === 'negative' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
-                                    'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
-                                  }`}>
-                                    {topic.sentiment}
-                                  </Badge>
-                                    {topic.change && (
-                                  <span className={`text-xs font-black ${
-                                    topic.change.startsWith('+') 
-                                      ? 'text-green-400' 
-                                      : 'text-red-400'
-                                  }`}>
-                                    {topic.change}
-                                  </span>
-                                    )}
+                                <ArrowRight className="w-5 h-5 text-white/80 group-hover:translate-x-1 transition-transform duration-300 flex-shrink-0 ml-2" />
+                              </div>
+                            </CardHeader>
+                            <CardContent className="p-5 bg-card flex-1 flex flex-col">
+                              <div className="flex-1">
+                                <h4 className="font-semibold text-sm text-foreground mb-3 flex items-center gap-2">
+                                  <span className="w-1 h-4 rounded-full ${option.color}"></span>
+                                  Key Features
+                                </h4>
+                                <div className="grid grid-cols-2 gap-2">
+                                  {option.features.map((feature, featureIndex) => (
+                                    <span
+                                      key={featureIndex}
+                                      className="px-2.5 py-1.5 text-[11px] font-medium bg-muted/50 text-foreground border border-border/50 rounded-lg hover:bg-muted transition-colors text-center"
+                                    >
+                                      {feature}
+                                    </span>
+                                  ))}
                                 </div>
                               </div>
-                            )
-                          })}
-                        </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </Card>
-                )}
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      )
+                    })}
+                  </div>
+                </motion.div>
 
-                {enabledCards['threat-level'] && (
-                  <Card>
-                    <Card className="border border-border/30 bg-muted/20">
-                      <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-muted-foreground/70">Threat Level</p>
-                            <p className="text-2xl font-bold text-foreground/80">Low</p>
-                            <p className="text-xs text-muted-foreground flex items-center gap-1">
-                              <LockClosedIcon className="w-3 h-3" />
-                              No alerts
-                            </p>
+                {/* CUSTOMIZABLE 3x3 DASHBOARD GRID */}
+                <motion.div 
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8"
+                  variants={staggerContainerVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  {/* Row 1 - Small Cards */}
+                  {enabledCards['total-mentions'] && (
+                    <motion.div variants={listItemVariants}>
+                      <Card className="border-2 border-blue-500/30 bg-gradient-to-br from-blue-950/40 to-blue-900/20 shadow-lg">
+                        <CardContent className="p-4 sm:p-6">
+                          {statsLoading ? (
+                            <div className="space-y-3">
+                              <Skeleton className="h-4 w-24" />
+                              <Skeleton className="h-8 w-32" />
+                              <Skeleton className="h-3 w-28" />
+                            </div>
+                          ) : (
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-xs font-medium text-blue-300 uppercase tracking-wide">Total Mentions</p>
+                                <p className="text-3xl font-black text-white mb-1">
+                                  {quickStats && typeof quickStats === 'object' && quickStats !== null && 'overview' in quickStats && (quickStats as any).overview?.totalPosts 
+                                    ? formatNumber((quickStats as any).overview.totalPosts) 
+                                    : '0'}
+                                </p>
+                              <p className="text-xs text-green-400 flex items-center gap-1 font-bold">
+                                <TrendingUp className="w-3 h-3" />
+                                  Tracked across platforms
+                              </p>
+                            </div>
+                            <div className="w-14 h-14 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center">
+                              <ChatBubbleIcon className="w-7 h-7 text-blue-400" />
+                            </div>
                           </div>
-                          <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
-                            <LockClosedIcon className="w-6 h-6 text-green-500/70" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Card>
-                )}
+                          )}
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  )}
 
-                {/* Row 3 - Large Components */}
-                {enabledCards['topic-sentiment'] && (
-                  <Card className="lg:col-span-2">
+                  {enabledCards['sentiment-score'] && (
+                    <motion.div variants={listItemVariants}>
+                      <Card className="border-2 border-green-500/30 bg-gradient-to-br from-green-950/40 to-green-900/20 shadow-lg">
+                        <CardContent className="p-4 sm:p-6">
+                          {statsLoading ? (
+                            <div className="space-y-3">
+                              <Skeleton className="h-4 w-24" />
+                              <Skeleton className="h-8 w-32" />
+                              <Skeleton className="h-3 w-28" />
+                            </div>
+                          ) : (
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-xs font-medium text-green-300 uppercase tracking-wide">Sentiment Score</p>
+                                <p className="text-3xl font-black text-white mb-1">
+                                  {quickStats && typeof quickStats === 'object' && quickStats !== null && 'sentiment' in quickStats && (quickStats as any).sentiment?.positive?.percentage 
+                                    ? `${(quickStats as any).sentiment.positive.percentage}%` 
+                                    : '0%'}
+                                </p>
+                              <p className="text-xs text-green-400 flex items-center gap-1 font-bold">
+                                <TrendingUp className="w-3 h-3" />
+                                  Positive sentiment
+                              </p>
+                            </div>
+                            <div className="w-14 h-14 rounded-xl bg-green-500/20 border border-green-400/30 flex items-center justify-center">
+                              <HeartIcon className="w-7 h-7 text-green-400" />
+                            </div>
+                          </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  )}
+
+                  {enabledCards['active-campaigns'] && (
+                    <motion.div variants={listItemVariants}>
+                      <Card className="border border-border/50 bg-card/50">
+                        <CardContent className="p-4 sm:p-6">
+                          {themesLoading ? (
+                            <div className="space-y-3">
+                              <Skeleton className="h-4 w-24" />
+                              <Skeleton className="h-8 w-20" />
+                              <Skeleton className="h-3 w-28" />
+                            </div>
+                          ) : (
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm font-medium text-muted-foreground">Active Campaigns</p>
+                                <p className="text-2xl font-bold text-foreground">
+                                  {campaignThemes && typeof campaignThemes === 'object' && campaignThemes !== null && 'summary' in campaignThemes && (campaignThemes as any).summary?.totalCampaigns || 0}
+                                </p>
+                              <p className="text-xs text-blue-500 flex items-center gap-1 font-medium">
+                                <ActivityLogIcon className="w-3 h-3" />
+                                  {campaignThemes && typeof campaignThemes === 'object' && campaignThemes !== null && 'summary' in campaignThemes && (campaignThemes as any).summary?.positiveCount || 0} positive campaigns
+                              </p>
+                            </div>
+                            <div className="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center">
+                              <BarChartIcon className="w-6 h-6 text-purple-400" />
+                            </div>
+                          </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  )}
+
+                  {/* Row 2 - Trending Topics and Topic Sentiment (50-50 layout) */}
+                  {enabledCards['trending-topics'] && (
+                    <motion.div variants={listItemVariants} className="lg:col-span-2">
+                      <Card className="bg-card border border-border h-full flex flex-col">
+                        <CardHeader className="pb-4">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-2">
+                              <TrendingUp className="w-5 h-5 text-orange-400" />
+                              <CardTitle className="text-lg font-semibold text-foreground">Trending Topics</CardTitle>
+                            </div>
+                            <span className="text-xs text-muted-foreground">🔥</span>
+                          </div>
+                          <CardDescription className="text-xs text-muted-foreground">Most discussed campaign themes</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          {themesLoading ? (
+                            <div className="space-y-3">
+                              {[1, 2, 3, 4].map((i) => (
+                                <div key={i} className="p-3 space-y-2">
+                                  <Skeleton className="h-5 w-48" />
+                                  <Skeleton className="h-4 w-32" />
+                                </div>
+                              ))}
+                            </div>
+                          ) : trendingTopics.length === 0 ? (
+                            <div className="text-center py-8">
+                              <p className="text-muted-foreground">No trending topics available</p>
+                            </div>
+                          ) : (
+                          <motion.div 
+                            className="space-y-3"
+                            variants={staggerContainerVariants}
+                            initial="hidden"
+                            animate="visible"
+                          >
+                            {trendingTopics.map((topic, index) => {
+                                const isHighVolume = topic.mentions > 100
+                              const isNegative = topic.sentiment === 'negative'
+                              return (
+                                <motion.div 
+                                  key={index} 
+                                  variants={listItemVariants}
+                                  whileHover={{ scale: 1.02, x: 4 }}
+                                  whileTap={{ scale: 0.98 }}
+                                  className={`flex items-center justify-between cursor-pointer p-3 rounded-lg transition-all duration-200 ${
+                                    isHighVolume 
+                                      ? 'bg-orange-500/10 border border-orange-400/30 hover:bg-orange-500/20' 
+                                      : 'bg-muted/30 hover:bg-muted/50'
+                                  } ${isNegative ? 'ring-1 ring-red-500/30' : ''}`}
+                                  onClick={() => {
+                                    window.location.href = `/social-feed?filter=all-posts&search=${encodeURIComponent(topic.topic)}`
+                                  }}
+                                >
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <p className={`font-semibold ${isHighVolume ? 'text-white' : 'text-foreground'} ${isNegative ? 'text-red-400' : ''}`}>
+                                        {topic.topic}
+                                      </p>
+                                      {isHighVolume && <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full font-bold">HOT</span>}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        <span className="font-bold text-orange-400">{formatNumber(topic.mentions)}</span> mentions
+                                    </p>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Badge className={`text-xs font-bold ${
+                                      topic.sentiment === 'positive' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                                      topic.sentiment === 'negative' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
+                                      'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+                                    }`}>
+                                      {topic.sentiment}
+                                    </Badge>
+                                      {topic.change && (
+                                    <span className={`text-xs font-black ${
+                                      topic.change.startsWith('+') 
+                                        ? 'text-green-400' 
+                                        : 'text-red-400'
+                                    }`}>
+                                      {topic.change}
+                                    </span>
+                                      )}
+                                  </div>
+                                </motion.div>
+                              )
+                            })}
+                          </motion.div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  )}
+
+                  {/* Topic Sentiment - Now in same row as Trending Topics (50-50 layout) */}
+                  {enabledCards['topic-sentiment'] && (
+                    <motion.div variants={listItemVariants} className="lg:col-span-1">
+                      <TopicSentimentHeatmap />
+                    </motion.div>
+                  )}
+
+                  {/* Row 4 - Opponent Narrative and Support Base */}
+                  {enabledCards['opponent-narrative'] && (
+                    <motion.div variants={listItemVariants} className="lg:col-span-2">
+                      <OpponentNarrativeWatch
+                        data={opponentData}
+                        loading={opponentLoading}
+                        error={opponentError}
+                      />
+                    </motion.div>
+                  )}
+
+                  {enabledCards['support-base'] && (
+                    <motion.div variants={listItemVariants}>
+                      <SupportBaseEnergy
+                        data={supportBaseData}
+                        loading={supportLoading}
+                        error={supportError}
+                      />
+                    </motion.div>
+                  )}
+                </motion.div>
+
+              </div>
+            </TabsContent>
+
+            <TabsContent value="analytics">
+              <div className="space-y-6 animate-in fade-in duration-200">
+                <StatsGrid />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                  <div>
                     <TopicSentimentHeatmap />
-                  </Card>
-                )}
-
-                {enabledCards['influencer-tracker'] && (
-                  <Card>
+                  </div>
+                  <div>
                     <InfluencerTracker 
                       data={influencerData} 
                       loading={influencerLoading} 
                       error={influencerError} 
                     />
-                  </Card>
-                )}
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
 
-                {enabledCards['opponent-narrative'] && (
-                  <Card className="lg:col-span-2">
+            <TabsContent value="monitoring">
+              <div className="space-y-6 animate-in fade-in duration-200">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                  <div className="lg:col-span-2">
+                    <Card>
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle>Active Monitoring</CardTitle>
+                            <CardDescription>Real-time monitoring of key entities and topics</CardDescription>
+                          </div>
+                          <Button variant="outline" size="sm" asChild>
+                            <a href="/analysis-history?filter=active">See all</a>
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="p-4 border border-border rounded-lg">
+                            <div className="flex items-center gap-3 mb-2">
+                              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                                <LightningBoltIcon className="w-4 h-4 text-green-600" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium">Bengaluru Police</p>
+                                <p className="text-xs text-muted-foreground">Active monitoring</p>
+                              </div>
+                            </div>
+                            <div className="text-xs text-green-600">✓ All systems operational</div>
+                          </div>
+                          
+                          <div className="p-4 border border-border rounded-lg">
+                            <div className="flex items-center gap-3 mb-2">
+                              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                <Hash className="w-4 h-4 text-blue-600" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium">Traffic Management</p>
+                                <p className="text-xs text-muted-foreground">Topic tracking</p>
+                              </div>
+                            </div>
+                            <div className="text-xs text-blue-600">📈 Trending up</div>
+                          </div>
+                          
+                          <div className="p-4 border border-border rounded-lg">
+                            <div className="flex items-center gap-3 mb-2">
+                              <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+                                <PersonIcon className="w-4 h-4 text-purple-600" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium">Key Influencers</p>
+                                <p className="text-xs text-muted-foreground">Profile monitoring</p>
+                              </div>
+                            </div>
+                            <div className="text-xs text-purple-600">👥 24 profiles tracked</div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Recent Activity - Moved to Monitoring Tab */}
+                  <div>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <ActivityLogIcon className="w-5 h-5" />
+                          Recent Activity
+                        </CardTitle>
+                        <CardDescription>Live updates from your monitoring</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {recentActivity.map((activity) => {
+                            const Icon = getActivityIcon(activity.type)
+                            return (
+                              <div key={activity.id} className="flex items-start gap-3">
+                                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                                  <Icon className="w-4 h-4 text-muted-foreground" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm text-foreground">{activity.content}</p>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <Badge className={`text-xs ${getSentimentColor(activity.sentiment)}`}>
+                                      {activity.sentiment}
+                                    </Badge>
+                                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                      <ClockIcon className="w-3 h-3" />
+                                      {activity.time}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                  <div>
                     <OpponentNarrativeWatch 
                       data={opponentData} 
                       loading={opponentLoading} 
                       error={opponentError} 
                     />
-                  </Card>
-                )}
-
-                {enabledCards['support-base'] && (
-                  <Card>
+                  </div>
+                  <div>
                     <SupportBaseEnergy 
                       data={supportBaseData} 
                       loading={supportLoading} 
                       error={supportError} 
                     />
-                  </Card>
-                )}
-              </div>
-
-            </div>
-          </TabsContent>
-
-          <TabsContent value="analytics">
-            <div className="space-y-6 animate-in fade-in duration-200">
-              <StatsGrid />
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                <Card>
-                  <TopicSentimentHeatmap />
-                </Card>
-                <Card>
-                  <InfluencerTracker 
-                    data={influencerData} 
-                    loading={influencerLoading} 
-                    error={influencerError} 
-                  />
-                </Card>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="monitoring">
-            <div className="space-y-6 animate-in fade-in duration-200">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-                <div className="lg:col-span-2">
-                  <Card>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <CardTitle>Active Monitoring</CardTitle>
-                          <CardDescription>Real-time monitoring of key entities and topics</CardDescription>
-                        </div>
-                        <Button variant="outline" size="sm" asChild>
-                          <a href="/analysis-history?filter=active">See all</a>
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="p-4 border border-border rounded-lg">
-                          <div className="flex items-center gap-3 mb-2">
-                            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                              <LightningBoltIcon className="w-4 h-4 text-green-600" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium">Bengaluru Police</p>
-                              <p className="text-xs text-muted-foreground">Active monitoring</p>
-                            </div>
-                          </div>
-                          <div className="text-xs text-green-600">✓ All systems operational</div>
-                        </div>
-                        
-                        <div className="p-4 border border-border rounded-lg">
-                          <div className="flex items-center gap-3 mb-2">
-                            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                              <Hash className="w-4 h-4 text-blue-600" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium">Traffic Management</p>
-                              <p className="text-xs text-muted-foreground">Topic tracking</p>
-                            </div>
-                          </div>
-                          <div className="text-xs text-blue-600">📈 Trending up</div>
-                        </div>
-                        
-                        <div className="p-4 border border-border rounded-lg">
-                          <div className="flex items-center gap-3 mb-2">
-                            <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
-                              <PersonIcon className="w-4 h-4 text-purple-600" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium">Key Influencers</p>
-                              <p className="text-xs text-muted-foreground">Profile monitoring</p>
-                            </div>
-                          </div>
-                          <div className="text-xs text-purple-600">👥 24 profiles tracked</div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Recent Activity - Moved to Monitoring Tab */}
-                <div>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <ActivityLogIcon className="w-5 h-5" />
-                        Recent Activity
-                      </CardTitle>
-                      <CardDescription>Live updates from your monitoring</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {recentActivity.map((activity) => {
-                          const Icon = getActivityIcon(activity.type)
-                          return (
-                            <div key={activity.id} className="flex items-start gap-3">
-                              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                                <Icon className="w-4 h-4 text-muted-foreground" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm text-foreground">{activity.content}</p>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <Badge className={`text-xs ${getSentimentColor(activity.sentiment)}`}>
-                                    {activity.sentiment}
-                                  </Badge>
-                                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                    <ClockIcon className="w-3 h-3" />
-                                    {activity.time}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
+                  </div>
                 </div>
               </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                <Card>
-                  <OpponentNarrativeWatch 
-                    data={opponentData} 
-                    loading={opponentLoading} 
-                    error={opponentError} 
-                  />
-                </Card>
-                <Card>
-                  <SupportBaseEnergy 
-                    data={supportBaseData} 
-                    loading={supportLoading} 
-                    error={supportError} 
-                  />
-                </Card>
-              </div>
+            </TabsContent>
+            </Tabs>
             </div>
-          </TabsContent>
-        </Tabs>
-        </div>
-      </main>
-    </PageLayout>
-    </ProtectedRoute>
-  )
-}
+            </main>
+          </div>
+        </PageLayout>
+      </ProtectedRoute>
+    )
+  }

@@ -11,7 +11,7 @@ export function ensureAuthToken(): boolean {
     return false
   }
 
-  const token = localStorage.getItem('auth_token')
+  const token = localStorage.getItem('token')
   
   if (token) {
     // Ensure token is set in AuthManager
@@ -36,5 +36,26 @@ export function getAuthToken(): string | null {
  */
 export function isAuthenticated(): boolean {
   return !!AuthManager.getToken()
+}
+
+/**
+ * Gets the current user
+ */
+export function getUser(): any {
+  return AuthManager.getUser()
+}
+
+/**
+ * Gets the current organization
+ */
+export function getOrganization(): any {
+  return AuthManager.getOrganization()
+}
+
+/**
+ * Clears all auth data
+ */
+export function clearAuth(): void {
+  AuthManager.clearToken()
 }
 

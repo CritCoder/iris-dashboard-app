@@ -66,27 +66,29 @@ export default function ForgotPasswordVerifyOTPPage() {
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-none"></div>
 
-      <div className="w-full max-w-md relative z-10">
-        <Link
-          href="/forgot-password"
-          className="inline-flex items-center gap-2 text-zinc-400 hover:text-zinc-300 mb-8 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </Link>
+      {/* Back Button - Fixed at top left */}
+      <Link
+        href="/forgot-password"
+        className="fixed top-8 left-8 inline-flex items-center gap-2 text-zinc-400 hover:text-zinc-300 transition-colors z-20"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back
+      </Link>
 
+      <div className="w-full max-w-md relative z-10">
+        {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-gradient-to-br from-zinc-700 to-zinc-800 mb-4">
             <span className="text-2xl font-bold text-white">IRIS</span>
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">Enter verification code</h1>
-          <p className="text-zinc-500">
-            We've sent a 6-digit code to<br />
-            <span className="text-white font-medium">suumit@mydukaan.io</span>
+          <p className="text-zinc-400">
+            We've sent a 6-digit code to your device
           </p>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+        {/* OTP Form */}
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="flex gap-3 justify-center">
               {otp.map((digit, index) => (
@@ -101,32 +103,39 @@ export default function ForgotPasswordVerifyOTPPage() {
                   value={digit}
                   onChange={(e) => handleChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
-                  className="w-12 h-14 text-center text-2xl font-bold bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                  className="w-12 h-14 text-center text-2xl font-bold bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg text-white focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all"
                 />
               ))}
             </div>
 
             <div className="text-center">
               {timer > 0 ? (
-                <p className="text-sm text-zinc-500">
+                <p className="text-sm text-zinc-400">
                   Resend code in <span className="text-white font-medium">{timer}s</span>
                 </p>
               ) : (
                 <button
                   type="button"
                   onClick={handleResend}
-                  className="text-sm text-blue-400 hover:text-blue-300 font-medium"
+                  className="text-sm text-blue-400 hover:text-blue-300 font-medium transition-colors duration-200"
                 >
                   Resend code
                 </button>
               )}
             </div>
 
-            <Button type="submit" className="w-full gap-2" disabled={otp.some((d) => !d)}>
+            <Button type="submit" className="w-full gap-2 h-12 text-base font-medium" disabled={otp.some((d) => !d)}>
               Verify Code
               <ArrowRight className="w-4 h-4" />
             </Button>
           </form>
+
+          <div className="mt-6 text-center">
+            <button className="text-sm text-zinc-500 hover:text-zinc-300 inline-flex items-center gap-2 group transition-colors">
+              Having trouble? Contact support
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

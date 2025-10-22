@@ -30,9 +30,10 @@ interface ProfileCardProps {
   profile: Profile
   view?: 'grid' | 'list' | 'table'
   campaignId?: string
+  onClick?: (profile: Profile) => void
 }
 
-export function ProfileCard({ profile, view = 'grid', campaignId = '1' }: ProfileCardProps) {
+export function ProfileCard({ profile, view = 'grid', campaignId = '1', onClick }: ProfileCardProps) {
   const platformIcons = {
     facebook: FacebookIcon,
     twitter: TwitterIcon,
@@ -43,6 +44,12 @@ export function ProfileCard({ profile, view = 'grid', campaignId = '1' }: Profil
   }
 
   const IconComponent = platformIcons[profile.platform] || TwitterIcon
+
+  const handleClick = () => {
+    if (onClick) {
+      onClick(profile)
+    }
+  }
 
   // Format numbers
   const formatNumber = (num: number): string => {
@@ -177,9 +184,8 @@ export function ProfileCard({ profile, view = 'grid', campaignId = '1' }: Profil
   }
 
   // Default grid view - Instagram/social media style profile card
-  return (
-    <Link href={`/analysis-history/${campaignId}/profile/${profile.id}`}>
-      <Card className="hover:bg-accent/5 transition-all duration-200 cursor-pointer border-border/40 hover:border-border/60 hover:shadow-sm bg-card/50 backdrop-blur-sm h-80 flex flex-col">
+  const cardContent = (
+    <Card className="hover:bg-accent/5 transition-all duration-200 cursor-pointer border-border/40 hover:border-border/60 hover:shadow-sm bg-card/50 backdrop-blur-sm h-80 flex flex-col">
         <CardHeader className="pb-3 flex-shrink-0">
           <div className="flex items-center gap-3">
             <Avatar className="w-16 h-16">
@@ -248,6 +254,15 @@ export function ProfileCard({ profile, view = 'grid', campaignId = '1' }: Profil
           </div>
         </CardContent>
       </Card>
+  )
+
+  if (onClick) {
+    return <div onClick={handleClick}>{cardContent}</div>
+  }
+
+  return (
+    <Link href={`/analysis-history/${campaignId}/profile/${profile.id}`}>
+      {cardContent}
     </Link>
   )
 }

@@ -27,22 +27,22 @@ const types = {
 
 const shapes = {
   square: {
-    tiny: "rounded",
+    tiny: "rounded-sm",
     small: "rounded-md",
     medium: "rounded-md",
     large: "rounded-lg"
   },
   circle: {
-    tiny: "rounded-[100%]",
-    small: "rounded-[100%]",
-    medium: "rounded-[100%]",
-    large: "rounded-[100%]"
+    tiny: "rounded-full",
+    small: "rounded-full",
+    medium: "rounded-full",
+    large: "rounded-full"
   },
   rounded: {
-    tiny: "rounded-[100px]",
-    small: "rounded-[100px]",
-    medium: "rounded-[100px]",
-    large: "rounded-[100px]"
+    tiny: "rounded-full",
+    small: "rounded-full",
+    medium: "rounded-full",
+    large: "rounded-full"
   }
 };
 
@@ -90,7 +90,7 @@ export const Button = ({
       onClick={onClick}
       tabIndex={0}
       className={clsx(
-        "flex justify-center items-center gap-0.5 duration-150",
+        "flex justify-center items-center gap-0.5 duration-150 will-change-transform",
         sizes[+svgOnly][size],
         (disabled || loading) ? "bg-gray-100 text-gray-700 border border-gray-400 cursor-not-allowed" : types[type],
         shapes[shape][size],

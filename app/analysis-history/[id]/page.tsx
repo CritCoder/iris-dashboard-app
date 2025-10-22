@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { Download, Play, Square, RefreshCw, ChevronDown, ExternalLink, Heart, MessageCircle, Share2, Eye, Bell, BarChart3 } from 'lucide-react'
 import {
   ChatBubbleLeftRightIcon, UserGroupIcon, CubeIcon, MapPinIcon, BellIcon,
   GlobeAltIcon, SparklesIcon, FireIcon, ShieldExclamationIcon, ChartBarIcon,
   EyeIcon, ArrowTrendingUpIcon, NewspaperIcon, VideoCameraIcon, FaceSmileIcon,
-  MinusCircleIcon, FaceFrownIcon, ChevronRightIcon, ChevronDownIcon,
+  MinusCircleIcon, FaceFrownIcon, ChevronRightIcon,
   UsersIcon, ChatBubbleBottomCenterTextIcon, HandThumbUpIcon, UserIcon,
   BuildingOfficeIcon, ExclamationTriangleIcon, MagnifyingGlassIcon,
   FlagIcon, BuildingLibraryIcon
@@ -26,9 +26,12 @@ import { TrendsWidget } from '@/components/trends/trends-widget'
 import { Post } from '@/components/posts/post-card'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useCampaigns } from '@/hooks/use-campaigns'
-import { usePosts, convertToPostCardFormat } from '@/hooks/use-posts'
+import { useSocialPosts } from '@/hooks/use-api'
 import { useProfiles, convertToProfileCardFormat } from '@/hooks/use-profiles'
 import { ProfileList } from '@/components/profiles/profile-list'
+import { startMonitoring, stopMonitoring } from '@/lib/api/campaigns'
+import { convertToPostCardFormat } from '@/lib/utils'
+import ErrorBoundary from '@/components/ui/error-boundary'
 
 const samplePosts: Post[] = [
   {
@@ -105,35 +108,153 @@ const samplePosts: Post[] = [
   }
 ]
 
-export default function CampaignDetailPage() {
+function CampaignDetailPage() {
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
   const campaignId = params.id as string
   const { data: campaigns, loading: campaignsLoading, error: campaignsError } = useCampaigns({ enabled: true })
 
-  // Initialize state variables first
-  const [selectedSentiment, setSelectedSentiment] = useState('all')
-  const [selectedPlatform, setSelectedPlatform] = useState('all')
+  // URL parameter management
+  const updateUrlParams = (newParams: Record<string, string | undefined>, clearFilters: boolean = false) => {
+    const current = new URLSearchParams(searchParams.toString())
+    
+    // Clear all filter parameters if requested
+    if (clearFilters) {
+      const filterParams = [
+        'sentiment', 'platform', 'timeRange', 'sortBy', 'sortOrder',
+        'min_likesCount', 'min_sharesCount', 'min_commentsCount', 'min_viewsCount', 
+        'max_likesCount', 'contentType', 'hasVideos', 'minFollowers', 'maxFollowers',
+        'minPosts', 'isVerified', 'accountType', 'navItem'
+      ]
+      filterParams.forEach(param => current.delete(param))
+    }
+    
+    Object.entries(newParams).forEach(([key, value]) => {
+      if (value === undefined || value === 'all' || value === '') {
+        current.delete(key)
+      } else {
+        current.set(key, value)
+      }
+    })
+    
+    const newUrl = `${window.location.pathname}?${current.toString()}`
+    router.push(newUrl, { scroll: false })
+  }
 
-  // State for API-based filtering
-  const [currentFilters, setCurrentFilters] = useState<{
-    minLikesCount?: number
-    minSharesCount?: number
-    minCommentsCount?: number
-    sentiment?: string
-    platform?: string
-  }>({})
+  // Get current URL parameters
+  const getUrlParam = (key: string, defaultValue: string = '') => {
+    return searchParams.get(key) || defaultValue
+  }
 
-  // State for profile-based filtering
-  const [currentProfileFilters, setCurrentProfileFilters] = useState<{
-    minFollowers?: number
-    maxFollowers?: number
-    minPosts?: number
-    isVerified?: boolean
-    accountType?: string
-    platform?: string
-  }>({})
+  // Check if a set of parameters matches current URL
+  const isActive = (params: Record<string, string>) => {
+    const paramKeys = Object.keys(params)
+    const searchParamKeys = Array.from(searchParams.keys())
+
+    if (paramKeys.length !== searchParamKeys.length) {
+      return false
+    }
+
+    if (paramKeys.length === 0 && searchParamKeys.length === 0) {
+      return true
+    }
+
+    return paramKeys.every(key => searchParams.get(key) === params[key])
+  }
+
+  // Create href for menu items
+  const createHref = (params: Record<string, string>) => {
+    const newParams = new URLSearchParams(searchParams.toString())
+    for (const key in params) {
+      newParams.set(key, params[key])
+    }
+    return `${window.location.pathname}?${newParams.toString()}`
+  }
+
+  // Initialize state from URL parameters
+  const [selectedSentiment, setSelectedSentiment] = useState(() => getUrlParam('sentiment', 'all'))
+  const [selectedPlatform, setSelectedPlatform] = useState(() => getUrlParam('platform', 'all'))
+  const [activeAnalysisTab, setActiveAnalysisTab] = useState<'social-feed' | 'profiles' | 'entities' | 'locations' | 'notifications'>(() => 
+    (getUrlParam('tab', 'social-feed') as any) || 'social-feed'
+  )
+  const [selectedNavItem, setSelectedNavItem] = useState<string | null>(() => getUrlParam('navItem') || null)
+
+  // Sync URL parameters with state
+  useEffect(() => {
+    const sentiment = getUrlParam('sentiment', 'all')
+    const platform = getUrlParam('platform', 'all')
+    const tab = getUrlParam('tab', 'social-feed')
+    const navItem = getUrlParam('navItem') || null
+
+    setSelectedSentiment(sentiment)
+    setSelectedPlatform(platform)
+    setActiveAnalysisTab(tab as any)
+    setSelectedNavItem(navItem)
+  }, [searchParams])
+
+  // Derive API parameters from URL
+  const apiParams = useMemo(() => {
+    const params: any = {
+      campaignId: campaignId,
+      page: 1,
+      limit: 50,
+    }
+
+    // Add filters from URL parameters
+    const sentiment = getUrlParam('sentiment')
+    const platform = getUrlParam('platform')
+    const timeRange = getUrlParam('timeRange')
+    const sortBy = getUrlParam('sortBy')
+    const sortOrder = getUrlParam('sortOrder')
+    const minLikesCount = getUrlParam('min_likesCount')
+    const minSharesCount = getUrlParam('min_sharesCount')
+    const minCommentsCount = getUrlParam('min_commentsCount')
+    const minViewsCount = getUrlParam('min_viewsCount')
+    const maxLikesCount = getUrlParam('max_likesCount')
+    const contentType = getUrlParam('contentType')
+    const hasVideos = getUrlParam('hasVideos')
+
+    if (sentiment && sentiment !== 'all') params.sentiment = sentiment
+    if (platform && platform !== 'all') params.platform = platform
+    if (timeRange) params.timeRange = timeRange
+    if (sortBy) params.sortBy = sortBy
+    if (sortOrder) params.sortOrder = sortOrder
+    if (minLikesCount) params.minLikesCount = parseInt(minLikesCount)
+    if (minSharesCount) params.minSharesCount = parseInt(minSharesCount)
+    if (minCommentsCount) params.minCommentsCount = parseInt(minCommentsCount)
+    if (minViewsCount) params.minViewsCount = parseInt(minViewsCount)
+    if (maxLikesCount) params.maxLikesCount = parseInt(maxLikesCount)
+    if (contentType) params.contentType = contentType
+    if (hasVideos) params.hasVideos = hasVideos === 'true'
+
+    return params
+  }, [campaignId, searchParams])
+
+  // Derive profile API parameters from URL
+  const profileApiParams = useMemo(() => {
+    const params: any = {
+      campaignId: campaignId,
+      page: 1,
+      limit: 50,
+    }
+
+    const platform = getUrlParam('platform')
+    const minFollowers = getUrlParam('minFollowers')
+    const maxFollowers = getUrlParam('maxFollowers')
+    const minPosts = getUrlParam('minPosts')
+    const isVerified = getUrlParam('isVerified')
+    const accountType = getUrlParam('accountType')
+
+    if (platform && platform !== 'all') params.platform = platform
+    if (minFollowers) params.minFollowers = parseInt(minFollowers)
+    if (maxFollowers) params.maxFollowers = parseInt(maxFollowers)
+    if (minPosts) params.minPosts = parseInt(minPosts)
+    if (isVerified) params.isVerified = isVerified === 'true'
+    if (accountType) params.accountType = accountType
+
+    return params
+  }, [campaignId, searchParams])
 
   // Fetch posts for the current campaign
   const {
@@ -141,17 +262,7 @@ export default function CampaignDetailPage() {
     pagination,
     loading: postsLoading,
     error: postsError
-  } = usePosts({
-    campaignId: campaignId,
-    page: 1,
-    limit: 50,
-    platform: currentFilters.platform || (selectedPlatform === 'all' ? undefined : selectedPlatform),
-    sentiment: currentFilters.sentiment || (selectedSentiment === 'all' ? undefined : selectedSentiment),
-    minLikesCount: currentFilters.minLikesCount,
-    minSharesCount: currentFilters.minSharesCount,
-    minCommentsCount: currentFilters.minCommentsCount,
-    enabled: true
-  })
+  } = useSocialPosts(apiParams)
 
   // Fetch profiles for the current campaign
   const {
@@ -159,116 +270,72 @@ export default function CampaignDetailPage() {
     loading: profilesLoading,
     error: profilesError,
     total: profilesTotal
-  } = useProfiles({
-    campaignId: campaignId,
-    page: 1,
-    limit: 50,
-    platform: currentProfileFilters.platform,
-    minFollowers: currentProfileFilters.minFollowers,
-    maxFollowers: currentProfileFilters.maxFollowers,
-    minPosts: currentProfileFilters.minPosts,
-    isVerified: currentProfileFilters.isVerified,
-    accountType: currentProfileFilters.accountType,
-    enabled: true
-  })
+  } = useProfiles(profileApiParams)
 
   const [isMonitoring, setIsMonitoring] = useState(true)
+  const [isTogglingMonitoring, setIsTogglingMonitoring] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
-  const [activeAnalysisTab, setActiveAnalysisTab] = useState<'social-feed' | 'profiles' | 'entities' | 'locations' | 'notifications'>('social-feed')
   const [expandedTabs, setExpandedTabs] = useState<Set<string>>(new Set())
-  const [selectedNavItem, setSelectedNavItem] = useState<string | null>(null)
   const contentRef = useRef<HTMLDivElement>(null)
 
   // Find the current campaign from the campaigns list
-  const currentCampaign = campaigns?.find(campaign => campaign.id === campaignId)
+  const currentCampaign = campaigns?.find(campaign => campaign.id === campaignId) || null
+  
+  // Initialize monitoring state based on campaign data
+  const actualMonitoringStatus = currentCampaign?.monitoringStatus === 'ACTIVE'
 
-  // Convert API posts to PostCard format and apply filters
-  const allPosts = postsData ? postsData.map(convertToPostCardFormat) : []
-
-  const filteredPosts = allPosts.filter(post => {
-    const matchesSentiment = selectedSentiment === 'all' || post.sentiment === selectedSentiment
-    const matchesPlatform = selectedPlatform === 'all' || post.platform === selectedPlatform
-    return matchesSentiment && matchesPlatform
-  })
+  // Convert API posts to PostCard format
+  const allPosts = postsData && Array.isArray(postsData) ? postsData.map(convertToPostCardFormat) : []
 
   // Convert API profiles to ProfileCard format
-  const allProfiles = profilesData ? profilesData.map(convertToProfileCardFormat) : []
+  const allProfiles = profilesData && Array.isArray(profilesData) ? profilesData.map(convertToProfileCardFormat) : []
 
-  // Handle category-based filtering for navigation
-  const handleCategorySelect = (categoryName: string) => {
-    setSelectedNavItem(categoryName)
-
-    // Apply specific filters based on category
-    switch (categoryName) {
-      case 'High Impact':
-        setCurrentFilters({ minLikesCount: 1000, minSharesCount: 500 })
-        break
-      case 'Viral Negative':
-        setCurrentFilters({ sentiment: 'NEGATIVE', minSharesCount: 50 })
-        break
-      case 'Trending Discussions':
-        setCurrentFilters({ minCommentsCount: 10 })
-        break
-      case 'Positive Sentiment':
-        setCurrentFilters({ sentiment: 'POSITIVE' })
-        break
-      case 'Twitter':
-        setCurrentFilters({ platform: 'twitter' })
-        break
-      case 'Facebook':
-        setCurrentFilters({ platform: 'facebook' })
-        break
-      case 'Instagram':
-        setCurrentFilters({ platform: 'instagram' })
-        break
-      default:
-        setCurrentFilters({}) // Clear filters for "All Posts"
-        break
+  // Handle menu item selection with URL updates
+  const handleMenuItemSelect = (item: any, tabId: string) => {
+    // Special handling for "All Posts" and "All Authors" - clear all filters
+    if (item.name === 'All Posts' || item.name === 'All Authors') {
+      updateUrlParams({ tab: tabId, navItem: item.name }, true)
+      return
     }
+
+    // Start with base parameters
+    const newParams: Record<string, string> = {
+      tab: tabId,
+      navItem: item.name
+    }
+
+    // Add item-specific parameters (these will replace existing filters)
+    if (item.params) {
+      Object.assign(newParams, item.params)
+    }
+
+    // Clear all filter parameters first, then set new ones
+    const current = new URLSearchParams(searchParams.toString())
+    
+    // Remove all existing filter parameters
+    const filterParams = [
+      'sentiment', 'platform', 'timeRange', 'sortBy', 'sortOrder',
+      'min_likesCount', 'min_sharesCount', 'min_commentsCount', 'min_viewsCount', 
+      'max_likesCount', 'contentType', 'hasVideos', 'minFollowers', 'maxFollowers',
+      'minPosts', 'isVerified', 'accountType'
+    ]
+    
+    filterParams.forEach(param => current.delete(param))
+    
+    // Add new parameters
+    Object.entries(newParams).forEach(([key, value]) => {
+      if (value !== undefined && value !== 'all' && value !== '') {
+        current.set(key, value)
+      }
+    })
+    
+    const newUrl = `${window.location.pathname}?${current.toString()}`
+    router.push(newUrl, { scroll: false })
   }
 
-  // Handle profile filtering for navigation
-  const handleProfileCategorySelect = (categoryName: string, params?: any) => {
-    setSelectedNavItem(categoryName)
-
-    // Apply profile-specific filters based on category and params
-    let newFilters = {}
-
-    if (params) {
-      // Handle minFollowers from params
-      if (params.minFollowers) {
-        newFilters = { minFollowers: parseInt(params.minFollowers) }
-      }
-
-      // Handle minPosts from params
-      if (params.minPosts) {
-        newFilters = { ...newFilters, minPosts: parseInt(params.minPosts) }
-      }
-    } else {
-      // Handle predefined categories
-      switch (categoryName) {
-        case 'High Impact Authors':
-          newFilters = { minFollowers: 500000 }
-          break
-        case 'High Reach Authors':
-          newFilters = { minFollowers: 100000 }
-          break
-        case 'Frequent Posters':
-          newFilters = { minPosts: 1000 }
-          break
-        case 'Verified Accounts':
-          newFilters = { isVerified: true }
-          break
-        case 'Business Accounts':
-          newFilters = { accountType: 'business' }
-          break
-        default:
-          newFilters = {}
-          break
-      }
-    }
-
-    setCurrentProfileFilters(newFilters)
+  // Handle tab change
+  const handleTabChange = (tabId: string) => {
+    updateUrlParams({ tab: tabId })
   }
 
   const menuItems = [
@@ -281,7 +348,7 @@ export default function CampaignDetailPage() {
         {
           title: 'Discover',
           items: [
-            { name: 'All Posts', icon: GlobeAltIcon, params: { sortBy: 'postedAt', sortOrder: 'desc'} },
+            { name: 'All Posts', icon: GlobeAltIcon, params: {} },
             { name: 'Latest Posts', icon: SparklesIcon, params: { timeRange: '24h', sortBy: 'postedAt', sortOrder: 'desc' } },
           ],
         },
@@ -292,7 +359,7 @@ export default function CampaignDetailPage() {
             { name: 'Viral Negative', icon: ShieldExclamationIcon, params: { sentiment: 'NEGATIVE', min_sharesCount: '1000' } },
             { name: 'Trending Discussions', icon: ChatBubbleLeftRightIcon, params: { timeRange: '24h', sortBy: 'commentsCount' } },
             { name: 'High Engagement', icon: ChartBarIcon, params: { min_likesCount: '100', min_commentsCount: '50' } },
-            { name: 'High Reach, Low Engagement', icon: EyeIcon, params: { min_viewsCount: '10000', max_likesCount: '50' } },
+            { name: 'High Reach/Low Engage', icon: EyeIcon, params: { min_viewsCount: '10000', max_likesCount: '50' } },
             { name: 'Viral Potential', icon: ArrowTrendingUpIcon, params: { timeRange: '6h', sortBy: 'sharesCount' } },
           ],
         },
@@ -425,6 +492,43 @@ export default function CampaignDetailPage() {
     setExpandedTabs(newExpanded)
   }
 
+  // Handle monitoring toggle
+  const handleToggleMonitoring = async () => {
+    if (!campaignId) return
+    
+    setIsTogglingMonitoring(true)
+    try {
+      if (isMonitoring) {
+        await stopMonitoring(campaignId)
+        setIsMonitoring(false)
+      } else {
+        await startMonitoring(campaignId, 5) // Default interval of 5 minutes
+        setIsMonitoring(true)
+      }
+    } catch (error) {
+      console.error('Monitoring toggle failed:', error)
+      alert(error instanceof Error ? error.message : 'Failed to update monitoring status')
+    } finally {
+      setIsTogglingMonitoring(false)
+    }
+  }
+
+  // Handle stop monitoring
+  const handleStopMonitoring = async () => {
+    if (!campaignId) return
+    
+    setIsTogglingMonitoring(true)
+    try {
+      await stopMonitoring(campaignId)
+      setIsMonitoring(false)
+    } catch (error) {
+      console.error('Stop monitoring failed:', error)
+      alert(error instanceof Error ? error.message : 'Failed to stop monitoring')
+    } finally {
+      setIsTogglingMonitoring(false)
+    }
+  }
+
   const handleExportPDF = async () => {
     if (!contentRef.current) return
 
@@ -500,7 +604,7 @@ export default function CampaignDetailPage() {
                     currentCampaign?.name || 'Campaign Not Found'
                   )}
                 </h1>
-                {isMonitoring && (
+                {actualMonitoringStatus && (
                   <div className="flex items-center gap-1.5 px-2 py-1 bg-green-500/10 border border-green-500/20 rounded-md">
                     <div className="relative flex items-center justify-center">
                       <div className="absolute w-1.5 h-1.5 bg-green-500 rounded-full animate-ping opacity-75"></div>
@@ -560,7 +664,7 @@ export default function CampaignDetailPage() {
 
             {/* Center: Platform Filters */}
             <div className="flex items-center gap-2">
-              <Select value={selectedSentiment} onValueChange={setSelectedSentiment}>
+              <Select value={selectedSentiment} onValueChange={(value) => updateUrlParams({ sentiment: value })}>
                 <SelectTrigger className="w-[140px] h-8">
                   <SelectValue placeholder="All Sentiments" />
                 </SelectTrigger>
@@ -576,7 +680,7 @@ export default function CampaignDetailPage() {
                 <Button
                   variant={selectedPlatform === 'all' ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => setSelectedPlatform('all')}
+                  onClick={() => updateUrlParams({ platform: 'all' })}
                   className="text-xs h-8 px-2"
                 >
                   All ({currentCampaign?.metrics.totalPosts || 0})
@@ -584,7 +688,7 @@ export default function CampaignDetailPage() {
                 <Button
                   variant={selectedPlatform === 'twitter' ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => setSelectedPlatform('twitter')}
+                  onClick={() => updateUrlParams({ platform: 'twitter' })}
                   className="text-xs h-8 px-2 gap-1"
                 >
                   <TwitterIcon className="w-3 h-3" />
@@ -593,7 +697,7 @@ export default function CampaignDetailPage() {
                 <Button
                   variant={selectedPlatform === 'facebook' ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => setSelectedPlatform('facebook')}
+                  onClick={() => updateUrlParams({ platform: 'facebook' })}
                   className="text-xs h-8 px-2 gap-1"
                 >
                   <FacebookIcon className="w-3 h-3" />
@@ -602,7 +706,7 @@ export default function CampaignDetailPage() {
                 <Button
                   variant={selectedPlatform === 'instagram' ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => setSelectedPlatform('instagram')}
+                  onClick={() => updateUrlParams({ platform: 'instagram' })}
                   className="text-xs h-8 px-2 gap-1"
                 >
                   <InstagramIcon className="w-3 h-3" />
@@ -626,10 +730,20 @@ export default function CampaignDetailPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1.5 bg-yellow-900/20 border-yellow-800 text-yellow-400 hover:bg-yellow-900/30 h-8 px-3"
-                onClick={() => setIsMonitoring(!isMonitoring)}
+                className={`gap-1.5 h-8 px-3 transition-colors ${
+                  isMonitoring 
+                    ? 'bg-cyan-900/20 border-cyan-800 text-cyan-400 hover:bg-cyan-900/30' 
+                    : 'bg-gray-900/20 border-gray-800 text-gray-400 hover:bg-gray-900/30'
+                }`}
+                onClick={handleToggleMonitoring}
+                disabled={isTogglingMonitoring}
               >
-                {isMonitoring ? (
+                {isTogglingMonitoring ? (
+                  <>
+                    <RefreshCw className="w-3 h-3 animate-spin" />
+                    {isMonitoring ? 'Pausing...' : 'Starting...'}
+                  </>
+                ) : isMonitoring ? (
                   <>
                     <Square className="w-3 h-3" />
                     Pause
@@ -637,7 +751,7 @@ export default function CampaignDetailPage() {
                 ) : (
                   <>
                     <Play className="w-3 h-3" />
-                    Resume
+                    Start
                   </>
                 )}
               </Button>
@@ -645,9 +759,14 @@ export default function CampaignDetailPage() {
                 variant="outline"
                 size="sm"
                 className="gap-1.5 bg-red-900/20 border-red-800 text-red-400 hover:bg-red-900/30 h-8 px-3"
-                onClick={() => setIsMonitoring(false)}
+                onClick={handleStopMonitoring}
+                disabled={isTogglingMonitoring}
               >
-                <Square className="w-3 h-3" />
+                {isTogglingMonitoring ? (
+                  <RefreshCw className="w-3 h-3 animate-spin" />
+                ) : (
+                  <Square className="w-3 h-3" />
+                )}
                 Stop
               </Button>
               <Link href="/analysis-history">
@@ -673,7 +792,7 @@ export default function CampaignDetailPage() {
                   <button
                     key={item.id}
                     onClick={() => {
-                      setActiveAnalysisTab(item.id as any)
+                      handleTabChange(item.id)
                       if (item.subItems.length > 0) {
                         // Always expand the tab when clicked if it has sub-items
                         const newExpanded = new Set(expandedTabs)
@@ -758,43 +877,21 @@ export default function CampaignDetailPage() {
                       <div className="space-y-0.5">
                         {category.items.map((subItem, subIndex) => {
                           const SubIcon = subItem.icon
+                          const active = isActive(subItem.params || {})
                           return (
                             <button
                               key={subIndex}
-                              className="w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors text-muted-foreground hover:text-foreground hover:bg-accent/50 border border-transparent hover:border-border/50"
+                              className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors border ${
+                                active 
+                                  ? 'bg-white text-black' 
+                                  : 'text-muted-foreground hover:text-foreground hover:bg-accent/50 border-transparent hover:border-border/50'
+                              }`}
                               onClick={(e) => {
                                 e.stopPropagation()
-                                setSelectedNavItem(subItem.name)
-
-                                // Apply appropriate filters based on the current tab
-                                if (activeAnalysisTab === 'profiles') {
-                                  // Handle profile filtering
-                                  handleProfileCategorySelect(subItem.name, subItem.params)
-                                } else {
-                                  // Handle post filtering (existing logic)
-                                  let newFilters = {}
-
-                                  if (subItem.params?.sentiment) {
-                                    newFilters = { sentiment: subItem.params.sentiment }
-                                  } else if (subItem.name === 'High Impact') {
-                                    newFilters = { minLikesCount: 1000, minSharesCount: 500 }
-                                  } else if (subItem.name === 'Viral Negative') {
-                                    newFilters = { sentiment: 'NEGATIVE', minSharesCount: 50 }
-                                  } else if (subItem.name === 'Popular Content') {
-                                    newFilters = { minLikesCount: 500 }
-                                  } else if (subItem.name === 'Trending Discussions') {
-                                    newFilters = { minCommentsCount: 10 }
-                                  } else if (subItem.name === 'Breaking News') {
-                                    newFilters = { minSharesCount: 100 }
-                                  } else if (subItem.name === 'Latest Posts') {
-                                    newFilters = {}
-                                  }
-
-                                  setCurrentFilters(newFilters)
-                                }
+                                handleMenuItemSelect(subItem, activeMenuItem.id)
                               }}
                             >
-                              <SubIcon className="w-3 h-3 flex-shrink-0" />
+                              <SubIcon className={`w-3 h-3 flex-shrink-0 ${active ? 'text-black' : 'text-gray-400'}`} />
                               <span className="text-left truncate">{subItem.name}</span>
                             </button>
                           )
@@ -818,9 +915,7 @@ export default function CampaignDetailPage() {
                         <h2 className="text-xl font-semibold text-foreground">{selectedNavItem}</h2>
                         <button
                           onClick={() => {
-                            setSelectedNavItem(null)
-                            setCurrentFilters({}) // Clear post filters
-                            setCurrentProfileFilters({}) // Clear profile filters
+                            updateUrlParams({ navItem: undefined })
                           }}
                           className="text-sm text-primary hover:text-primary/80 transition-colors mt-1"
                         >
@@ -829,7 +924,7 @@ export default function CampaignDetailPage() {
                       </div>
                     </div>
                     <PostList
-                      posts={filteredPosts}
+                      posts={allPosts}
                       campaignId={campaignId}
                       defaultView="grid"
                     />
@@ -850,9 +945,8 @@ export default function CampaignDetailPage() {
                   </div>
                 ) : (
                   <PostRows
-                    posts={filteredPosts}
+                    posts={allPosts}
                     campaignId={campaignId}
-                    onCategorySelect={handleCategorySelect}
                   />
                 )
               )}
@@ -891,8 +985,7 @@ export default function CampaignDetailPage() {
                         <h2 className="text-xl font-semibold text-foreground">{selectedNavItem}</h2>
                         <button
                           onClick={() => {
-                            setSelectedNavItem(null)
-                            setCurrentProfileFilters({}) // Clear profile filters
+                            updateUrlParams({ navItem: undefined })
                           }}
                           className="text-sm text-primary hover:text-primary/80 transition-colors mt-1"
                         >
@@ -979,5 +1072,13 @@ export default function CampaignDetailPage() {
           </div>
         </div>
     </div>
+  )
+}
+
+export default function CampaignDetailPageWithErrorBoundary() {
+  return (
+    <ErrorBoundary>
+      <CampaignDetailPage />
+    </ErrorBoundary>
   )
 }

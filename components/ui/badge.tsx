@@ -1,10 +1,12 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
+import { motion } from "framer-motion"
 
 import { cn } from "@/lib/utils"
+import { badgeVariants as motionBadgeVariants } from "@/lib/motion"
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 will-change-transform",
   {
     variants: {
       variant: {
@@ -25,11 +27,26 @@ const badgeVariants = cva(
 
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
+    VariantProps<typeof badgeVariants> {
+  pulse?: boolean
+  disableAnimation?: boolean
+}
 
-function Badge({ className, variant, ...props }: BadgeProps) {
+function Badge({ className, variant, pulse = false, disableAnimation = false, ...props }: BadgeProps) {
+  if (disableAnimation || !pulse) {
+    return (
+      <div className={cn(badgeVariants({ variant }), className)} {...props} />
+    )
+  }
+
   return (
-    <div className={cn(badgeVariants({ variant }), className)} {...props} />
+    <motion.div 
+      className={cn(badgeVariants({ variant }), className)} 
+      variants={motionBadgeVariants}
+      initial="initial"
+      animate="pulse"
+      {...props} 
+    />
   )
 }
 

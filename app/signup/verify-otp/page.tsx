@@ -101,12 +101,9 @@ export default function SignupVerifyOTPPage() {
         
         if (contactInfo.method === 'mobile') {
           // Use AuthProvider's otpLogin method
-          const loginSuccess = await otpLogin({
-            phoneNumber: contactInfo.value,
-            otp: otpCode
-          })
+          const result = await otpLogin(contactInfo.value, otpCode)
           
-          if (loginSuccess) {
+          if (result.success) {
             // Clear session storage
             sessionStorage.removeItem('otpContactInfo')
             // AuthProvider will handle the redirect automatically
@@ -115,12 +112,9 @@ export default function SignupVerifyOTPPage() {
           }
         } else {
           // For email OTP, use AuthProvider's login method
-          const loginSuccess = await login({
-            email: contactInfo.value,
-            password: 'temp_password' // This might need to be adjusted based on actual API
-          })
+          const result = await login(contactInfo.value, 'temp_password') // This might need to be adjusted based on actual API
           
-          if (loginSuccess) {
+          if (result.success) {
             // Clear session storage
             sessionStorage.removeItem('otpContactInfo')
             // AuthProvider will handle the redirect automatically
@@ -147,13 +141,16 @@ export default function SignupVerifyOTPPage() {
     try {
       if (contactInfo.method === 'mobile') {
         // Use the same API endpoint for resending OTP
+        // Remove the + sign from the beginning of the phone number if present
+        const cleanPhoneNumber = contactInfo.value.startsWith('+') ? contactInfo.value.substring(1) : contactInfo.value;
+        
         const response = await fetch(`${API_URL}/api/auth/otpLogin`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            phoneNumber: contactInfo.value
+            phoneNumber: cleanPhoneNumber
           })
         })
 
