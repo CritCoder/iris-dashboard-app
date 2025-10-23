@@ -30,15 +30,9 @@ export function QuickActions() {
   }, [open])
 
   useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault()
-        setOpen((open) => !open)
-      }
-    }
-
-    document.addEventListener('keydown', down)
-    return () => document.removeEventListener('keydown', down)
+    // Keyboard shortcuts have been disabled
+    // No event listeners are added
+    return () => {}
   }, [])
 
   const navigate = (href: string) => {
@@ -62,32 +56,22 @@ export function QuickActions() {
           <CommandItem onSelect={() => navigate('/')}>
             <Home className="mr-2 h-4 w-4" />
             <span>Dashboard</span>
-            <kbd className="ml-auto text-xs">⌘D</kbd>
           </CommandItem>
           <CommandItem onSelect={() => navigate('/profiles')}>
             <Users className="mr-2 h-4 w-4" />
             <span>Profiles</span>
-            <kbd className="ml-auto text-xs">⌘P</kbd>
           </CommandItem>
           <CommandItem onSelect={() => navigate('/social-feed')}>
             <Globe className="mr-2 h-4 w-4" />
             <span>Social Feed</span>
-            <kbd className="ml-auto text-xs">⌘S</kbd>
-          </CommandItem>
-          <CommandItem onSelect={() => navigate('/analysis-history')}>
-            <BarChart3 className="mr-2 h-4 w-4" />
-            <span>Analysis History</span>
-            <kbd className="ml-auto text-xs">⌘A</kbd>
           </CommandItem>
           <CommandItem onSelect={() => navigate('/entities')}>
             <Hash className="mr-2 h-4 w-4" />
             <span>Entities</span>
-            <kbd className="ml-auto text-xs">⌘E</kbd>
           </CommandItem>
           <CommandItem onSelect={() => navigate('/locations')}>
             <MapPin className="mr-2 h-4 w-4" />
             <span>Locations</span>
-            <kbd className="ml-auto text-xs">⌘L</kbd>
           </CommandItem>
           <CommandItem onSelect={() => navigate('/communities-groups')}>
             <Building2 className="mr-2 h-4 w-4" />

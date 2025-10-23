@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import { useInputSanitization } from '@/hooks/use-input-sanitization'
 import { UseSanitizationOptions } from '@/hooks/use-input-sanitization'
 
-interface SanitizedInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
+interface SanitizedInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   sanitizationType: UseSanitizationOptions['type']
   onSanitizedChange?: (sanitized: string, isValid: boolean, error?: string) => void
   showValidation?: boolean
@@ -62,11 +62,16 @@ export const SanitizedInput = forwardRef<HTMLInputElement, SanitizedInputProps>(
             getValidationClassName()
           )}
         />
+        {/* Validation messages - positioned to not affect layout */}
         {showValidation && sanitization.isDirty && !sanitization.isValid && sanitization.error && (
-          <p className="text-red-500 text-xs mt-1">{sanitization.error}</p>
+          <div className="absolute -bottom-6 left-0 right-0">
+            <p className="text-red-500 text-xs">{sanitization.error}</p>
+          </div>
         )}
         {showValidation && sanitization.isDirty && sanitization.isValid && (
-          <p className="text-green-500 text-xs mt-1">✓ Valid</p>
+          <div className="absolute -bottom-6 left-0 right-0">
+            <p className="text-green-500 text-xs">✓ Valid</p>
+          </div>
         )}
       </div>
     )

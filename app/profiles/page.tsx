@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { PageLayout } from '@/components/layout/page-layout'
 import { Search, Users } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { useProfiles } from '@/hooks/use-api'
+import { useProfiles } from '@/hooks/use-profiles'
 import { ProfileList } from '@/components/profiles/profile-list'
 import { ProfilesSidebar } from '@/components/profiles/profiles-sidebar'
 import { ProfilesGridSkeleton } from '@/components/skeletons/profile-card-skeleton'
@@ -80,6 +80,15 @@ function ProfilesPageContent() {
 
   const { data: profilesData, loading, error } = useProfiles(apiParams)
   
+  // Debug logging
+  console.log('Profiles Page Debug:', {
+    apiParams,
+    profilesData,
+    loading,
+    error,
+    profilesCount: profilesData?.length
+  })
+  
   const activeProfile = useMemo(() => 
     tabs.find((tab) => tab.id === activeTabId)?.profileData,
     [tabs, activeTabId]
@@ -87,13 +96,13 @@ function ProfilesPageContent() {
 
   return (
       <PageLayout>
-      <div className="h-screen flex bg-background overflow-hidden">
+      <div className="min-h-screen flex bg-background">
         <ProfilesSidebar
           onFilterChange={handleFilterChange}
           activeParams={searchParams}
         />
 
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col">
           <div className="border-b border-border bg-background px-4 py-3 flex items-center justify-between">
             <h1 className="text-lg font-semibold">Profiles</h1>
             <div className="relative w-64">

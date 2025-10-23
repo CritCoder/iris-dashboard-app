@@ -1,91 +1,88 @@
 'use client'
 
-import React, { Component, ErrorInfo, ReactNode } from 'react'
-import { AlertTriangle, RefreshCw } from 'lucide-react'
-import { Button } from './button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './card'
+import React from 'react'
+import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-interface Props {
-  children: ReactNode
-  fallback?: ReactNode
-}
-
-interface State {
+interface ErrorBoundaryState {
   hasError: boolean
   error?: Error
-  errorInfo?: ErrorInfo
+  errorInfo?: React.ErrorInfo
 }
 
-export class ErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
+interface ErrorBoundaryProps {
+  children: React.ReactNode
+  fallback?: React.ComponentType<{ error: Error; resetError: () => void }>
+}
+
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props)
     this.state = { hasError: false }
   }
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return {
       hasError: true,
       error,
     }
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo)
-    this.setState({
-      error,
-      errorInfo,
-    })
+    
+    // Log to monitoring service in production
+    if (process.env.NODE_ENV === 'production') {
+      // Add your error monitoring service here
+      console.error('Production error:', { error: error.message, stack: error.stack, errorInfo })
+    }
   }
 
-  handleReset = () => {
+  resetError = () => {
     this.setState({ hasError: false, error: undefined, errorInfo: undefined })
   }
 
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
-        return this.props.fallback
+        const FallbackComponent = this.props.fallback
+        return <FallbackComponent error={this.state.error!} resetError={this.resetError} />
       }
 
       return (
-        <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="min-h-screen flex items-center justify-center bg-background p-4">
           <Card className="w-full max-w-md">
             <CardHeader className="text-center">
-              <div className="mx-auto mb-4 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6 text-red-600" />
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+                <AlertTriangle className="h-6 w-6 text-destructive" />
               </div>
               <CardTitle className="text-xl">Something went wrong</CardTitle>
               <CardDescription>
-                An unexpected error occurred. Please try refreshing the page.
+                We encountered an unexpected error. Please try refreshing the page.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {process.env.NODE_ENV === 'development' && this.state.error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                  <p className="text-sm font-medium text-red-800 mb-2">Error Details:</p>
-                  <p className="text-xs text-red-700 font-mono break-all">
+                <div className="rounded-md bg-muted p-3">
+                  <p className="text-sm font-medium text-muted-foreground">Error details:</p>
+                  <p className="text-xs text-muted-foreground mt-1 font-mono">
                     {this.state.error.message}
                   </p>
-                  {this.state.error.stack && (
-                    <details className="mt-2">
-                      <summary className="text-xs text-red-600 cursor-pointer">Stack Trace</summary>
-                      <pre className="text-xs text-red-600 mt-1 whitespace-pre-wrap">
-                        {this.state.error.stack}
-                      </pre>
-                    </details>
-                  )}
                 </div>
               )}
-              <div className="flex gap-2">
-                <Button onClick={this.handleReset} variant="outline" className="flex-1">
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Try Again
+              <div className="flex flex-col gap-2">
+                <Button onClick={this.resetError} className="w-full">
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Try again
                 </Button>
                 <Button 
-                  onClick={() => window.location.reload()} 
-                  className="flex-1"
+                  variant="outline" 
+                  onClick={() => window.location.href = '/'}
+                  className="w-full"
                 >
-                  Refresh Page
+                  <Home className="mr-2 h-4 w-4" />
+                  Go to Dashboard
                 </Button>
               </div>
             </CardContent>
@@ -98,7 +95,13 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-export default ErrorBoundary
-
-
-
+// Hook for functional components to trigger error boundary
+export const useErrorHandler = () => {
+  return (error: Error, errorInfo?: React.ErrorInfo) => {
+    console.error('Error caught by useErrorHandler:', error, errorInfo)
+    
+    // In a real app, you might want to trigger a global error state
+    // or send to an error reporting service
+    throw error
+  }
+}

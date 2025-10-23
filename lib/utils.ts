@@ -7,8 +7,52 @@ export function cn(...inputs: ClassValue[]) {
 
 // Helper function to convert API post to PostCard format
 export function convertToPostCardFormat(apiPost: any) {
-  // Extract author information from metadata
-  const authorName = apiPost.metadata?.authorName || apiPost.metadata?.originalData?.author?.name || 'Unknown Author'
+  // Enhanced author information extraction - check multiple possible fields
+  let authorName = 'Unknown Author'
+
+  // Debug log only when author mapping fails
+  let debugMode = false
+
+  // Try multiple possible author field locations based on actual API response structure
+  if (apiPost.person?.name) {
+    authorName = apiPost.person.name
+  } else if (apiPost.social_profile?.username) {
+    authorName = apiPost.social_profile.username
+  } else if (apiPost.author) {
+    authorName = apiPost.author
+  } else if (apiPost.username) {
+    authorName = apiPost.username
+  } else if (apiPost.displayName) {
+    authorName = apiPost.displayName
+  } else if (apiPost.profile?.username) {
+    authorName = apiPost.profile.username
+  } else if (apiPost.profile?.displayName) {
+    authorName = apiPost.profile.displayName
+  } else if (apiPost.metadata?.authorName) {
+    authorName = apiPost.metadata.authorName
+  } else if (apiPost.metadata?.authorScreenName) {
+    authorName = apiPost.metadata.authorScreenName
+  } else if (apiPost.metadata?.originalData?.author?.name) {
+    authorName = apiPost.metadata.originalData.author.name
+  } else if (apiPost.metadata?.originalData?.author?.userName) {
+    authorName = apiPost.metadata.originalData.author.userName
+  } else if (apiPost.metadata?.originalData?.user?.name) {
+    authorName = apiPost.metadata.originalData.user.name
+  } else if (apiPost.metadata?.originalData?.user?.screen_name) {
+    authorName = apiPost.metadata.originalData.user.screen_name
+  }
+
+  // Only log when author mapping fails to reduce console noise
+  if (authorName === 'Unknown Author' && debugMode) {
+    console.log('⚠️ Author mapping failed for post:', {
+      postId: apiPost.id,
+      personName: apiPost.person?.name,
+      socialProfileUsername: apiPost.social_profile?.username,
+      author: apiPost.author,
+      rawPost: apiPost
+    })
+  }
+
   const authorScreenName = apiPost.metadata?.authorScreenName || apiPost.metadata?.originalData?.author?.userName || authorName
 
   // Debug platform detection - temporarily disabled

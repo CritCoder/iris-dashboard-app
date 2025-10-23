@@ -113,13 +113,46 @@ export function useProfiles({
 
         if (result.success) {
           const responseData = result.data as { data: SocialProfile[], total: number }
-          setData(responseData.data || [])
-          setTotal(responseData.total || responseData.data?.length || 0)
+          const profiles = responseData.data || []
+
+          // Debug log to check for duplicates
+          console.log('📊 Profiles API response:', {
+            totalProfiles: profiles.length,
+            profileIds: profiles.map(p => p.id),
+            duplicateCheck: profiles.length !== new Set(profiles.map(p => p.id)).size
+          })
+
+          // Deduplicate profiles by ID to prevent showing same profile multiple times
+          const uniqueProfiles = profiles.filter((profile, index, array) =>
+            array.findIndex(p => p.id === profile.id) === index
+          )
+
+          if (uniqueProfiles.length !== profiles.length) {
+            console.warn('⚠️ Found duplicate profiles, deduplicating:', {
+              original: profiles.length,
+              unique: uniqueProfiles.length,
+              duplicates: profiles.length - uniqueProfiles.length
+            })
+          }
+
+          setData(uniqueProfiles)
+          setTotal(responseData.total || uniqueProfiles.length || 0)
         } else {
-          throw new Error(result.message || 'Failed to fetch profiles')
+          console.warn('⚠️ Profiles API returned unsuccessful response:', result)
+          // If no profiles found, set empty data instead of throwing error
+          if (result.message?.includes('No profiles found') || result.message?.includes('not found')) {
+            setData([])
+            setTotal(0)
+          } else {
+            throw new Error(result.message || 'Failed to fetch profiles')
+          }
         }
       } catch (err) {
+        console.error('❌ Error fetching profiles:', err)
         setError(err instanceof Error ? err.message : 'Unknown error occurred')
+        // Set empty data on error
+        setData([])
+        setTotal(0)
       } finally {
         setLoading(false)
       }

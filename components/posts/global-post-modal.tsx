@@ -35,7 +35,7 @@ interface PostData {
 }
 
 export function GlobalPostModal() {
-  const { isOpen, postId, campaignId, closePost } = useGlobalPostModal()
+  const { isOpen, postId, campaignId, postData, closePost } = useGlobalPostModal()
   const [post, setPost] = useState<PostData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -44,9 +44,19 @@ export function GlobalPostModal() {
   // Fetch post data when modal opens
   useEffect(() => {
     if (isOpen && postId) {
-      fetchPostData()
+      if (postData) {
+        // Use provided post data
+        console.log('📦 Using provided post data:', postData)
+        setPost(postData)
+        setLoading(false)
+        setError(null)
+      } else {
+        // Fetch from API
+        console.log('🌐 No post data provided, fetching from API')
+        fetchPostData()
+      }
     }
-  }, [isOpen, postId, campaignId])
+  }, [isOpen, postId, campaignId, postData])
 
   // Handle escape key
   useEffect(() => {
@@ -76,7 +86,9 @@ export function GlobalPostModal() {
 
     try {
       let response
-      
+
+      console.log('🔍 Fetching post data for ID:', postId, 'Campaign ID:', campaignId)
+
       if (campaignId) {
         // For campaign posts, use the campaign-specific API
         response = await api.social.getPostById(postId)
@@ -84,18 +96,30 @@ export function GlobalPostModal() {
         // For social feed posts, use the regular API
         response = await api.social.getPostById(postId)
       }
-      
+
       console.log('✅ Post API response:', response)
 
-      if (response.success && response.data) {
+      if (response && response.success && response.data) {
         const postData = convertToPostCardFormat(response.data)
+        console.log('✅ Converted post data:', postData)
         setPost(postData)
       } else {
-        setError(response.message || 'Failed to fetch post')
+        console.warn('❌ API response failed:', response)
+        setError(response?.message || 'Failed to fetch post data')
       }
-    } catch (err) {
-      console.error('Failed to fetch post:', err)
-      setError('Failed to fetch post')
+    } catch (err: any) {
+      console.error('❌ Failed to fetch post:', err)
+
+      // Check if this is a network error or API error
+      if (err.message?.includes('fetch') || err.name === 'TypeError') {
+        setError('Network error: Cannot connect to API server')
+      } else if (err.message?.includes('404')) {
+        setError('Post not found: This post may have been deleted')
+      } else if (err.message?.includes('401')) {
+        setError('Authentication error: Please log in again')
+      } else {
+        setError('Failed to load post data')
+      }
     } finally {
       setLoading(false)
     }

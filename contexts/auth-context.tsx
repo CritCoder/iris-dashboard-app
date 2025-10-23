@@ -54,6 +54,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter()
   const pathname = usePathname()
 
+
   // Define public routes that don't require authentication
   const publicRoutes = ['/login', '/signup', '/forgot-password', '/privacy', '/verify-otp']
   const isPublicRoute = publicRoutes.some(route => pathname?.startsWith(route))
@@ -62,8 +63,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Skip authentication checks for public routes
     if (isPublicRoute) {
       setIsLoading(false)
-        return
-      }
+      return
+    }
 
     // Check for stored auth data on mount
     const storedToken = localStorage.getItem('token')
@@ -79,7 +80,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Also restore cookie for middleware
         document.cookie = `auth_token=${storedToken}; path=/; max-age=${7 * 24 * 60 * 60}; secure; samesite=strict`
         
-        // Verify token is still valid
+        // Set loading to false immediately for better UX
+        setIsLoading(false)
+        
+        // Verify token in background (non-blocking)
         verifyTokenWithRetry(storedToken)
       } catch (error) {
         console.warn('Error parsing stored auth data:', error)
@@ -87,6 +91,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return
       }
     } else {
+      // Set loading to false immediately if no stored auth data
       setIsLoading(false)
     }
   }, [pathname, isPublicRoute])
@@ -109,21 +114,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [isLoading, user, token, isPublicRoute, pathname, router])
 
   const verifyTokenWithRetry = async (tokenToVerify: string, attempt = 1) => {
-    const maxAttempts = 3
-    const retryDelay = Math.min(1000 * Math.pow(2, attempt - 1), 5000)
+    const maxAttempts = 2 // Reduced from 3
+    const retryDelay = Math.min(500 * Math.pow(2, attempt - 1), 2000) // Reduced delays
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
         headers: {
           'Authorization': `Bearer ${tokenToVerify}`
         },
-        signal: AbortSignal.timeout(10000)
+        signal: AbortSignal.timeout(3000) // Reduced from 10000
       })
 
       if (response.ok) {
         const data = await response.json()
         setUser(data.data)
-        setIsLoading(false)
         setVerificationAttempts(0)
         console.log('Token verification successful')
       } else if (response.status === 401) {
@@ -141,8 +145,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }, retryDelay)
       } else {
         console.warn('Token verification failed after maximum attempts.')
-        setIsLoading(false)
         setVerificationAttempts(maxAttempts)
+        // Don't set isLoading to false here - let the timeout handle it
       }
     }
   }

@@ -40,7 +40,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
       <IconSidebar />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden w-full min-w-0 bg-background ml-16">
+      <div className="flex-1 flex flex-col w-full min-w-0 bg-background ml-16">
         {children}
       </div>
 

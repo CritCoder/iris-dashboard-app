@@ -9,13 +9,13 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, loading, isAuthenticated } = useAuth()
+  const { user, isLoading, isAuthenticated } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
 
   useEffect(() => {
     // Don't redirect if still loading or on auth pages
-    if (loading) return
+    if (isLoading) return
     
     const authPages = ['/login', '/signup', '/forgot-password', '/debug-auth', '/clear-auth']
     const isAuthPage = authPages.some(page => pathname?.startsWith(page))
@@ -29,7 +29,19 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
       }
       router.push('/login')
     }
-  }, [isAuthenticated, loading, pathname, router])
+  }, [isAuthenticated, isLoading, pathname, router])
+
+  // Add timeout to prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (isLoading) {
+        console.warn('Authentication loading timeout - proceeding with cached data')
+        // This will be handled by the AuthProvider timeout
+      }
+    }, 3000) // Reduced from 5000ms to 3000ms
+
+    return () => clearTimeout(timeout)
+  }, [isLoading])
   
   // Allow auth pages to render without authentication
   const authPages = ['/login', '/signup', '/forgot-password', '/debug-auth', '/clear-auth']
@@ -40,7 +52,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   // Show loading state while checking auth
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">

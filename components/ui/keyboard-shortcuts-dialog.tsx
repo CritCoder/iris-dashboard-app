@@ -20,22 +20,8 @@ interface ShortcutGroup {
 
 const shortcutGroups: ShortcutGroup[] = [
   {
-    title: 'Navigation',
+    title: 'No Active Shortcuts',
     shortcuts: [
-      { keys: ['⌘', 'D'], description: 'Go to Dashboard' },
-      { keys: ['⌘', 'P'], description: 'Go to Profiles' },
-      { keys: ['⌘', 'S'], description: 'Go to Social Feed' },
-      { keys: ['⌘', 'A'], description: 'Go to Analysis History' },
-      { keys: ['⌘', 'E'], description: 'Go to Entities' },
-      { keys: ['⌘', 'L'], description: 'Go to Locations' },
-      { keys: ['⌘', 'B'], description: 'Go Back' },
-    ]
-  },
-  {
-    title: 'Actions',
-    shortcuts: [
-      { keys: ['⌘', 'K'], description: 'Open Quick Actions' },
-      { keys: ['⌘', 'T'], description: 'Toggle Theme' },
       { keys: ['?'], description: 'Show this help' },
     ]
   }

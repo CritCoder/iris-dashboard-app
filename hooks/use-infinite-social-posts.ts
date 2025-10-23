@@ -6,9 +6,13 @@ const generateSamplePosts = (count: number = 20, offset: number = 0) => {
   const platforms = ['twitter', 'facebook', 'instagram', 'news']
   const sentiments = ['POSITIVE', 'NEUTRAL', 'NEGATIVE']
   const authors = ['john_doe', 'jane_smith', 'news_agency', 'tech_blog', 'user123']
-  
+
+  // Use a unique counter to ensure absolutely unique IDs
+  const baseTime = Date.now()
+  const randomSeed = Math.floor(Math.random() * 10000)
+
   return Array.from({ length: count }, (_, i) => ({
-    id: `sample-${Date.now()}-${offset + i}`, // Unique ID with timestamp and offset
+    id: `sample-${baseTime}-${randomSeed}-${offset}-${i}`, // Guaranteed unique ID
     content: `Sample post content ${offset + i + 1}. This is a ${sentiments[i % sentiments.length].toLowerCase()} post about current events.`,
     author: authors[i % authors.length],
     platform: platforms[i % platforms.length],
@@ -88,7 +92,20 @@ export function useInfiniteSocialPosts(params: InfiniteSocialPostsParams = {}): 
       const sampleData = generateSamplePosts(limit, offset)
       
       if (isLoadMore) {
-        setData(prevData => [...prevData, ...sampleData])
+        setData(prevData => {
+          // Deduplicate sample posts by ID to prevent key conflicts
+          const existingIds = new Set(prevData.map(post => post.id))
+          const filteredSampleData = sampleData.filter(post => !existingIds.has(post.id))
+
+          console.log('🔄 Sample data deduplication:', {
+            existingPosts: prevData.length,
+            newSamplePosts: sampleData.length,
+            filteredSamplePosts: filteredSampleData.length,
+            duplicatesRemoved: sampleData.length - filteredSampleData.length
+          })
+
+          return [...prevData, ...filteredSampleData]
+        })
       } else {
         setData(sampleData)
         setTotal(sampleData.length)
@@ -127,9 +144,22 @@ export function useInfiniteSocialPosts(params: InfiniteSocialPostsParams = {}): 
           // Paginated response
           const newPosts = responseData.data
           const pagination = responseData.pagination
-          
+
           if (isLoadMore) {
-            setData(prevData => [...prevData, ...newPosts])
+            setData(prevData => {
+              // Deduplicate posts by ID to prevent key conflicts
+              const existingIds = new Set(prevData.map(post => post.id))
+              const filteredNewPosts = newPosts.filter(post => !existingIds.has(post.id))
+
+              console.log('🔄 Infinite scroll deduplication:', {
+                existingPosts: prevData.length,
+                newPosts: newPosts.length,
+                filteredNewPosts: filteredNewPosts.length,
+                duplicatesRemoved: newPosts.length - filteredNewPosts.length
+              })
+
+              return [...prevData, ...filteredNewPosts]
+            })
           } else {
             setData(newPosts)
           }
@@ -146,7 +176,20 @@ export function useInfiniteSocialPosts(params: InfiniteSocialPostsParams = {}): 
         } else if (Array.isArray(responseData)) {
           // Flat array response
           if (isLoadMore) {
-            setData(prevData => [...prevData, ...responseData])
+            setData(prevData => {
+              // Deduplicate posts by ID to prevent key conflicts
+              const existingIds = new Set(prevData.map(post => post.id))
+              const filteredNewPosts = responseData.filter(post => !existingIds.has(post.id))
+
+              console.log('🔄 Flat array deduplication:', {
+                existingPosts: prevData.length,
+                newPosts: responseData.length,
+                filteredNewPosts: filteredNewPosts.length,
+                duplicatesRemoved: responseData.length - filteredNewPosts.length
+              })
+
+              return [...prevData, ...filteredNewPosts]
+            })
           } else {
             setData(responseData)
           }

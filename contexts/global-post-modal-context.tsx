@@ -2,11 +2,28 @@
 
 import { createContext, useContext, useState, ReactNode } from 'react'
 
+interface PostData {
+  id: string
+  author: string
+  platform: 'facebook' | 'twitter' | 'instagram' | 'youtube' | 'news' | 'india-news'
+  content: string
+  timestamp: string
+  likes: number
+  comments: number
+  shares: number
+  views: number
+  sentiment: 'positive' | 'negative' | 'neutral'
+  url?: string
+  thumbnailUrl?: string
+  authorAvatar?: string
+}
+
 interface GlobalPostModalContextType {
   isOpen: boolean
   postId: string | null
   campaignId: string | null
-  openPost: (postId: string, campaignId?: string) => void
+  postData: PostData | null
+  openPost: (postId: string, campaignId?: string, postData?: PostData) => void
   closePost: () => void
 }
 
@@ -16,10 +33,12 @@ export function GlobalPostModalProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false)
   const [postId, setPostId] = useState<string | null>(null)
   const [campaignId, setCampaignId] = useState<string | null>(null)
+  const [postData, setPostData] = useState<PostData | null>(null)
 
-  const openPost = (newPostId: string, newCampaignId?: string) => {
+  const openPost = (newPostId: string, newCampaignId?: string, newPostData?: PostData) => {
     setPostId(newPostId)
     setCampaignId(newCampaignId || null)
+    setPostData(newPostData || null)
     setIsOpen(true)
   }
 
@@ -27,6 +46,7 @@ export function GlobalPostModalProvider({ children }: { children: ReactNode }) {
     setIsOpen(false)
     setPostId(null)
     setCampaignId(null)
+    setPostData(null)
   }
 
   return (
@@ -34,6 +54,7 @@ export function GlobalPostModalProvider({ children }: { children: ReactNode }) {
       isOpen,
       postId,
       campaignId,
+      postData,
       openPost,
       closePost
     }}>

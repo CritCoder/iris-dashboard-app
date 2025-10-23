@@ -169,7 +169,7 @@ export function IconSidebar() {
           </motion.button>
         </SimpleTooltip>
 
-        <SimpleTooltip content="Toggle Theme" side="right" shortcut="⌘T">
+        <SimpleTooltip content="Toggle Theme" side="right">
           <div className="w-12 h-12 flex items-center justify-center">
             <ThemeToggle />
           </div>

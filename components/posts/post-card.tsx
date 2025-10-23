@@ -53,7 +53,8 @@ export function PostCard({ post, view = 'grid', href, campaignId }: PostCardProp
   // Handle post click - use modal for all posts
   const handlePostClick = (e: React.MouseEvent) => {
     e.preventDefault()
-    openPost(post.id, campaignId)
+    console.log('🔗 Opening post modal for:', post.id, 'with data:', post)
+    openPost(post.id, campaignId, post)
   }
 
   const sentimentColors = {

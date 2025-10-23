@@ -10,6 +10,9 @@ import { PageTransition } from '@/components/layout/page-transition'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import { ClientLayout } from '@/components/layout/client-layout'
 import { GlobalPostModal } from '@/components/posts/global-post-modal'
+import { ErrorBoundary } from '@/components/ui/error-boundary'
+import { PerformanceMonitor } from '@/components/ui/performance-monitor'
+import { ServiceWorkerRegister } from '@/components/ui/service-worker-register'
 import { siteConfig, generateStructuredData } from '@/lib/seo'
 
 const inter = Inter({
@@ -99,22 +102,26 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.className} antialiased bg-background text-foreground`}>
-        <ThemeProvider>
-          <AuthProvider>
-            <GlobalPostModalProvider>
-              <ProtectedRoute>
-                <ToastProvider />
-                <RouteProgress />
-                <ClientLayout>
-                  <PageTransition className="flex-1 min-h-0 flex flex-col w-full">
-                    {children}
-                  </PageTransition>
-                </ClientLayout>
-                <GlobalPostModal />
-              </ProtectedRoute>
-            </GlobalPostModalProvider>
-          </AuthProvider>
-        </ThemeProvider>
+        <ErrorBoundary>
+          <ThemeProvider>
+            <AuthProvider>
+              <GlobalPostModalProvider>
+                <ProtectedRoute>
+                  <ToastProvider />
+                  <RouteProgress />
+                  <ClientLayout>
+                    <PageTransition className="flex-1 min-h-0 flex flex-col w-full">
+                      {children}
+                    </PageTransition>
+                  </ClientLayout>
+                  <GlobalPostModal />
+                  <PerformanceMonitor />
+                  <ServiceWorkerRegister />
+                </ProtectedRoute>
+              </GlobalPostModalProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </ErrorBoundary>
       </body>
     </html>
   )
