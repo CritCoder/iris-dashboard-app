@@ -325,6 +325,8 @@ export const campaignApi = {
     type: string
     description?: string
     keywords?: string[]
+    platforms?: string[]
+    timeRange?: any
   }) => apiClient.post('/api/campaigns', data),
 
   update: (id: string, data: { name?: string; description?: string }) =>

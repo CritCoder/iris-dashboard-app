@@ -13,6 +13,7 @@ import { Loader2, Search, Zap, Calendar, Globe, Mail, UserSearch, ArrowRight, Sh
 import { AnimatedPage, FadeIn, SlideUp } from '@/components/ui/animated'
 import { DateRangePicker } from '@/components/ui/date-range-picker'
 import { DateRange } from 'react-day-picker'
+import { api } from '@/lib/api'
 
 export default function StartAnalysisPage() {
   const router = useRouter()
@@ -24,9 +25,6 @@ export default function StartAnalysisPage() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   
-  // Get API URL from environment variable
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://irisnet.wiredleap.com'
-
   const platforms = [
     { id: 'facebook', name: 'Facebook', icon: FacebookIcon, color: 'text-blue-500', bgColor: 'bg-blue-600', borderColor: 'border-blue-500' },
     { id: 'instagram', name: 'Instagram', icon: InstagramIcon, color: 'text-pink-500', bgColor: 'bg-pink-600', borderColor: 'border-pink-500' },
@@ -62,7 +60,7 @@ export default function StartAnalysisPage() {
 
     try {
       // Prepare time range data
-      let timeRangeData = timeRange
+      let timeRangeData: any = timeRange
       if (timeRange === 'custom' && dateRange?.from && dateRange?.to) {
         timeRangeData = {
           type: 'custom',
@@ -72,33 +70,25 @@ export default function StartAnalysisPage() {
       }
 
       // Create a new campaign for analysis
-      const response = await fetch(`${API_URL}/api/campaigns`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: `${activeTab === 'topic' ? 'Topic' : 'POI'} Analysis: ${searchQuery.substring(0, 50)}`,
-          type: activeTab === 'topic' ? 'TOPIC' : 'PERSON',
-          description: `Analysis of ${searchQuery} across ${selectedPlatforms.join(', ')} platforms`,
-          keywords: searchQuery.split(',').map(k => k.trim()).filter(k => k.length > 0),
-          platforms: selectedPlatforms,
-          timeRange: timeRangeData
-        })
+      const result = await api.campaign.create({
+        name: `${activeTab === 'topic' ? 'Topic' : 'POI'} Analysis: ${searchQuery.substring(0, 50)}`,
+        type: activeTab === 'topic' ? 'TOPIC' : 'PERSON',
+        description: `Analysis of ${searchQuery} across ${selectedPlatforms.join(', ')} platforms`,
+        keywords: searchQuery.split(',').map(k => k.trim()).filter(k => k.length > 0),
+        platforms: selectedPlatforms,
+        timeRange: timeRangeData
       })
-
-      const result = await response.json()
 
       if (result.success) {
         success('Analysis started successfully!')
         // Redirect to the campaign page or analysis results
         router.push(`/post-campaign/${result.data.id}`)
       } else {
-        error(result.error?.message || 'Failed to start analysis')
+        error(result.error || 'Failed to start analysis')
       }
-    } catch (error) {
-      error('Failed to start analysis. Please try again.')
-      console.error('Analysis error:', error)
+    } catch (err: any) {
+      error(err.message || 'Failed to start analysis. Please try again.')
+      console.error('Analysis error:', err)
     } finally {
       setIsAnalyzing(false)
     }
