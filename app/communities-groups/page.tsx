@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import { PageLayout } from '@/components/layout/page-layout'
-import { ProtectedRoute } from '@/components/auth/protected-route'
 import { PageHeader } from '@/components/layout/page-header'
 import { Search, Building2, TrendingUp, TrendingDown, BarChart3, Download, Filter, Users, MessageSquare, Calendar, Users2, Shield, Globe, Eye, EyeOff, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -309,9 +308,19 @@ export default function CommunitiesGroupsPage() {
   const { data: communities, loading: communitiesLoading, error: communitiesError } = useCommunities(communitiesParams)
   const { data: groups, loading: groupsLoading, error: groupsError } = useGroups(groupsParams)
 
+  // Debug logging
+  console.log('Communities API:', { communities, communitiesLoading, communitiesError })
+  console.log('Groups API:', { groups, groupsLoading, groupsError })
+
   // Use API data if available, otherwise use empty arrays
   const allCommunities = (communities && communities.length > 0 && !communitiesError) ? communities.map(c => ({ ...c, category: 'community' })) : []
   const allGroups = (groups && groups.length > 0 && !groupsError) ? groups : []
+
+  // Debug the actual API response
+  console.log('Raw groups data:', groups)
+  console.log('Groups loading:', groupsLoading)
+  console.log('Groups error:', groupsError)
+  console.log('Processed groups:', allGroups)
 
   // Combine all entities
   const allEntities: SocialEntity[] = useMemo(() => {
@@ -371,6 +380,25 @@ export default function CommunitiesGroupsPage() {
   const loading = communitiesLoading || groupsLoading
   const error = communitiesError || groupsError
 
+  // Show error state if there's an API error
+  if (error) {
+    return (
+      <PageLayout>
+        <PageHeader
+          title="Communities & Groups"
+          description="Manage and analyze social media communities and groups"
+        />
+        <div className="max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-8">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold text-foreground mb-2">Error Loading Data</h3>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()}>Try Again</Button>
+          </div>
+        </div>
+      </PageLayout>
+    )
+  }
+
   if (loading && !error) {
     return (
       <PageLayout>
@@ -402,26 +430,25 @@ export default function CommunitiesGroupsPage() {
   }
 
   return (
-    <ProtectedRoute>
-      <PageLayout>
-        <PageHeader
-          title="Communities & Groups"
-          description="Manage and analyze social media communities and groups"
-          actions={
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="gap-2">
-                <Download className="w-4 h-4" />
-                Export
-              </Button>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Filter className="w-4 h-4" />
-                Filters
-              </Button>
-            </div>
-          }
-        />
+    <PageLayout>
+      <PageHeader
+        title="Communities & Groups"
+        description="Manage and analyze social media communities and groups"
+        actions={
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="gap-2">
+              <Download className="w-4 h-4" />
+              Export
+            </Button>
+            <Button variant="outline" size="sm" className="gap-2">
+              <Filter className="w-4 h-4" />
+              Filters
+            </Button>
+          </div>
+        }
+      />
 
-        <div className="max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-8 min-h-[calc(100vh-200px)] flex flex-col">
+      <div className="max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-8 min-h-[calc(100vh-200px)] flex flex-col">
           {/* View Type Toggle */}
           <div className="mb-6">
             <div className="flex gap-2">
@@ -516,6 +543,5 @@ export default function CommunitiesGroupsPage() {
           )}
         </div>
       </PageLayout>
-    </ProtectedRoute>
   )
 }

@@ -1,6 +1,7 @@
 // React hooks for API integration
 import { useState, useEffect, useCallback } from 'react'
 import { api, ApiResponse, PaginatedResponse } from '@/lib/api'
+import { apiService } from '@/lib/apiService'
 
 // Generic hook for API calls
 export function useApi<T>(
@@ -620,9 +621,10 @@ export function useIncident(id: string) {
 }
 
 export function useCommunities(params?: any) {
-  return usePaginatedApi(() => api.community.getCommunities(params) as any, 1, 10)
+  // Communities API doesn't exist, return empty data
+  return { data: [], loading: false, error: null }
 }
 
 export function useGroups(params?: any) {
-  return usePaginatedApi(() => api.group.getAll(params) as any, 1, 10)
+  return useApi(() => apiService.getAllGroups(params?.page || 1, params?.limit || 50) as any, [params])
 }

@@ -431,41 +431,39 @@ export default function LocationsPage() {
   return (
     <PageLayout>
       <div className="h-screen flex flex-col bg-background overflow-hidden">
-        <PageHeader 
-          title="Locations"
-          description="Location Explorer"
-        actions={
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                  className="gap-2"
-                >
-                  <Grid3X3 className="w-4 h-4" />
-                  Grid
-                </Button>
-                <Button
-                  variant={viewMode === 'map' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('map')}
-                  className="gap-2"
-                >
-                  <Map className="w-4 h-4" />
-                  Map
-                </Button>
-              </div>
-              <span className="text-sm text-muted-foreground">
-                {filteredLocations.length} locations found
-              </span>
+        {/* Custom Header aligned with content area */}
+        <div className="h-16 flex-shrink-0 flex items-center px-4 border-b border-border bg-background">
+          <h1 className="text-xl font-bold text-foreground">Locations</h1>
+          <div className="flex items-center gap-4 ml-auto">
+            <div className="flex items-center gap-2">
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+                className="gap-2"
+              >
+                <Grid3X3 className="w-4 h-4" />
+                Grid
+              </Button>
+              <Button
+                variant={viewMode === 'map' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('map')}
+                className="gap-2"
+              >
+                <Map className="w-4 h-4" />
+                Map
+              </Button>
+            </div>
+            <span className="text-sm text-muted-foreground">
+              {filteredLocations.length} locations found
+            </span>
             <Button variant="outline" size="sm" className="gap-2">
               <Download className="w-4 h-4" />
               Export
             </Button>
           </div>
-        }
-      />
+        </div>
 
         <div className="flex-1 flex flex-col overflow-hidden">
             <div className="p-3 sm:p-4 border-b border-border">
@@ -588,7 +586,7 @@ export default function LocationsPage() {
             <div className="flex-1 overflow-hidden">
               <div className="h-full w-full grid grid-cols-1 md:grid-cols-[288px_1fr] lg:grid-cols-[280px_1fr] gap-0">
                 {/* Left Sidebar Filters */}
-                <div className="hidden md:flex flex-col border-r border-border overflow-hidden sticky top-[var(--header-height)] h-[calc(100vh-var(--header-height))]">
+                <div className="hidden md:flex flex-col border-r border-border overflow-hidden">
                   <div className="flex-1 overflow-y-auto p-3 pt-2 space-y-4">
                     <FilterSection title="PRIMARY">
                       <FilterItem 

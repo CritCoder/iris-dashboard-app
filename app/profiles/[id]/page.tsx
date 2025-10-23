@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ArrowLeft, MapPin, Calendar, Heart, MessageSquare, Share2, Eye, ExternalLink, TrendingUp, TrendingDown } from 'lucide-react'
 import { useProfiles } from '@/hooks/use-api'
+import { getHighResProfileImage } from '@/lib/image-utils'
 import { useState } from 'react'
 
 export default function ProfileDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -155,13 +156,25 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
             <div className="flex-shrink-0">
               {/* Cover Image */}
               <div className="h-48 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/5 relative">
-                {profile.avatar && (
+                {profile.profileBannerUrl ? (
                   <img
-                    src={profile.avatar}
+                    src={getHighResProfileImage(profile.profileBannerUrl)}
+                    alt="Cover"
+                    className="w-full h-full object-cover opacity-30"
+                    onError={(e) => {
+                      // Fallback to avatar if banner fails to load
+                      if (profile.avatar) {
+                        e.currentTarget.src = getHighResProfileImage(profile.avatar)
+                      }
+                    }}
+                  />
+                ) : profile.avatar ? (
+                  <img
+                    src={getHighResProfileImage(profile.avatar)}
                     alt="Cover"
                     className="w-full h-full object-cover opacity-30"
                   />
-                )}
+                ) : null}
               </div>
 
               {/* Profile Info Overlay */}
@@ -172,7 +185,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                     <div className="w-32 h-32 rounded-full bg-background border-4 border-background overflow-hidden">
                       {profile.avatar ? (
                         <img
-                          src={profile.avatar}
+                          src={getHighResProfileImage(profile.avatar)}
                           alt={profile.displayName}
                           className="w-full h-full object-cover"
                         />

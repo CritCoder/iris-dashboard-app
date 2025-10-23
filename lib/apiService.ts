@@ -5,7 +5,7 @@
 
 import { AuthManager } from './api'
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://irisnet.wiredleap.com'
 const API_BASE_URL = `${BASE_URL}/api`
 
 class ApiService {

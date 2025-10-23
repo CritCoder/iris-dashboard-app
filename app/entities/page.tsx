@@ -76,8 +76,8 @@ function EntitiesPageContent() {
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="p-4 border-b border-border flex items-center justify-between gap-4">
-             <div className="relative flex-1 max-w-md">
+          <div className="h-16 flex-shrink-0 flex items-center px-4 border-b border-border bg-background">
+            <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="text"
@@ -87,7 +87,7 @@ function EntitiesPageContent() {
                 className="pl-10 w-full"
               />
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 ml-4">
                <span className="text-sm text-muted-foreground hidden sm:block">
                 {apiEntities?.length || 0} entities found
               </span>

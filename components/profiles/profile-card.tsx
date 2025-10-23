@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { TableRow, TableCell } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { getHighResProfileImage } from '@/lib/image-utils'
 import Link from 'next/link'
 
 export interface Profile {
@@ -76,7 +77,7 @@ export function ProfileCard({ profile, view = 'grid', campaignId = '1', onClick 
         <TableCell>
           <div className="flex items-center gap-3">
             <Avatar className="w-10 h-10">
-              <AvatarImage src={profile.profileImageUrl} alt={profile.displayName || profile.username} />
+              <AvatarImage src={getHighResProfileImage(profile.profileImageUrl)} alt={profile.displayName || profile.username} />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                 {(profile.displayName || profile.username)?.charAt(0).toUpperCase() || 'P'}
               </AvatarFallback>
@@ -139,7 +140,7 @@ export function ProfileCard({ profile, view = 'grid', campaignId = '1', onClick 
         <Card className="hover:bg-accent/20 transition-colors cursor-pointer p-4 h-20">
           <div className="flex items-center gap-4 h-full">
             <Avatar className="w-12 h-12 flex-shrink-0">
-              <AvatarImage src={profile.profileImageUrl} alt={profile.displayName || profile.username} />
+              <AvatarImage src={getHighResProfileImage(profile.profileImageUrl)} alt={profile.displayName || profile.username} />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                 {(profile.displayName || profile.username)?.charAt(0).toUpperCase() || 'P'}
               </AvatarFallback>
@@ -191,7 +192,7 @@ export function ProfileCard({ profile, view = 'grid', campaignId = '1', onClick 
         <CardHeader className="pb-3 flex-shrink-0">
           <div className="flex items-center gap-3">
             <Avatar className="w-16 h-16">
-              <AvatarImage src={profile.profileImageUrl} alt={profile.displayName || profile.username} />
+              <AvatarImage src={getHighResProfileImage(profile.profileImageUrl)} alt={profile.displayName || profile.username} />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-lg">
                 {(profile.displayName || profile.username)?.charAt(0).toUpperCase() || 'P'}
               </AvatarFallback>

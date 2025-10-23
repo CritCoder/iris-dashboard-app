@@ -87,11 +87,11 @@ function SocialFeedContent() {
         />
 
         <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="border-b border-border bg-background px-4 py-3 flex items-center justify-between">
-            <h1 className="text-lg font-semibold">Social Feed</h1>
-              <span className="text-sm text-muted-foreground">
+          <div className="h-16 flex-shrink-0 flex items-center px-4 border-b border-border bg-background">
+            <h1 className="text-xl font-bold text-foreground">Social Feed</h1>
+            <span className="text-sm text-muted-foreground ml-auto">
               {posts.length} posts
-              </span>
+            </span>
           </div>
 
           <div className="flex-1 overflow-y-auto">

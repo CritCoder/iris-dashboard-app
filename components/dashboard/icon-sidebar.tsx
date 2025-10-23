@@ -55,7 +55,7 @@ const navSections: NavSection[] = [
       { id: 'profiles', icon: Users, href: '/profiles', label: 'Profiles' },
       { id: 'entities', icon: Package, href: '/entities', label: 'Entities' },
       { id: 'locations', icon: MapPin, href: '/locations', label: 'Locations' },
-      { id: 'groups', icon: UsersRound, href: '/groups', label: 'Groups' },
+      { id: 'groups', icon: UsersRound, href: '/communities-groups', label: 'Groups' },
     ],
   },
   {

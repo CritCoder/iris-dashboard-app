@@ -57,14 +57,14 @@ const groupsSubmenuItems = [
   {
     category: 'PRIMARY',
     items: [
-      { id: 'all-groups', label: 'All Groups', icon: Users, href: '/groups' },
+      { id: 'all-groups', label: 'All Groups', icon: Users, href: '/communities-groups' },
     ]
   },
   {
     category: 'GROUP TYPE',
     items: [
       { id: 'organizations', label: 'Organizations', icon: Building2, href: '/organizations' },
-      { id: 'user-groups', label: 'User Groups', icon: Users, href: '/groups?type=user' },
+      { id: 'user-groups', label: 'User Groups', icon: Users, href: '/communities-groups?type=user' },
     ]
   }
 ]

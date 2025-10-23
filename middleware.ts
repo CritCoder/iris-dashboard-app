@@ -18,6 +18,7 @@ const publicRoutes = [
   '/locations', // Temporarily public for development
   '/profiles', // Temporarily public for development
   '/analysis-history', // Temporarily public for development
+  '/communities-groups', // Temporarily public for development
   '/', // Dashboard temporarily public for development
 ]
 

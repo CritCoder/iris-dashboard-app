@@ -213,7 +213,7 @@ export default function TestMapPage() {
             </div>
             <div>
               <strong>3. API Key Restrictions:</strong>
-              <p className="text-muted-foreground mt-1">Check if your API key has HTTP referrer restrictions. Add "localhost:3000" to allowed referrers.</p>
+              <p className="text-muted-foreground mt-1">Check if your API key has HTTP referrer restrictions. Add "irisnet.wiredleap.com" to allowed referrers.</p>
             </div>
             <div>
               <strong>4. Check API Key:</strong>

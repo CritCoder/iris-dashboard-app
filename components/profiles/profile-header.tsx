@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { getBestProfileImage, getHighResProfileImage } from '@/lib/image-utils'
 
 interface ProfileHeaderProps {
   profile: any
@@ -37,9 +38,13 @@ export function ProfileHeader({ profile, onClose }: ProfileHeaderProps) {
       <div className="h-32 bg-gradient-to-r from-primary/20 to-primary/5 relative">
         {profile.profileBannerUrl && (
           <img 
-            src={profile.profileBannerUrl} 
+            src={getHighResProfileImage(profile.profileBannerUrl)} 
             alt="Banner" 
             className="w-full h-full object-cover" 
+            onError={(e) => {
+              // Hide image if it fails to load
+              e.currentTarget.style.display = 'none'
+            }}
           />
         )}
         {onClose && (
@@ -58,7 +63,7 @@ export function ProfileHeader({ profile, onClose }: ProfileHeaderProps) {
         <div className="flex justify-between items-start -mt-16">
           <Avatar className="w-24 h-24 border-4 border-background relative z-10">
             <AvatarImage 
-              src={profile.profileImageUrl || profile.avatar} 
+              src={getBestProfileImage(profile.profileImageUrl, profile.avatar)} 
               alt={profile.username || profile.displayName} 
             />
             <AvatarFallback className="bg-gradient-to-br from-primary to-primary/50 text-primary-foreground text-2xl">

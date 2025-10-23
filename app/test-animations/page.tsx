@@ -56,7 +56,7 @@ export default function TestAnimationsPage() {
           <CardContent>
             <p>Animations should be visible on this page.</p>
             <p className="mt-2 text-sm text-muted-foreground">
-              Access at: <code>http://localhost:3000/test-animations</code>
+              Access at: <code>https://irisnet.wiredleap.com/test-animations</code>
             </p>
           </CardContent>
         </Card>
