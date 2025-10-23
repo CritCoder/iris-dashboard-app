@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Search, Loader2, Mail, User, Globe, Hash, Shield, MapPin, Phone, Link, Bitcoin, Database } from 'lucide-react'
 import { api } from '@/lib/api'
 import { BreachedDataResultCard } from '@/components/breached-data/result-card'
+import { SanitizedSearchInput } from '@/components/ui/sanitized-input'
 
 export default function BreachedDataPage() {
   const [activeSearchType, setActiveSearchType] = useState('email')
@@ -142,13 +143,18 @@ export default function BreachedDataPage() {
                   </label>
                   <div className="flex gap-2 items-center">
                     <div className="relative flex-1">
-                      <Input
+                      <SanitizedSearchInput
                         type="text"
                         placeholder={`Enter ${activeSearchType.replace('_', ' ')}...`}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSearch(1)}
                         className="text-sm"
+                        onSanitizedChange={(sanitized, isValid, error) => {
+                          if (isValid) {
+                            setSearchQuery(sanitized)
+                          }
+                        }}
                       />
                     </div>
                     <Button onClick={() => handleSearch(1)} disabled={loading || !searchQuery.trim()}>

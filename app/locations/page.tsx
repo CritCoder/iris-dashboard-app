@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { useLocationAnalytics } from '@/hooks/use-api'
+import { SanitizedSearchInput } from '@/components/ui/sanitized-input'
 // import { AnimatedPage, div, Card } from '@/components/ui/animated'
 
 interface Location {
@@ -514,13 +515,18 @@ export default function LocationsPage() {
                 </div>
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
+                  <SanitizedSearchInput
                     type="text"
                     placeholder="Search locations..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10 w-full"
-              />
+                    onSanitizedChange={(sanitized, isValid, error) => {
+                      if (isValid) {
+                        setSearchQuery(sanitized)
+                      }
+                    }}
+                  />
                 </div>
                 {/* Mobile Filters */}
                 <div className="flex items-center gap-2">

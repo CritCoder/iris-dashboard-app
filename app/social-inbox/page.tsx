@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { FacebookIcon, InstagramIcon, TwitterIcon, YouTubeIcon, NewsIcon } from '@/components/ui/platform-icons'
 import { useSocialPosts, useInboxStats } from '@/hooks/use-api'
 import { AnimatedPage, AnimatedList, AnimatedCard, FadeIn } from '@/components/ui/animated'
+import { SanitizedSearchInput } from '@/components/ui/sanitized-input'
 import {
   Empty,
   EmptyContent,
@@ -361,12 +362,17 @@ export default function SocialInboxPage() {
               {/* Search Bar - Compact */}
               <div className="relative w-64">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
+                <SanitizedSearchInput
                   type="text"
                   placeholder="Search posts..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 h-9 text-sm"
+                  onSanitizedChange={(sanitized, isValid, error) => {
+                    if (isValid) {
+                      setSearchQuery(sanitized)
+                    }
+                  }}
                 />
               </div>
             </div>

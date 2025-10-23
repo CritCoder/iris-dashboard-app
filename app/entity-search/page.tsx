@@ -22,6 +22,7 @@ import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { api } from '@/lib/api'
 import { AnimatedPage, AnimatedGrid, AnimatedCard, FadeIn } from '@/components/ui/animated'
+import { SanitizedSearchInput } from '@/components/ui/sanitized-input'
 
 interface SearchResult {
   type: string
@@ -1091,7 +1092,7 @@ export default function EntitySearchPage() {
                   <Label htmlFor="search-query">
                     {searchType === 'general' ? 'Search Query *' : searchType === 'mobile' ? 'Mobile Number *' : 'Vehicle Number *'}
                   </Label>
-                  <Input
+                  <SanitizedSearchInput
                     id="search-query"
                     placeholder={searchType === 'general' 
                       ? "Enter username, email, domain, name, or hash"
@@ -1101,6 +1102,11 @@ export default function EntitySearchPage() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     disabled={isSearching}
+                    onSanitizedChange={(sanitized, isValid, error) => {
+                      if (isValid) {
+                        setSearchQuery(sanitized)
+                      }
+                    }}
                   />
                   <p className="text-xs text-muted-foreground">
                     {searchType === 'general'

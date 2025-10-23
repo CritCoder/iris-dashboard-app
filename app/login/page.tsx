@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Metadata } from 'next'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Mail, Phone, ArrowRight, Loader2, X } from 'lucide-react'
@@ -9,6 +10,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/contexts/auth-context'
 import { useToast } from '@/hooks/use-toast'
+import { PhoneInput } from '@/components/ui/phone-input'
+import { useEmailSanitization, usePhoneSanitization } from '@/hooks/use-input-sanitization'
 import {
   Dialog,
   DialogContent,
@@ -23,13 +26,18 @@ export default function LoginPage() {
   const { success, error } = useToast()
   const [loginMethod, setLoginMethod] = useState<'email' | 'mobile'>('mobile')
   const [isLoading, setIsLoading] = useState(false)
+  const [showTerms, setShowTerms] = useState(false)
+  const [showPrivacy, setShowPrivacy] = useState(false)
+  
+  // Sanitization hooks
+  const emailSanitization = useEmailSanitization('')
+  const phoneSanitization = usePhoneSanitization('')
+  
   const [formData, setFormData] = useState({
     email: '',
     mobile: '',
     countryCode: '+91'
   })
-  const [showTerms, setShowTerms] = useState(false)
-  const [showPrivacy, setShowPrivacy] = useState(false)
   
   // Get API URL from environment variable
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://irisnet.wiredleap.com'
@@ -37,18 +45,19 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Validate input
-    if (loginMethod === 'email' && !formData.email.trim()) {
-      error('Please enter your email address')
-      return
-    }
-    if (loginMethod === 'mobile') {
-      if (!formData.mobile.trim()) {
-        error('Please enter your mobile number')
+    // Sanitize and validate input
+    if (loginMethod === 'email') {
+      emailSanitization.sanitize(formData.email)
+      if (!emailSanitization.isValid) {
+        error(emailSanitization.error || 'Please enter a valid email address')
         return
       }
-      if (formData.mobile.length !== 10 || !/^\d{10}$/.test(formData.mobile)) {
-        error('Invalid phone number format. Please enter a valid 10-digit mobile number.')
+    }
+    
+    if (loginMethod === 'mobile') {
+      phoneSanitization.sanitize(formData.mobile)
+      if (!phoneSanitization.isValid) {
+        error(phoneSanitization.error || 'Please enter a valid mobile number')
         return
       }
     }
@@ -263,7 +272,11 @@ export default function LoginPage() {
                   type="email"
                   placeholder="you@example.com"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) => {
+                    const value = e.target.value
+                    setFormData({ ...formData, email: value })
+                    emailSanitization.sanitize(value)
+                  }}
                   className="w-full bg-white/5 backdrop-blur-sm border border-white/10 text-black placeholder:text-zinc-400 h-12 text-base font-medium px-4 rounded-lg transition-all duration-200 focus:outline-none focus:border-white/30 focus:bg-white/10"
                 />
               </div>
@@ -273,43 +286,15 @@ export default function LoginPage() {
                   : '-translate-x-full opacity-0 pointer-events-none'
               }`}>
                 <Label htmlFor="mobile" className="text-white text-base font-medium">Mobile Number</Label>
-                <div className="flex gap-2">
-                  <div className="relative flex items-center gap-2.5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg px-3.5 h-12">
-                    {/* India Flag SVG */}
-                    <svg width="24" height="18" viewBox="0 0 24 18" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
-                      <rect width="24" height="6" fill="#FF9933"/>
-                      <rect y="6" width="24" height="6" fill="#FFFFFF"/>
-                      <rect y="12" width="24" height="6" fill="#138808"/>
-                      <circle cx="12" cy="9" r="2.5" stroke="#000080" strokeWidth="0.5" fill="none"/>
-                      <g transform="translate(12, 9)">
-                        {[...Array(24)].map((_, i) => (
-                          <line
-                            key={i}
-                            x1="0"
-                            y1="0"
-                            x2={Math.cos((i * 15 * Math.PI) / 180) * 2}
-                            y2={Math.sin((i * 15 * Math.PI) / 180) * 2}
-                            stroke="#000080"
-                            strokeWidth="0.2"
-                          />
-                        ))}
-                      </g>
-                    </svg>
-                    <span className="text-base font-medium text-white">+91</span>
-                  </div>
-                  <input
-                    id="mobile"
-                    type="tel"
-                    placeholder="9876543210"
-                    value={formData.mobile}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, '').slice(0, 10)
-                      setFormData({ ...formData, mobile: value })
-                    }}
-                    className="bg-white/5 backdrop-blur-sm border border-white/10 text-black placeholder:text-zinc-400 flex-1 h-12 text-base font-medium px-4 rounded-lg transition-all duration-200 focus:outline-none focus:border-white/30 focus:bg-white/10"
-                    maxLength={10}
-                  />
-                  </div>
+                <PhoneInput
+                  value={formData.mobile}
+                  onChange={(value) => {
+                    setFormData({ ...formData, mobile: value })
+                    phoneSanitization.sanitize(value)
+                  }}
+                  placeholder="9876543210"
+                  id="mobile"
+                />
               </div>
             </div>
 
