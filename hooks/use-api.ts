@@ -622,9 +622,15 @@ export function useIncident(id: string) {
   return useApi(() => api.incident.getById(id), [id])
 }
 
-export function useCommunities(params?: any) {
-  // Communities API doesn't exist, return empty data
-  return { data: [], loading: false, error: null }
+// Communities functionality merged into Groups - use useGroups instead
+
+// Helper function to determine platform from group data
+function determinePlatform(group: any): string {
+  if (group.facebookUri) return 'Facebook'
+  if (group.twitterUri) return 'Twitter'
+  if (group.instagramUri) return 'Instagram'
+  if (group.youtubeUri) return 'YouTube'
+  return 'Multiple'
 }
 
 export function useGroups(params?: any) {
@@ -639,32 +645,46 @@ export function useGroups(params?: any) {
     hasNext: false,
     hasPrev: false,
   })
+  const [stats, setStats] = useState<any>(null)
 
   const fetchData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
 
+      // Call the groups API endpoint directly
       const queryParams = new URLSearchParams()
-      if (params?.page) queryParams.set('page', params.page.toString())
-      if (params?.limit) queryParams.set('limit', params.limit.toString())
-      if (params?.search) queryParams.set('search', params.search)
-      if (params?.type) queryParams.set('type', params.type)
-      if (params?.riskLevel) queryParams.set('riskLevel', params.riskLevel)
-      if (params?.monitoringEnabled !== undefined) queryParams.set('monitoringEnabled', params.monitoringEnabled.toString())
-      if (params?.platform) queryParams.set('platform', params.platform)
-      if (params?.sheet) queryParams.set('sheet', params.sheet)
+      if (params?.page) queryParams.append('page', params.page.toString())
+      if (params?.limit) queryParams.append('limit', params.limit.toString())
+      if (params?.search) queryParams.append('search', params.search)
+      if (params?.type) queryParams.append('type', params.type)
+      if (params?.riskLevel) queryParams.append('riskLevel', params.riskLevel)
+      if (params?.monitoringEnabled !== undefined) queryParams.append('monitoringEnabled', params.monitoringEnabled.toString())
+      if (params?.platform) queryParams.append('platform', params.platform)
+      if (params?.sheet) queryParams.append('sheet', params.sheet)
 
-      const response = await fetch(`/api/groups?${queryParams.toString()}`)
+      const response = await fetch(`/api/groups?${queryParams}`)
       const result = await response.json()
 
-      if (result.success && result.data) {
-        setData(result.data)
+      if (response.ok && result.groups) {
+        setData(result.groups)
+
         if (result.pagination) {
-          setPagination(result.pagination)
+          setPagination({
+            page: result.pagination.page,
+            limit: result.pagination.limit,
+            total: result.pagination.totalGroups,
+            totalPages: result.pagination.totalPages,
+            hasNext: result.pagination.page < result.pagination.totalPages,
+            hasPrev: result.pagination.page > 1
+          })
+        }
+
+        if (result.stats) {
+          setStats(result.stats)
         }
       } else {
-        setError(result.message || 'Failed to fetch groups')
+        setError('Failed to fetch groups')
         setData([])
       }
     } catch (err) {
@@ -680,5 +700,5 @@ export function useGroups(params?: any) {
     fetchData()
   }, [fetchData])
 
-  return { data, pagination, loading, error, refetch: fetchData }
+  return { data, pagination, loading, error, stats, refetch: fetchData }
 }

@@ -235,97 +235,11 @@ export default function SocialInboxPage() {
     }
   }, [posts, selectedPost])
 
-  // Keyboard shortcuts for lightning-fast navigation
+  // Keyboard shortcuts have been disabled
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if user is typing in an input/textarea
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        return
-      }
-
-      const currentIndex = selectedPost ? posts.findIndex(p => p.id === selectedPost.id) : -1
-
-      switch (e.key) {
-        // Navigation
-        case 'ArrowDown':
-        case 'j': // Vim-style
-          e.preventDefault()
-          if (currentIndex < posts.length - 1) {
-            setSelectedPost(posts[currentIndex + 1])
-          }
-          break
-
-        case 'ArrowUp':
-        case 'k': // Vim-style
-          e.preventDefault()
-          if (currentIndex > 0) {
-            setSelectedPost(posts[currentIndex - 1])
-          }
-          break
-
-        // Actions
-        case 'c':
-          e.preventDefault()
-          // Add to Campaign
-          console.log('Add to Campaign')
-          break
-
-        case 'f':
-          e.preventDefault()
-          // Flag for Review
-          console.log('Flag for Review')
-          break
-
-        case 'r':
-          e.preventDefault()
-          // Mark as Read
-          console.log('Mark as Read')
-          break
-
-        case 'a':
-          e.preventDefault()
-          // Archive
-          console.log('Archive')
-          break
-
-        case 'n':
-          e.preventDefault()
-          // Toggle Add Note
-          setShowAddNote(prev => !prev)
-          break
-
-        // Tab switching
-        case '1':
-          e.preventDefault()
-          setActiveTab('posts')
-          break
-
-        case '2':
-          e.preventDefault()
-          setActiveTab('notes')
-          break
-
-        // Search focus
-        case '/':
-          e.preventDefault()
-          document.querySelector<HTMLInputElement>('input[type="text"]')?.focus()
-          break
-
-        // Escape - clear search or close note
-        case 'Escape':
-          if (showAddNote) {
-            setShowAddNote(false)
-            setNoteText('')
-          } else {
-            setSearchQuery('')
-          }
-          break
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [posts, selectedPost, showAddNote])
+    // No keyboard shortcuts are active
+    return () => {}
+  }, [])
 
   return (
     <PageLayout>

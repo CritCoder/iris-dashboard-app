@@ -464,7 +464,7 @@ function DualSidebarWrapper() {
   React.useEffect(() => {
     if (pathname === '/social-feed') {
       setExpandedSubMenu('social-feed')
-    } else if (pathname === '/communities-groups') {
+    } else if (pathname === '/groups') {
       setExpandedSubMenu('groups')
     } else {
       setExpandedSubMenu(null)

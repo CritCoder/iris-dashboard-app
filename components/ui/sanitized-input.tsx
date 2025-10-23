@@ -64,13 +64,13 @@ export const SanitizedInput = forwardRef<HTMLInputElement, SanitizedInputProps>(
         />
         {/* Validation messages - positioned to not affect layout */}
         {showValidation && sanitization.isDirty && !sanitization.isValid && sanitization.error && (
-          <div className="absolute -bottom-6 left-0 right-0">
-            <p className="text-red-500 text-xs">{sanitization.error}</p>
+          <div className="absolute -bottom-10 left-0 right-0 z-10">
+            <p className="text-red-500 text-xs bg-background px-1 py-0.5 rounded shadow-sm">{sanitization.error}</p>
           </div>
         )}
         {showValidation && sanitization.isDirty && sanitization.isValid && (
-          <div className="absolute -bottom-6 left-0 right-0">
-            <p className="text-green-500 text-xs">✓ Valid</p>
+          <div className="absolute -bottom-10 left-0 right-0 z-10">
+            <p className="text-green-500 text-xs bg-background px-1 py-0.5 rounded shadow-sm">✓ Valid</p>
           </div>
         )}
       </div>

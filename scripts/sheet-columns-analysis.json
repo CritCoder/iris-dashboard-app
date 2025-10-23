@@ -1,0 +1,836 @@
+{
+  "sheets": {
+    "Right Hindu Groups": {
+      "headers": [
+        "Sl No",
+        "Organisation Type",
+        "Total Members",
+        "Top Influencer IDS",
+        "Facebook Profile URL",
+        "Twitter",
+        "Instagram",
+        "Youtube ID",
+        "Physical Address",
+        "Linked Phone Number",
+        "Linked E-Mail ID"
+      ],
+      "sampleRows": [
+        [
+          1,
+          "ಕಠೋರ ಹಿಂದುತ್ವವಾದಿಗಳು ಹಿಂದೂ ಜಾಗೃತಿ ಸೇನೆ",
+          3543,
+          "https://www.facebook.com/groups/481726962295310/user/100046617692917/Shivbhagath Bhagathsingh\nಕೆಂಪೇಗೌಡ ಒಕ್ಕಲಿಗರ ಮೀಸಲಾತಿ ಹೋರಾಟ ಸಮಿತಿ(Admin)\nVinaygowda",
+          "https://www.facebook.com/groups/481726962295310/?ref=share\n",
+          "Nil",
+          "https://www.instagram.com/hindhu_jagruthii_sene/",
+          "Nil",
+          "Yalahanka",
+          1919381307652,
+          "Linked E-Mail ID\nrg065726@gmail.com"
+        ],
+        [
+          2,
+          "ಅಖಿಲಾ ಕರ್ನಾಟಕ ಹಿಂದೂ ಸಾಮ್ರಾಟ್ ಶಿವಾಜಿ ಸೇನಾ ",
+          100,
+          "Parashuram Segurkar (Admin1)\nAmbaresh Hindu (Admin2)",
+          "https://www.facebook.com/groups/503501497182282/members",
+          "Nil",
+          "Nil",
+          "Nil",
+          "Yadagiri",
+          9449477555,
+          "Nil"
+        ]
+      ],
+      "rowCount": 999
+    },
+    "Right Hindu Persons": {
+      "headers": [
+        "Sl No",
+        "Organisation Type",
+        "Total Members",
+        "Top Influencer IDS",
+        "Facebook Profile URL",
+        "Twitter",
+        "Instagram",
+        "Youtube ID",
+        "Physical Address",
+        "Linked Phone Number",
+        "Linked E-Mail ID"
+      ],
+      "sampleRows": [
+        [
+          1,
+          "ಪುನೀತ್ ಕೆರೆಹಳ್ಳಿ",
+          68453,
+          "Puneet Kerehalli",
+          "https://www.facebook.com/puneeth.sathish",
+          "https://twitter.com/Puneeth74353549?s=09",
+          "Nil",
+          "Nil",
+          "Bangalore",
+          9590734057,
+          "Nil"
+        ],
+        [
+          2,
+          "ಪುನೀತ್ ಕೆರೆಹಳ್ಳಿ",
+          68453,
+          "Puneet Kerehalli",
+          "https://www.facebook.com/profile.php?id=100052715480776",
+          "https://twitter.com/Puneeth74353549?s=09",
+          "Nil",
+          "Nil",
+          "Bangalore",
+          9590734057,
+          "Nil"
+        ]
+      ],
+      "rowCount": 999
+    },
+    "Right Wing Muslim Groups": {
+      "headers": [
+        "Sl No",
+        "Organisation Type",
+        "Total Members",
+        "Top Influencer IDS",
+        "Facebook Profile URL",
+        "Twitter",
+        "Instagram",
+        "Physical Address",
+        "Linked Phone Number",
+        "Linked E-Mail ID"
+      ],
+      "sampleRows": [
+        [
+          1,
+          "Muslim Rashtriya Manch",
+          16821,
+          "http://muslimrashtriyamanch.org/default.aspx",
+          "https://www.facebook.com/IndianNationalistMuslims",
+          "https://twitter.com/MediaMrm",
+          "https://www.instagram.com/rashtriya_muslim_morcha_rtm/",
+          "North India",
+          "Not Manation",
+          "Not Manation"
+        ],
+        [
+          2,
+          "Muslim Rashtriya Swayamsevak Sangh",
+          317,
+          "Shoukat Ulla Khan KhanMuslim Rashtriya Swayamsevak Sangh",
+          "https://www.facebook.com/Muslim-Rashtriya-Swayamsevak-Sangh-108459327155350",
+          "Nil",
+          "Nil",
+          "Nil",
+          "Nil",
+          "Nil"
+        ]
+      ],
+      "rowCount": 999
+    },
+    "Human Rights": {
+      "headers": [
+        "Sl No",
+        "Organisation Type",
+        "Total Members",
+        "Top Influencer IDS",
+        "Facebook Profile URL",
+        "Twitter",
+        "Instagram",
+        "Youtube",
+        "Physical Address",
+        "Linked Phone Number",
+        "Linked E-Mail ID"
+      ],
+      "sampleRows": [
+        [
+          1,
+          "Human Rights Protection & Anti Corruption Squad\ni9tg SpoFebirnsauiaeSmorryleSad  · ",
+          8724,
+          "SDMKF  · Non-governmental organisation (NGO)",
+          "https://www.facebook.com/SDMKF",
+          null,
+          "Nil",
+          "Nil",
+          "No-12,Sonnappanhali,Near Anjeneya Temple,Bettahalsur Post,Bengaluru North,Pin-562157",
+          "097432 27755.9741974013.8660906460.",
+          "\nhrpandanticorruptionsquad@gmail.com"
+        ],
+        [
+          2,
+          "Hands Rise up for The Rights",
+          354,
+          "Rise UP For Rights",
+          "https://riseupforrights.in/contact.html",
+          "https://www.facebook.com/riseupforrights.in/",
+          "Nil",
+          "Nil",
+          " New Thippasandara, Bangalore 560075",
+          "91 7022163621/ 91 8217227583",
+          " info@riseupforrights.in"
+        ]
+      ],
+      "rowCount": 999
+    },
+    "ALL Farmers ORG Karnataka": {
+      "headers": [
+        "Sl No",
+        "Organisation Type",
+        "Total Members",
+        "Top Influencer IDS",
+        "Facebook Profile URL",
+        "Twitter",
+        "Instagram",
+        "Youtube",
+        "Physical Address",
+        "Linked Phone Number",
+        "Linked E-Mail ID"
+      ],
+      "sampleRows": [
+        [
+          1,
+          "ರಾಜ್ಯ ಕಬ್ಬು ಬೆಳೆಗಾರರ ಸಂಘ ಕರ್ನಾಟಕ (ರಿ)",
+          null,
+          "A Nagaraju A Nagaraju",
+          "https://www.facebook.com/anagaraju.anagaraju.94",
+          "nill"
+        ],
+        [
+          2,
+          "ರಾಜ್ಯ ಕಬ್ಬು ಬೆಳೆಗಾರರ ಸಂಘ ಕರ್ನಾಟಕ (ರಿ)",
+          null,
+          "nill",
+          "https://www.facebook.com/groups/3613804498677782/permalink/3912267245498171/",
+          "nill"
+        ]
+      ],
+      "rowCount": 999
+    },
+    "Trade Unions": {
+      "headers": [
+        "Sl No",
+        "Organisation Type",
+        "Total Members",
+        "Top Influencer IDS",
+        "Facebook Profile URL",
+        "Twitter",
+        "Instagram",
+        "Youtube ID",
+        "Physical Address",
+        "Linked Phone Number",
+        "Linked E-Mail ID"
+      ],
+      "sampleRows": [
+        [
+          1,
+          "AIDSO Karnataka",
+          null,
+          null,
+          "https://www.facebook.com/aidsokarnatakaofficial/",
+          null,
+          null,
+          null,
+          "#31, 3rd cross, Malleshwaram Bangalore, Karnataka, India 560003",
+          "88610 28159",
+          "aidsokarnataka@gmail.com"
+        ],
+        [
+          2,
+          "Karmika Drushtikona",
+          null,
+          null,
+          "https://www.facebook.com/karmikadrushtikona/?ref=page_internal"
+        ]
+      ],
+      "rowCount": 999
+    },
+    "RRP": {
+      "headers": [
+        "Sl No",
+        "Organisation Type",
+        "Total Members",
+        "Top Influencer IDS",
+        "Facebook Profile URL",
+        "Twitter",
+        "Instagram",
+        "Youtube ID",
+        "Physical Address",
+        "Linked Phone Number",
+        "Linked E-Mail ID"
+      ],
+      "sampleRows": [
+        [
+          null,
+          null,
+          null,
+          null,
+          "https://www.facebook.com/profile.php?id=100084166192816"
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          "https://www.facebook.com/puneeth.sathish"
+        ]
+      ],
+      "rowCount": 999
+    },
+    "Students ORG": {
+      "headers": [
+        "Sl No",
+        "Organisation Type",
+        "Total Members",
+        "Top Influencer IDS",
+        "Facebook Profile URL",
+        "Twitter",
+        "Instagram",
+        "Youtube ID",
+        "Physical Address",
+        "Linked Phone Number",
+        "Linked E-Mail ID"
+      ],
+      "sampleRows": [
+        [
+          null,
+          "All India Sudent Fedration Karnataka",
+          null,
+          null,
+          "https://www.facebook.com/AISF-Karnataka-316228082538407/?ref=page_internal"
+        ],
+        [
+          null,
+          "All Idia Youth Fedration",
+          null,
+          null,
+          "https://www.facebook.com/AIYFKarnataka10/?ref=page_internal"
+        ]
+      ],
+      "rowCount": 999
+    },
+    "Christians Activist": {
+      "headers": [
+        "Sl No",
+        "Organisation Type",
+        "Total Members",
+        "Top Influencer IDS",
+        "Facebook Profile URL",
+        "Twitter",
+        "Instagram",
+        "Youtube ID",
+        "Physical Address",
+        "Linked Phone Number",
+        "Linked E-Mail ID"
+      ],
+      "sampleRows": [
+        [
+          null,
+          null,
+          null,
+          null,
+          "https://www.facebook.com/Kcsmediakarnataka"
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          "https://www.facebook.com/asuntha.dsouza.7"
+        ]
+      ],
+      "rowCount": 999
+    },
+    "Kannadda ": {
+      "headers": [
+        "Sl No",
+        "Organisation Type",
+        "Total Members",
+        "Top Influencer IDS",
+        "Facebook Profile URL",
+        "Twitter",
+        "Instagram",
+        "Youtube ID",
+        "Physical Address",
+        "Linked Phone Number",
+        "Linked E-Mail ID"
+      ],
+      "sampleRows": [
+        [
+          1,
+          "ರೂಪೇಶ್ ರಾಜಣ್ಣ",
+          null,
+          "https://www.facebook.com/prabhu.muniswamaiah.7",
+          "https://www.facebook.com/rupesh.rajanna"
+        ],
+        [
+          2,
+          null,
+          null,
+          null,
+          "https://www.facebook.com/%E0%B2%B0%E0%B3%82%E0%B2%AA%E0%B3%87%E0%B2%B6%E0%B3%8D-%E0%B2%B0%E0%B2%BE%E0%B2%9C%E0%B2%A3%E0%B3%8D%E0%B2%A3-%E0%B2%95%E0%B2%A8%E0%B3%8D%E0%B2%A8%E0%B2%A1-%E0%B2%8E%E0%B2%82%E0%B2%A6%E0%B2%B5%E0%B2%B0%E0%B3%81-%E0%B2%A8%E0%B2%AE%E0%B3%8D%E0%B2%AE-%E0%B2%B8%E0%B2%82%E0%B2%97%E0%B2%A1-189689684892678/"
+        ]
+      ],
+      "rowCount": 999
+    },
+    "Woman": {
+      "headers": [
+        "Sl No",
+        "Organisation Type",
+        "Total Members",
+        "Top Influencer IDS",
+        "Facebook Profile URL",
+        "Twitter",
+        "Instagram",
+        "Youtube ID",
+        "Physical Address",
+        "Linked Phone Number",
+        "Linked E-Mail ID"
+      ],
+      "sampleRows": [
+        [
+          null,
+          null,
+          null,
+          null,
+          "https://www.facebook.com/mahilamunnade/?ref=page_internal"
+        ],
+        []
+      ],
+      "rowCount": 999
+    },
+    "Mixed": {
+      "headers": [
+        "SL No",
+        "Facebook Page Name",
+        "Facebook Page Link",
+        "Location",
+        "ORG",
+        "JOB",
+        "Mobile Nomber",
+        "Email ID",
+        "Website",
+        "Address",
+        "Twitter Nmae",
+        "Twitter Link",
+        "Twitter Usernmae"
+      ],
+      "sampleRows": [
+        [
+          1,
+          "AIDSO Karnataka",
+          "https://www.facebook.com/aidsokarnatakaofficial/",
+          null,
+          null,
+          null,
+          "88610 28159",
+          "aidsokarnataka@gmail.com",
+          "http://www.aidso.in/",
+          "#31, 3rd cross, Malleshwaram Bangalore, Karnataka, India 560003",
+          "AIDSO Karnataka",
+          "https://twitter.com/KarnatakaAidso?s=20",
+          "@KarnatakaAidso"
+        ],
+        [
+          2,
+          "ಕರುನಾಡ ಸೇವಕರು - Karunaada Sevakaru",
+          "https://www.facebook.com/KarunadaSevakaruofficial/?ref=page_internal",
+          null,
+          null,
+          null,
+          null,
+          null,
+          "karunadasevakaru.org",
+          null,
+          "Karunada Sevakaru - ಕರುನಾಡ ಸೇವಕರು",
+          "https://twitter.com/KSevakaru?s=20",
+          "@KSevakaru"
+        ]
+      ],
+      "rowCount": 999
+    },
+    "Mixed 2": {
+      "headers": [
+        null,
+        "POLITICAL AND RELEGIOUS  ORGANIZATIONS KARNATAKA",
+        null,
+        "IN TWITTER"
+      ],
+      "sampleRows": [
+        [
+          "SL NO",
+          "ORGANIZATIONS NAME",
+          "TWITTER ID NAME",
+          "ORGANIZATIONS TWITTER PROFILE LINKS",
+          "WEBSITE"
+        ],
+        [
+          1,
+          "Karnataka Congress",
+          "@INCKarnataka",
+          "https://twitter.com/INCKarnataka?s=20 ",
+          "http://www.karnatakapcc.com/"
+        ]
+      ],
+      "rowCount": 999
+    },
+    "Political": {
+      "headers": [
+        "Sl No",
+        "Organisation Type",
+        "Total Members",
+        "Top Influencer IDS",
+        "Facebook Profile URL",
+        "Twitter",
+        "Instagram",
+        "Youtube ID",
+        "Physical Address",
+        "Linked Phone Number",
+        "Linked E-Mail ID"
+      ],
+      "sampleRows": [
+        [
+          null,
+          null,
+          null,
+          null,
+          "https://www.facebook.com/INCKarnataka/?ref=page_internal"
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          "https://www.facebook.com/krspartybengaluru/?ref=page_internal"
+        ]
+      ],
+      "rowCount": 999
+    }
+  },
+  "columnGroups": [
+    {
+      "columns": [
+        "Sl No",
+        "Organisation Type",
+        "Total Members",
+        "Top Influencer IDS",
+        "Facebook Profile URL",
+        "Twitter",
+        "Instagram",
+        "Youtube ID",
+        "Physical Address",
+        "Linked Phone Number",
+        "Linked E-Mail ID"
+      ],
+      "sheets": [
+        "Right Hindu Groups",
+        "Right Hindu Persons",
+        "Trade Unions",
+        "RRP",
+        "Students ORG",
+        "Christians Activist",
+        "Kannadda ",
+        "Woman",
+        "Political"
+      ]
+    },
+    {
+      "columns": [
+        "Sl No",
+        "Organisation Type",
+        "Total Members",
+        "Top Influencer IDS",
+        "Facebook Profile URL",
+        "Twitter",
+        "Instagram",
+        "Physical Address",
+        "Linked Phone Number",
+        "Linked E-Mail ID"
+      ],
+      "sheets": [
+        "Right Wing Muslim Groups"
+      ]
+    },
+    {
+      "columns": [
+        "Sl No",
+        "Organisation Type",
+        "Total Members",
+        "Top Influencer IDS",
+        "Facebook Profile URL",
+        "Twitter",
+        "Instagram",
+        "Youtube",
+        "Physical Address",
+        "Linked Phone Number",
+        "Linked E-Mail ID"
+      ],
+      "sheets": [
+        "Human Rights",
+        "ALL Farmers ORG Karnataka"
+      ]
+    },
+    {
+      "columns": [
+        "SL No",
+        "Facebook Page Name",
+        "Facebook Page Link",
+        "Location",
+        "ORG",
+        "JOB",
+        "Mobile Nomber",
+        "Email ID",
+        "Website",
+        "Address",
+        "Twitter Nmae",
+        "Twitter Link",
+        "Twitter Usernmae"
+      ],
+      "sheets": [
+        "Mixed"
+      ]
+    },
+    {
+      "columns": [
+        "",
+        "POLITICAL AND RELEGIOUS  ORGANIZATIONS KARNATAKA",
+        "",
+        "IN TWITTER"
+      ],
+      "sheets": [
+        "Mixed 2"
+      ]
+    }
+  ],
+  "uniqueColumns": [
+    "Sl No",
+    "Organisation Type",
+    "Total Members",
+    "Top Influencer IDS",
+    "Facebook Profile URL",
+    "Twitter",
+    "Instagram",
+    "Youtube ID",
+    "Physical Address",
+    "Linked Phone Number",
+    "Linked E-Mail ID",
+    "Youtube",
+    "SL No",
+    "Facebook Page Name",
+    "Facebook Page Link",
+    "Location",
+    "ORG",
+    "JOB",
+    "Mobile Nomber",
+    "Email ID",
+    "Website",
+    "Address",
+    "Twitter Nmae",
+    "Twitter Link",
+    "Twitter Usernmae",
+    "POLITICAL AND RELEGIOUS  ORGANIZATIONS KARNATAKA",
+    "IN TWITTER"
+  ],
+  "columnUsage": {
+    "Sl No": [
+      "Right Hindu Groups",
+      "Right Hindu Persons",
+      "Right Wing Muslim Groups",
+      "Human Rights",
+      "ALL Farmers ORG Karnataka",
+      "Trade Unions",
+      "RRP",
+      "Students ORG",
+      "Christians Activist",
+      "Kannadda ",
+      "Woman",
+      "Political"
+    ],
+    "Organisation Type": [
+      "Right Hindu Groups",
+      "Right Hindu Persons",
+      "Right Wing Muslim Groups",
+      "Human Rights",
+      "ALL Farmers ORG Karnataka",
+      "Trade Unions",
+      "RRP",
+      "Students ORG",
+      "Christians Activist",
+      "Kannadda ",
+      "Woman",
+      "Political"
+    ],
+    "Total Members": [
+      "Right Hindu Groups",
+      "Right Hindu Persons",
+      "Right Wing Muslim Groups",
+      "Human Rights",
+      "ALL Farmers ORG Karnataka",
+      "Trade Unions",
+      "RRP",
+      "Students ORG",
+      "Christians Activist",
+      "Kannadda ",
+      "Woman",
+      "Political"
+    ],
+    "Top Influencer IDS": [
+      "Right Hindu Groups",
+      "Right Hindu Persons",
+      "Right Wing Muslim Groups",
+      "Human Rights",
+      "ALL Farmers ORG Karnataka",
+      "Trade Unions",
+      "RRP",
+      "Students ORG",
+      "Christians Activist",
+      "Kannadda ",
+      "Woman",
+      "Political"
+    ],
+    "Facebook Profile URL": [
+      "Right Hindu Groups",
+      "Right Hindu Persons",
+      "Right Wing Muslim Groups",
+      "Human Rights",
+      "ALL Farmers ORG Karnataka",
+      "Trade Unions",
+      "RRP",
+      "Students ORG",
+      "Christians Activist",
+      "Kannadda ",
+      "Woman",
+      "Political"
+    ],
+    "Twitter": [
+      "Right Hindu Groups",
+      "Right Hindu Persons",
+      "Right Wing Muslim Groups",
+      "Human Rights",
+      "ALL Farmers ORG Karnataka",
+      "Trade Unions",
+      "RRP",
+      "Students ORG",
+      "Christians Activist",
+      "Kannadda ",
+      "Woman",
+      "Political"
+    ],
+    "Instagram": [
+      "Right Hindu Groups",
+      "Right Hindu Persons",
+      "Right Wing Muslim Groups",
+      "Human Rights",
+      "ALL Farmers ORG Karnataka",
+      "Trade Unions",
+      "RRP",
+      "Students ORG",
+      "Christians Activist",
+      "Kannadda ",
+      "Woman",
+      "Political"
+    ],
+    "Youtube ID": [
+      "Right Hindu Groups",
+      "Right Hindu Persons",
+      "Trade Unions",
+      "RRP",
+      "Students ORG",
+      "Christians Activist",
+      "Kannadda ",
+      "Woman",
+      "Political"
+    ],
+    "Physical Address": [
+      "Right Hindu Groups",
+      "Right Hindu Persons",
+      "Right Wing Muslim Groups",
+      "Human Rights",
+      "ALL Farmers ORG Karnataka",
+      "Trade Unions",
+      "RRP",
+      "Students ORG",
+      "Christians Activist",
+      "Kannadda ",
+      "Woman",
+      "Political"
+    ],
+    "Linked Phone Number": [
+      "Right Hindu Groups",
+      "Right Hindu Persons",
+      "Right Wing Muslim Groups",
+      "Human Rights",
+      "ALL Farmers ORG Karnataka",
+      "Trade Unions",
+      "RRP",
+      "Students ORG",
+      "Christians Activist",
+      "Kannadda ",
+      "Woman",
+      "Political"
+    ],
+    "Linked E-Mail ID": [
+      "Right Hindu Groups",
+      "Right Hindu Persons",
+      "Right Wing Muslim Groups",
+      "Human Rights",
+      "ALL Farmers ORG Karnataka",
+      "Trade Unions",
+      "RRP",
+      "Students ORG",
+      "Christians Activist",
+      "Kannadda ",
+      "Woman",
+      "Political"
+    ],
+    "Youtube": [
+      "Human Rights",
+      "ALL Farmers ORG Karnataka"
+    ],
+    "SL No": [
+      "Mixed"
+    ],
+    "Facebook Page Name": [
+      "Mixed"
+    ],
+    "Facebook Page Link": [
+      "Mixed"
+    ],
+    "Location": [
+      "Mixed"
+    ],
+    "ORG": [
+      "Mixed"
+    ],
+    "JOB": [
+      "Mixed"
+    ],
+    "Mobile Nomber": [
+      "Mixed"
+    ],
+    "Email ID": [
+      "Mixed"
+    ],
+    "Website": [
+      "Mixed"
+    ],
+    "Address": [
+      "Mixed"
+    ],
+    "Twitter Nmae": [
+      "Mixed"
+    ],
+    "Twitter Link": [
+      "Mixed"
+    ],
+    "Twitter Usernmae": [
+      "Mixed"
+    ],
+    "POLITICAL AND RELEGIOUS  ORGANIZATIONS KARNATAKA": [
+      "Mixed 2"
+    ],
+    "IN TWITTER": [
+      "Mixed 2"
+    ]
+  }
+}

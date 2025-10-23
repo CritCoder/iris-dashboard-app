@@ -1,0 +1,235 @@
+[
+  {
+    "name": "Right Hindu Groups",
+    "rowCount": 101,
+    "columns": [
+      "Sl No",
+      "Organisation Type",
+      "Total Members",
+      "Top Influencer IDS",
+      "Facebook Profile URL",
+      "Twitter",
+      "Instagram",
+      "Youtube ID",
+      "Physical Address",
+      "Linked Phone Number",
+      "Linked E-Mail ID"
+    ]
+  },
+  {
+    "name": "Right Hindu Persons",
+    "rowCount": 39,
+    "columns": [
+      "Sl No",
+      "Organisation Type",
+      "Total Members",
+      "Top Influencer IDS",
+      "Facebook Profile URL",
+      "Twitter",
+      "Instagram",
+      "Youtube ID",
+      "Physical Address",
+      "Linked Phone Number",
+      "Linked E-Mail ID"
+    ]
+  },
+  {
+    "name": "Right Wing Muslim Groups",
+    "rowCount": 10,
+    "columns": [
+      "Sl No",
+      "Organisation Type",
+      "Total Members",
+      "Top Influencer IDS",
+      "Facebook Profile URL",
+      "Twitter",
+      "Instagram",
+      "Physical Address",
+      "Linked Phone Number",
+      "Linked E-Mail ID"
+    ]
+  },
+  {
+    "name": "Human Rights",
+    "rowCount": 18,
+    "columns": [
+      "Sl No",
+      "Organisation Type",
+      "Total Members",
+      "Top Influencer IDS",
+      "Facebook Profile URL",
+      "Twitter",
+      "Instagram",
+      "Youtube",
+      "Physical Address",
+      "Linked Phone Number",
+      "Linked E-Mail ID"
+    ]
+  },
+  {
+    "name": "ALL Farmers ORG Karnataka",
+    "rowCount": 93,
+    "columns": [
+      "Sl No",
+      "Organisation Type",
+      "Total Members",
+      "Top Influencer IDS",
+      "Facebook Profile URL",
+      "Twitter",
+      "Instagram",
+      "Youtube",
+      "Physical Address",
+      "Linked Phone Number",
+      "Linked E-Mail ID"
+    ]
+  },
+  {
+    "name": "Trade Unions",
+    "rowCount": 12,
+    "columns": [
+      "Sl No",
+      "Organisation Type",
+      "Total Members",
+      "Top Influencer IDS",
+      "Facebook Profile URL",
+      "Twitter",
+      "Instagram",
+      "Youtube ID",
+      "Physical Address",
+      "Linked Phone Number",
+      "Linked E-Mail ID"
+    ]
+  },
+  {
+    "name": "RRP",
+    "rowCount": 53,
+    "columns": [
+      "Sl No",
+      "Organisation Type",
+      "Total Members",
+      "Top Influencer IDS",
+      "Facebook Profile URL",
+      "Twitter",
+      "Instagram",
+      "Youtube ID",
+      "Physical Address",
+      "Linked Phone Number",
+      "Linked E-Mail ID"
+    ]
+  },
+  {
+    "name": "Students ORG",
+    "rowCount": 6,
+    "columns": [
+      "Sl No",
+      "Organisation Type",
+      "Total Members",
+      "Top Influencer IDS",
+      "Facebook Profile URL",
+      "Twitter",
+      "Instagram",
+      "Youtube ID",
+      "Physical Address",
+      "Linked Phone Number",
+      "Linked E-Mail ID"
+    ]
+  },
+  {
+    "name": "Christians Activist",
+    "rowCount": 4,
+    "columns": [
+      "Sl No",
+      "Organisation Type",
+      "Total Members",
+      "Top Influencer IDS",
+      "Facebook Profile URL",
+      "Twitter",
+      "Instagram",
+      "Youtube ID",
+      "Physical Address",
+      "Linked Phone Number",
+      "Linked E-Mail ID"
+    ]
+  },
+  {
+    "name": "Kannadda ",
+    "rowCount": 208,
+    "columns": [
+      "Sl No",
+      "Organisation Type",
+      "Total Members",
+      "Top Influencer IDS",
+      "Facebook Profile URL",
+      "Twitter",
+      "Instagram",
+      "Youtube ID",
+      "Physical Address",
+      "Linked Phone Number",
+      "Linked E-Mail ID"
+    ]
+  },
+  {
+    "name": "Woman",
+    "rowCount": 1,
+    "columns": [
+      "Sl No",
+      "Organisation Type",
+      "Total Members",
+      "Top Influencer IDS",
+      "Facebook Profile URL",
+      "Twitter",
+      "Instagram",
+      "Youtube ID",
+      "Physical Address",
+      "Linked Phone Number",
+      "Linked E-Mail ID"
+    ]
+  },
+  {
+    "name": "Mixed",
+    "rowCount": 244,
+    "columns": [
+      "SL No",
+      "Facebook Page Name",
+      "Facebook Page Link",
+      "Location",
+      "ORG",
+      "JOB",
+      "Mobile Nomber",
+      "Email ID",
+      "Website",
+      "Address",
+      "Twitter Nmae",
+      "Twitter Link",
+      "Twitter Usernmae"
+    ]
+  },
+  {
+    "name": "Mixed 2",
+    "rowCount": 33,
+    "columns": [
+      "Column1",
+      "POLITICAL AND RELEGIOUS  ORGANIZATIONS KARNATAKA",
+      "Column3",
+      "IN TWITTER",
+      "Column5"
+    ]
+  },
+  {
+    "name": "Political",
+    "rowCount": 5,
+    "columns": [
+      "Sl No",
+      "Organisation Type",
+      "Total Members",
+      "Top Influencer IDS",
+      "Facebook Profile URL",
+      "Twitter",
+      "Instagram",
+      "Youtube ID",
+      "Physical Address",
+      "Linked Phone Number",
+      "Linked E-Mail ID"
+    ]
+  }
+]

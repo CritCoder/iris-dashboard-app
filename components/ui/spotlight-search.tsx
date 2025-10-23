@@ -191,41 +191,9 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
   }, [query])
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isOpen) return
-
-      if (e.key === 'Escape') {
-        onClose()
-        return
-      }
-
-      if (e.key === 'ArrowDown') {
-        e.preventDefault()
-        setSelectedIndex(prev => 
-          prev < filteredResults.length - 1 ? prev + 1 : 0
-        )
-        return
-      }
-
-      if (e.key === 'ArrowUp') {
-        e.preventDefault()
-        setSelectedIndex(prev => 
-          prev > 0 ? prev - 1 : filteredResults.length - 1
-        )
-        return
-      }
-
-      if (e.key === 'Enter' && filteredResults[selectedIndex]) {
-        e.preventDefault()
-        window.location.href = filteredResults[selectedIndex].href
-        onClose()
-        return
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, filteredResults, selectedIndex, onClose])
+    // Keyboard shortcuts have been disabled
+    return () => {}
+  }, [])
 
   useEffect(() => {
     if (resultsRef.current && selectedIndex >= 0) {

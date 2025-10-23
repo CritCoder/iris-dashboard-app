@@ -3,14 +3,14 @@
 import { useState, useMemo, useEffect } from 'react'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
-import { Search, Building2, TrendingUp, TrendingDown, BarChart3, Download, Filter, Users, MessageSquare, Calendar, Users2, Shield, Globe, Eye, EyeOff, Check, AlertTriangle, MapPin, Phone, Mail, ExternalLink, ChevronDown } from 'lucide-react'
+import { Search, Building2, TrendingUp, TrendingDown, BarChart3, Download, Filter, Users, MessageSquare, Calendar, Users2, Shield, Globe, Eye, EyeOff, Check, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useGroups } from '@/hooks/use-api'
 import { useToast } from '@/hooks/use-toast'
+import { GroupsSidebar } from '@/components/groups/groups-sidebar'
 import {
   Empty,
   EmptyContent,
@@ -19,13 +19,11 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/components/ui/empty'
-import { GroupsSidebar } from '@/components/groups/groups-sidebar'
-import { GroupsGridSkeleton } from '@/components/skeletons/groups-grid-skeleton'
 
 interface Group {
   id: string
   name: string
-  type: 'religious' | 'political' | 'social' | 'other'
+  type: string
   members: number
   platforms: string[]
   primaryPlatform: string
@@ -48,512 +46,421 @@ interface Group {
   updatedAt: string
   status: 'active' | 'inactive' | 'monitored'
   monitoringEnabled: boolean
+  sheet: string
+  isFacebookOnly?: boolean
 }
 
-function GroupsPageContent() {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [activeFilter, setActiveFilter] = useState('all')
-  const [viewType, setViewType] = useState<'all' | 'monitored' | 'suspicious'>('all')
-  const [sortBy, setSortBy] = useState<'members' | 'risk' | 'name' | 'created'>('members')
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
-  const [selectedGroups, setSelectedGroups] = useState<string[]>([])
-  const [showFilters, setShowFilters] = useState(false)
-  const { toast } = useToast()
-
-  // Mock data based on CSV analysis - replace with actual API call
-  const mockGroups: Group[] = [
-    {
-      id: 'group_1',
-      name: 'ಕಠೋರ ಹಿಂದುತ್ವವಾದಿಗಳು ಹಿಂದೂ ಜಾಗೃತಿ ಸೇನೆ',
-      type: 'religious',
-      members: 3543,
-      platforms: ['facebook', 'instagram'],
-      primaryPlatform: 'facebook',
-      description: 'Group focused on Hindu organizations activities',
-      riskLevel: 'high',
-      category: 'Hindu Organizations',
-      location: 'Yalahanka',
-      contactInfo: {
-        phone: '1919381307652',
-        email: 'rg065726@gmail.com'
-      },
-      socialMedia: {
-        facebook: 'https://www.facebook.com/groups/481726962295310/?ref=share',
-        instagram: 'https://www.instagram.com/hindhu_jagruthii_sene/'
-      },
-      influencers: 'Shivbhagath Bhagathsingh, ಕೆಂಪೇಗೌಡ ಒಕ್ಕಲಿಗರ ಮೀಸಲಾತಿ ಹೋರಾಟ ಸಮಿತಿ(Admin), Vinaygowda',
-      createdAt: '2024-01-15T00:00:00.000Z',
-      updatedAt: '2024-10-23T14:58:21.051Z',
-      status: 'active',
-      monitoringEnabled: true
-    },
-    {
-      id: 'group_2',
-      name: 'ಅಖಿಲಾ ಕರ್ನಾಟಕ ಹಿಂದೂ ಸಾಮ್ರಾಟ್ ಶಿವಾಜಿ ಸೇನಾ',
-      type: 'religious',
-      members: 100,
-      platforms: ['facebook'],
-      primaryPlatform: 'facebook',
-      description: 'Group focused on Hindu organizations activities',
-      riskLevel: 'medium',
-      category: 'Hindu Organizations',
-      location: 'Yadagiri',
-      contactInfo: {
-        phone: '9449477555'
-      },
-      socialMedia: {
-        facebook: 'https://www.facebook.com/groups/503501497182282/members'
-      },
-      influencers: 'Parashuram Segurkar (Admin1), Ambaresh Hindu (Admin2)',
-      createdAt: '2024-02-10T00:00:00.000Z',
-      updatedAt: '2024-10-23T14:58:21.051Z',
-      status: 'active',
-      monitoringEnabled: false
-    },
-    {
-      id: 'group_3',
-      name: 'ಬಲಿಷ್ಠ ಹಿಂದೂರಾಷ್ಟ್ರ',
-      type: 'religious',
-      members: 19905,
-      platforms: ['facebook'],
-      primaryPlatform: 'facebook',
-      description: 'Group focused on Hindu organizations activities',
-      riskLevel: 'low',
-      category: 'Hindu Organizations',
-      location: 'Bengaluru',
-      socialMedia: {
-        facebook: 'https://www.facebook.com/groups/126680487914954/members'
-      },
-      influencers: 'Sharath Chandra',
-      createdAt: '2024-03-05T00:00:00.000Z',
-      updatedAt: '2024-10-23T14:58:21.051Z',
-      status: 'active',
-      monitoringEnabled: true
-    }
-  ]
-
-  // Build API params based on search and filter
-  const groupsParams = useMemo(() => {
-    const params: any = { limit: 50 }
-    if (searchQuery) params.search = searchQuery
-    if (activeFilter !== 'all') {
-      switch (activeFilter) {
-        case 'religious': params.type = 'religious'; break
-        case 'political': params.type = 'political'; break
-        case 'social': params.type = 'social'; break
-        case 'high-risk': params.riskLevel = 'high'; break
-        case 'medium-risk': params.riskLevel = 'medium'; break
-        case 'low-risk': params.riskLevel = 'low'; break
-        case 'monitored': params.monitoringEnabled = true; break
-        case 'facebook': params.platform = 'facebook'; break
-        case 'instagram': params.platform = 'instagram'; break
-        case 'twitter': params.platform = 'twitter'; break
-        case 'youtube': params.platform = 'youtube'; break
-      }
-    }
-    return params
-  }, [searchQuery, activeFilter])
-
-  // Use mock data for now - replace with actual API call
-  const { data: groups, loading: groupsLoading, error: groupsError } = useGroups(groupsParams)
-  
-  // Use mock data if API fails
-  const allGroups = groups && groups.length > 0 && !groupsError ? groups : mockGroups
-
-  // Filter and sort groups
-  const filteredGroups = useMemo(() => {
-    let filtered = allGroups.filter(group => {
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase()
-        return (
-          group.name.toLowerCase().includes(query) ||
-          group.description?.toLowerCase().includes(query) ||
-          group.category.toLowerCase().includes(query) ||
-          group.location?.toLowerCase().includes(query)
-        )
-      }
-      return true
-    })
-
-    // Apply view type filters
-    if (viewType === 'monitored') {
-      filtered = filtered.filter(group => group.monitoringEnabled)
-    } else if (viewType === 'suspicious') {
-      filtered = filtered.filter(group => group.riskLevel === 'high' || group.riskLevel === 'medium')
-    }
-
-    // Sort groups
-    filtered.sort((a, b) => {
-      let aValue: any, bValue: any
-      
-      switch (sortBy) {
-        case 'members':
-          aValue = a.members
-          bValue = b.members
-          break
-        case 'risk':
-          const riskOrder = { high: 3, medium: 2, low: 1 }
-          aValue = riskOrder[a.riskLevel]
-          bValue = riskOrder[b.riskLevel]
-          break
-        case 'name':
-          aValue = a.name
-          bValue = b.name
-          break
-        case 'created':
-          aValue = new Date(a.createdAt).getTime()
-          bValue = new Date(b.createdAt).getTime()
-          break
-        default:
-          aValue = a.members
-          bValue = b.members
-      }
-
-      if (sortOrder === 'asc') {
-        return aValue > bValue ? 1 : -1
-      } else {
-        return aValue < bValue ? 1 : -1
-      }
-    })
-
-    return filtered
-  }, [allGroups, searchQuery, viewType, sortBy, sortOrder])
-
-  const toggleGroupSelection = (groupId: string) => {
-    setSelectedGroups(prev => 
-      prev.includes(groupId) 
-        ? prev.filter(id => id !== groupId)
-        : [...prev, groupId]
-    )
-  }
-
-  const toggleMonitor = (groupId: string) => {
-    // Toggle monitoring status
-    toast({
-      title: "Monitoring Updated",
-      description: "Group monitoring status has been updated.",
-    })
-  }
-
-  const getRiskColor = (riskLevel: string) => {
-    switch (riskLevel) {
-      case 'high': return 'bg-red-500'
-      case 'medium': return 'bg-orange-500'
-      case 'low': return 'bg-green-500'
-      default: return 'bg-gray-500'
-    }
-  }
-
-  const getPlatformIcon = (platform: string) => {
-    switch (platform) {
-      case 'facebook': return '📘'
-      case 'twitter': return '🐦'
-      case 'instagram': return '📷'
-      case 'youtube': return '📺'
-      default: return '🌐'
-    }
-  }
-
+function GroupCard({
+  group,
+  onToggleMonitor
+}: {
+  group: Group
+  onToggleMonitor: (id: string, currentStatus: boolean) => void
+}) {
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'religious': return 'bg-purple-100 text-purple-800'
-      case 'political': return 'bg-blue-100 text-blue-800'
-      case 'social': return 'bg-green-100 text-green-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'religious':
+        return 'bg-purple-100 text-purple-800 border-purple-200'
+      case 'political':
+        return 'bg-red-100 text-red-800 border-red-200'
+      case 'social':
+        return 'bg-blue-100 text-blue-800 border-blue-200'
+      case 'professional':
+        return 'bg-green-100 text-green-800 border-green-200'
+      case 'cultural':
+        return 'bg-orange-100 text-orange-800 border-orange-200'
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200'
     }
+  }
+
+  const getRiskLevelColor = (riskLevel: string) => {
+    switch (riskLevel) {
+      case 'high':
+        return 'bg-red-100 text-red-700 border-red-200'
+      case 'medium':
+        return 'bg-orange-100 text-orange-700 border-orange-200'
+      default:
+        return 'bg-green-100 text-green-700 border-green-200'
+    }
+  }
+
+  const getRiskLevelIcon = (riskLevel: string) => {
+    switch (riskLevel) {
+      case 'high':
+        return <AlertTriangle className="w-3 h-3" />
+      case 'medium':
+        return <Shield className="w-3 h-3" />
+      default:
+        return <Check className="w-3 h-3" />
+    }
+  }
+
+  const getInitials = (name: string) => {
+    const words = name.split(' ')
+    if (words.length >= 2) {
+      return words[0][0] + words[1][0]
+    }
+    return name.substring(0, 2).toUpperCase()
+  }
+
+  return (
+    <Card className="hover:shadow-md transition-shadow duration-200 border-l-4 border-l-primary/20 hover:border-l-primary/40">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
+              {getInitials(group.name)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-base line-clamp-1">{group.name}</CardTitle>
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                <Badge variant="outline" className={`${getTypeColor(group.type)} text-xs`}>
+                  {group.type}
+                </Badge>
+                <Badge variant="outline" className={`${getRiskLevelColor(group.riskLevel)} text-xs flex items-center gap-1`}>
+                  {getRiskLevelIcon(group.riskLevel)}
+                  {group.riskLevel} risk
+                </Badge>
+                {group.isFacebookOnly && (
+                  <Badge variant="outline" className="text-xs">
+                    FB Only
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+          <Button
+            variant={group.monitoringEnabled ? "default" : "outline"}
+            size="sm"
+            onClick={() => onToggleMonitor(group.id, group.monitoringEnabled)}
+            className="flex items-center gap-1"
+          >
+            {group.monitoringEnabled ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            {group.monitoringEnabled ? 'Monitoring' : 'Monitor'}
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {group.description && (
+          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+            {group.description}
+          </p>
+        )}
+
+        <div className="grid grid-cols-2 gap-4 mb-3">
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm font-medium">{group.members.toLocaleString()}</span>
+            <span className="text-xs text-muted-foreground">members</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Globe className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm">
+              {group.platforms.length > 0 ? group.platforms.join(', ') : 'No platforms'}
+            </span>
+          </div>
+        </div>
+
+        {(group.location || group.sheet) && (
+          <div className="pt-3 border-t space-y-1">
+            {group.sheet && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Sheet:</span>
+                <span className="font-medium text-xs">{group.sheet}</span>
+              </div>
+            )}
+            {group.location && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Location:</span>
+                <span className="font-medium text-xs">{group.location}</span>
+              </div>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+export default function GroupsPage() {
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedType, setSelectedType] = useState<string | null>(null)
+  const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null)
+  const [selectedRiskLevel, setSelectedRiskLevel] = useState<string | null>(null)
+  const [activeFilter, setActiveFilter] = useState<string>('all')
+  const [viewType, setViewType] = useState<'all' | 'monitored' | 'suspicious'>('all')
+  const [selectedSheet, setSelectedSheet] = useState<string | null>(null)
+  const { toast } = useToast()
+
+  // Build params for API call
+  const apiParams = useMemo(() => {
+    const params: any = {
+      page: 1,
+      limit: 50
+    }
+
+    if (searchTerm) params.search = searchTerm
+
+    // Handle sheet selection
+    if (selectedSheet) {
+      params.sheet = selectedSheet
+    }
+
+    // Handle view type
+    if (viewType === 'monitored') {
+      params.monitoringEnabled = true
+    } else if (viewType === 'suspicious') {
+      params.riskLevel = 'high'
+    }
+
+    // Handle other filters
+    if (selectedType) params.type = selectedType
+    if (selectedPlatform) params.platform = selectedPlatform
+    if (selectedRiskLevel) params.riskLevel = selectedRiskLevel
+
+    // Handle active filter from sidebar
+    if (activeFilter && activeFilter !== 'all') {
+      // Type filters
+      if (['religious', 'political', 'social', 'professional', 'cultural', 'other'].includes(activeFilter)) {
+        params.type = activeFilter
+      }
+      // Risk level filters
+      if (activeFilter === 'high-risk') params.riskLevel = 'high'
+      if (activeFilter === 'medium-risk') params.riskLevel = 'medium'
+      if (activeFilter === 'low-risk') params.riskLevel = 'low'
+      // Platform filters
+      if (['facebook', 'twitter', 'instagram', 'youtube'].includes(activeFilter)) {
+        params.platform = activeFilter
+      }
+    }
+
+    return params
+  }, [searchTerm, selectedType, selectedPlatform, selectedRiskLevel, selectedSheet, viewType, activeFilter])
+
+  const {
+    data: groups = [],
+    loading,
+    error,
+    pagination,
+    stats
+  } = useGroups(apiParams)
+
+  const handleToggleMonitor = async (groupId: string, currentStatus: boolean) => {
+    try {
+      // In a real app, this would call an API to update the monitoring status
+      const response = await fetch(`/api/groups`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: groupId,
+          monitoringEnabled: !currentStatus
+        })
+      })
+
+      if (response.ok) {
+        toast({
+          title: currentStatus ? "Monitoring stopped" : "Monitoring started",
+          description: currentStatus
+            ? "Group is no longer being monitored."
+            : "Group is now being monitored for activity.",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update monitoring status.",
+        variant: "destructive"
+      })
+    }
+  }
+
+  const handleFilterChange = (filter: string) => {
+    setActiveFilter(filter)
+
+    // Check if it's a sheet filter
+    const sheetFilters = [
+      'right-hindu-groups', 'right-hindu-persons', 'right-wing-muslim-groups',
+      'human-rights', 'all-farmers-org-karnataka', 'trade-unions', 'rrp',
+      'students-org', 'christians-activist', 'kannadda', 'woman',
+      'mixed', 'mixed-2', 'political'
+    ]
+
+    if (sheetFilters.includes(filter)) {
+      const sheetMap: { [key: string]: string } = {
+        'right-hindu-groups': 'Right Hindu Groups',
+        'right-hindu-persons': 'Right Hindu Persons',
+        'right-wing-muslim-groups': 'Right Wing Muslim Groups',
+        'human-rights': 'Human Rights',
+        'all-farmers-org-karnataka': 'ALL Farmers ORG Karnataka',
+        'trade-unions': 'Trade Unions',
+        'rrp': 'RRP',
+        'students-org': 'Students ORG',
+        'christians-activist': 'Christians Activist',
+        'kannadda': 'Kannadda ',
+        'woman': 'Woman',
+        'mixed': 'Mixed',
+        'mixed-2': 'Mixed 2',
+        'political': 'Political'
+      }
+      setSelectedSheet(sheetMap[filter])
+    } else {
+      setSelectedSheet(null)
+    }
+  }
+
+  if (loading) {
+    return (
+      <PageLayout>
+        <div className="flex h-full">
+          <GroupsSidebar
+            onFilterChange={handleFilterChange}
+            activeFilter={activeFilter}
+            onViewTypeChange={setViewType}
+            viewType={viewType}
+          />
+          <div className="flex-1 flex flex-col">
+            <PageHeader
+              title="Groups"
+              description="Monitor and analyze social groups and communities"
+            />
+            <div className="flex-1 p-6">
+              <div className="animate-pulse space-y-6">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="h-10 bg-gray-100 rounded-md flex-1"></div>
+                  <div className="flex gap-2">
+                    <div className="h-10 bg-gray-100 rounded-md w-32"></div>
+                    <div className="h-10 bg-gray-100 rounded-md w-32"></div>
+                  </div>
+                </div>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="border rounded-lg p-4 space-y-4">
+                      <div className="h-20 bg-gray-100 rounded"></div>
+                      <div className="h-4 bg-gray-100 rounded w-3/4"></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </PageLayout>
+    )
   }
 
   return (
     <PageLayout>
-      <div className="h-screen flex bg-background overflow-hidden">
+      <div className="flex h-full">
         <GroupsSidebar
-          onFilterChange={setActiveFilter}
+          onFilterChange={handleFilterChange}
           activeFilter={activeFilter}
           onViewTypeChange={setViewType}
           viewType={viewType}
         />
-
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col">
           <PageHeader
-            title="Groups Monitoring"
-            description="Monitor suspicious groups and communities"
-            actions={
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm">
-                  <Download className="w-4 h-4 mr-2" />
-                  Export
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filters
-                </Button>
-              </div>
-            }
+            title="Groups"
+            description="Monitor and analyze social groups and communities"
           />
-
-          <div className="flex-1 overflow-y-auto p-6">
-            {/* Search and Controls */}
-            <div className="mb-6 space-y-4">
-              <div className="flex items-center justify-between gap-4">
-                <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search groups by name, category, or location..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-muted-foreground">Sort by:</span>
-                    <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-                      <SelectTrigger className="w-[140px]">
-                        <SelectValue placeholder="Select sort" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="members">Members</SelectItem>
-                        <SelectItem value="risk">Risk Level</SelectItem>
-                        <SelectItem value="name">Name</SelectItem>
-                        <SelectItem value="created">Created Date</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                    className="px-3"
-                  >
-                    {sortOrder === 'asc' ? (
-                      <TrendingUp className="w-4 h-4" />
-                    ) : (
-                      <TrendingDown className="w-4 h-4" />
-                    )}
-                  </Button>
-                </div>
+          <div className="flex-1 p-6 overflow-auto">
+            {/* Filters */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-6 w-full">
+              <div className="relative flex-1 max-w-none">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search groups by name..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 w-full"
+                />
               </div>
 
-              {/* Stats */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Total Groups</p>
-                        <p className="text-2xl font-bold">{allGroups.length}</p>
-                        {filteredGroups.length !== allGroups.length && (
-                          <p className="text-xs text-muted-foreground">
-                            {filteredGroups.length} filtered
-                          </p>
-                        )}
-                      </div>
-                      <Building2 className="w-8 h-8 text-muted-foreground" />
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">High Risk</p>
-                        <p className="text-2xl font-bold text-red-600">
-                          {allGroups.filter(g => g.riskLevel === 'high').length}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {Math.round((allGroups.filter(g => g.riskLevel === 'high').length / allGroups.length) * 100)}% of total
-                        </p>
-                      </div>
-                      <AlertTriangle className="w-8 h-8 text-red-500" />
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Monitored</p>
-                        <p className="text-2xl font-bold text-blue-600">
-                          {allGroups.filter(g => g.monitoringEnabled).length}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {Math.round((allGroups.filter(g => g.monitoringEnabled).length / allGroups.length) * 100)}% of total
-                        </p>
-                      </div>
-                      <Eye className="w-8 h-8 text-blue-500" />
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Total Members</p>
-                        <p className="text-2xl font-bold">
-                          {allGroups.reduce((sum, g) => sum + g.members, 0).toLocaleString()}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Avg: {Math.round(allGroups.reduce((sum, g) => sum + g.members, 0) / allGroups.length).toLocaleString()}
-                        </p>
-                      </div>
-                      <Users className="w-8 h-8 text-muted-foreground" />
-                    </div>
-                  </CardContent>
-                </Card>
+              <div className="flex gap-2 flex-shrink-0">
+                <select
+                  value={selectedType || ''}
+                  onChange={(e) => setSelectedType(e.target.value || null)}
+                  className="px-3 py-2 border rounded-md text-sm bg-background"
+                >
+                  <option value="">All Types</option>
+                  <option value="religious">Religious</option>
+                  <option value="political">Political</option>
+                  <option value="social">Social</option>
+                  <option value="professional">Professional</option>
+                  <option value="cultural">Cultural</option>
+                  <option value="other">Other</option>
+                </select>
+
+                <select
+                  value={selectedRiskLevel || ''}
+                  onChange={(e) => setSelectedRiskLevel(e.target.value || null)}
+                  className="px-3 py-2 border rounded-md text-sm bg-background"
+                >
+                  <option value="">All Risk Levels</option>
+                  <option value="high">High Risk</option>
+                  <option value="medium">Medium Risk</option>
+                  <option value="low">Low Risk</option>
+                </select>
+
+                <select
+                  value={selectedPlatform || ''}
+                  onChange={(e) => setSelectedPlatform(e.target.value || null)}
+                  className="px-3 py-2 border rounded-md text-sm bg-background"
+                >
+                  <option value="">All Platforms</option>
+                  <option value="facebook">Facebook</option>
+                  <option value="twitter">Twitter</option>
+                  <option value="instagram">Instagram</option>
+                  <option value="youtube">YouTube</option>
+                </select>
               </div>
             </div>
 
-            {/* Groups Grid */}
-            {groupsLoading ? (
-              <GroupsGridSkeleton />
-            ) : groupsError ? (
+            {/* Results */}
+            {error ? (
               <Empty>
                 <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <Building2 className="w-12 h-12 text-muted-foreground" />
+                  </EmptyMedia>
                   <EmptyTitle>Error Loading Groups</EmptyTitle>
-                  <EmptyDescription>
-                    {groupsError}
-                  </EmptyDescription>
+                  <EmptyDescription>{error}</EmptyDescription>
                 </EmptyHeader>
               </Empty>
-            ) : filteredGroups.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredGroups.map((group) => (
-                  <Card key={group.id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-transparent hover:border-l-blue-500">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-3 h-3 rounded-full ${getRiskColor(group.riskLevel)}`} />
-                          <div className="flex-1 min-w-0">
-                            <CardTitle className="text-lg font-semibold truncate">
-                              {group.name}
-                            </CardTitle>
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge variant="secondary" className={getTypeColor(group.type)}>
-                                {group.type}
-                              </Badge>
-                              <Badge variant="outline">
-                                {group.category}
-                              </Badge>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleGroupSelection(group.id)}
-                          >
-                            {selectedGroups.includes(group.id) ? (
-                              <Check className="w-4 h-4" />
-                            ) : (
-                              <Users className="w-4 h-4" />
-                            )}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleMonitor(group.id)}
-                          >
-                            {group.monitoringEnabled ? (
-                              <Eye className="w-4 h-4 text-blue-500" />
-                            ) : (
-                              <EyeOff className="w-4 h-4" />
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    
-                    <CardContent className="space-y-4">
-                      {/* Group Info */}
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Users className="w-4 h-4" />
-                          <span>{group.members.toLocaleString()} members</span>
-                        </div>
-                        {group.location && (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <MapPin className="w-4 h-4" />
-                            <span>{group.location}</span>
-                          </div>
-                        )}
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Shield className="w-4 h-4" />
-                          <span className="capitalize">{group.riskLevel} risk</span>
-                        </div>
-                      </div>
+            ) : groups.length > 0 ? (
+              <>
+                <div className="flex items-center justify-between mb-4 w-full">
+                  <p className="text-sm text-muted-foreground">
+                    {pagination?.total || groups.length} group{(pagination?.total || groups.length) !== 1 ? 's' : ''} found
+                    {selectedSheet && ` in ${selectedSheet}`}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm">
+                      <Download className="w-4 h-4 mr-2" />
+                      Export
+                    </Button>
+                  </div>
+                </div>
 
-                      {/* Platforms */}
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">Platforms:</span>
-                        <div className="flex gap-1">
-                          {group.platforms.map(platform => (
-                            <span key={platform} className="text-lg" title={platform}>
-                              {getPlatformIcon(platform)}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Social Media Links */}
-                      {group.socialMedia && (
-                        <div className="flex items-center gap-2">
-                          {group.socialMedia.facebook && (
-                            <Button variant="ghost" size="sm" asChild>
-                              <a href={group.socialMedia.facebook} target="_blank" rel="noopener noreferrer">
-                                <ExternalLink className="w-3 h-3 mr-1" />
-                                Facebook
-                              </a>
-                            </Button>
-                          )}
-                          {group.socialMedia.instagram && (
-                            <Button variant="ghost" size="sm" asChild>
-                              <a href={group.socialMedia.instagram} target="_blank" rel="noopener noreferrer">
-                                <ExternalLink className="w-3 h-3 mr-1" />
-                                Instagram
-                              </a>
-                            </Button>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Contact Info */}
-                      {group.contactInfo && (group.contactInfo.phone || group.contactInfo.email) && (
-                        <div className="space-y-1">
-                          {group.contactInfo.phone && (
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Phone className="w-4 h-4" />
-                              <span>{group.contactInfo.phone}</span>
-                            </div>
-                          )}
-                          {group.contactInfo.email && (
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Mail className="w-4 h-4" />
-                              <span className="truncate">{group.contactInfo.email}</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Influencers */}
-                      {group.influencers && (
-                        <div className="space-y-1">
-                          <span className="text-sm font-medium">Key Influencers:</span>
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {group.influencers}
-                          </p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 w-full">
+                  {groups.map((group: Group) => (
+                    <GroupCard
+                      key={group.id}
+                      group={group}
+                      onToggleMonitor={handleToggleMonitor}
+                    />
+                  ))}
+                </div>
+              </>
             ) : (
               <Empty>
                 <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <Building2 className="w-12 h-12 text-muted-foreground" />
+                  </EmptyMedia>
                   <EmptyTitle>No Groups Found</EmptyTitle>
                   <EmptyDescription>
-                    No groups match your current filters. Try adjusting your search criteria.
+                    Try adjusting your search criteria or filters.
                   </EmptyDescription>
                 </EmptyHeader>
               </Empty>
@@ -563,8 +470,4 @@ function GroupsPageContent() {
       </div>
     </PageLayout>
   )
-}
-
-export default function GroupsPage() {
-  return <GroupsPageContent />
 }

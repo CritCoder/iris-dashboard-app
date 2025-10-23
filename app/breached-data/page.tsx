@@ -3,15 +3,15 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Search, Loader2, Mail, User, Globe, Hash, Shield, MapPin, Phone, Link, Bitcoin, Database, Download, Filter, Eye, Copy, ChevronDown, ChevronUp, AlertTriangle, CheckCircle, Info, Zap, BarChart3, Grid3x3, List, TrendingUp, X } from 'lucide-react'
 import { api } from '@/lib/api'
 import { BreachedDataResultCard } from '@/components/breached-data/result-card'
+import { BreachedDataSidebar } from '@/components/breached-data/sidebar'
 import { SanitizedSearchInput } from '@/components/ui/sanitized-input'
-import { AnimatedPage, AnimatedGrid, AnimatedCard } from '@/components/ui/animated'
+import { AnimatedPage } from '@/components/ui/animated'
 
 export default function BreachedDataPage() {
   const [activeSearchType, setActiveSearchType] = useState('email')
@@ -22,11 +22,23 @@ export default function BreachedDataPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [autoLoadAll, setAutoLoadAll] = useState(false)
   const [allResults, setAllResults] = useState<any[]>([])
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [showFilters, setShowFilters] = useState(false)
   const [searchHistory, setSearchHistory] = useState<string[]>([])
-  const [selectedResults, setSelectedResults] = useState<Set<string>>(new Set())
   const PAGE_SIZE = 100
+
+  const searchTypes = [
+    { id: 'email', name: 'Email', icon: Mail, color: 'bg-blue-500', description: 'Search email addresses' },
+    { id: 'username', name: 'Username', icon: User, color: 'bg-green-500', description: 'Search usernames' },
+    { id: 'ip_address', name: 'IP Address', icon: Globe, color: 'bg-purple-500', description: 'Search IP addresses' },
+    { id: 'password', name: 'Password', icon: Shield, color: 'bg-red-500', description: 'Search passwords' },
+    { id: 'hashed_password', name: 'Hashed Password', icon: Hash, color: 'bg-orange-500', description: 'Search hashed passwords' },
+    { id: 'vin', name: 'VIN', icon: MapPin, color: 'bg-teal-500', description: 'Search vehicle identification numbers' },
+    { id: 'license_plate', name: 'License Plate', icon: MapPin, color: 'bg-cyan-500', description: 'Search license plates' },
+    { id: 'address', name: 'Address', icon: MapPin, color: 'bg-indigo-500', description: 'Search physical addresses' },
+    { id: 'phone', name: 'Phone', icon: Phone, color: 'bg-pink-500', description: 'Search phone numbers' },
+    { id: 'social', name: 'Social', icon: Link, color: 'bg-yellow-500', description: 'Search social media handles' },
+    { id: 'crypto_address', name: 'Crypto Address', icon: Bitcoin, color: 'bg-amber-500', description: 'Search cryptocurrency addresses' },
+    { id: 'domain', name: 'Domain', icon: Database, color: 'bg-emerald-500', description: 'Search domains' }
+  ]
 
   // Helper function to check if all required fields are valid
   const isFormValid = () => {
@@ -101,6 +113,16 @@ export default function BreachedDataPage() {
     }
   }
 
+  const handleSearchTypeChange = (typeId: string) => {
+    setActiveSearchType(typeId)
+    setSearchQuery('')
+    setError(null)
+    setSearchResults(null)
+    setAllResults([])
+    setAutoLoadAll(false)
+    setCurrentPage(1)
+  }
+
   const handleAutoLoadAll = () => {
     // Validate required fields before auto-loading
     if (!searchQuery.trim()) {
@@ -129,8 +151,8 @@ export default function BreachedDataPage() {
     
     try {
       // Load all types of breached data
-      const searchTypes = ['email', 'username', 'ip', 'password', 'phone', 'social', 'crypto', 'domain']
-      const allPromises = searchTypes.map(type => 
+      const typeIds = searchTypes.map((type) => type.id)
+      const allPromises = typeIds.map(type => 
         api.osint.breachedDataSearch({ 
           query: `${type}:*`, // Search for all entries of this type
           page: 1,
@@ -172,21 +194,6 @@ export default function BreachedDataPage() {
     if (!searchResults || !searchResults.total) return 0
     return Math.ceil(searchResults.total / PAGE_SIZE)
   }, [searchResults])
-
-  const searchTypes = [
-    { id: 'email', name: 'Email', icon: Mail, color: 'bg-blue-500', description: 'Search email addresses' },
-    { id: 'username', name: 'Username', icon: User, color: 'bg-green-500', description: 'Search usernames' },
-    { id: 'ip_address', name: 'IP Address', icon: Globe, color: 'bg-purple-500', description: 'Search IP addresses' },
-    { id: 'password', name: 'Password', icon: Shield, color: 'bg-red-500', description: 'Search passwords' },
-    { id: 'hashed_password', name: 'Hashed Password', icon: Hash, color: 'bg-orange-500', description: 'Search hashed passwords' },
-    { id: 'vin', name: 'VIN', icon: MapPin, color: 'bg-teal-500', description: 'Search vehicle identification numbers' },
-    { id: 'license_plate', name: 'License Plate', icon: MapPin, color: 'bg-cyan-500', description: 'Search license plates' },
-    { id: 'address', name: 'Address', icon: MapPin, color: 'bg-indigo-500', description: 'Search physical addresses' },
-    { id: 'phone', name: 'Phone', icon: Phone, color: 'bg-pink-500', description: 'Search phone numbers' },
-    { id: 'social', name: 'Social', icon: Link, color: 'bg-yellow-500', description: 'Search social media handles' },
-    { id: 'crypto_address', name: 'Crypto Address', icon: Bitcoin, color: 'bg-amber-500', description: 'Search cryptocurrency addresses' },
-    { id: 'domain', name: 'Domain', icon: Database, color: 'bg-emerald-500', description: 'Search domains' }
-  ]
 
   // Analytics data
   const analytics = useMemo(() => {

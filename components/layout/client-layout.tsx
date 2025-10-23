@@ -6,7 +6,6 @@ import { IconSidebar } from '@/components/dashboard/icon-sidebar'
 // import { MainSidebar } from '@/components/dashboard/main-sidebar'
 import { QuickActions } from '@/components/ui/quick-actions'
 import { KeyboardShortcutsDialog } from '@/components/ui/keyboard-shortcuts-dialog'
-import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 
 interface ClientLayoutProps {
   children: ReactNode
@@ -21,8 +20,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   // Check if current route is public
   const isPublicRoute = PUBLIC_ROUTES.some(route => pathname?.startsWith(route))
 
-  // Enable keyboard shortcuts
-  useKeyboardShortcuts()
+  // Keyboard shortcuts have been disabled
 
   // For public routes, render without sidebars and without any wrapper constraints
   if (isPublicRoute) {

@@ -18,26 +18,28 @@ const filterCategories = [
   {
     title: 'View Type',
     items: [
-      { id: 'all', name: 'All Groups', icon: Building2, count: 100 },
-      { id: 'monitored', name: 'Monitored', icon: Eye, count: 25 },
-      { id: 'suspicious', name: 'Suspicious', icon: AlertTriangle, count: 12 },
+      { id: 'all', name: 'All Groups', icon: Building2, count: 645 },
+      { id: 'monitored', name: 'Monitored', icon: Eye, count: 18 },
+      { id: 'suspicious', name: 'Suspicious', icon: AlertTriangle, count: 44 },
     ],
   },
   {
     title: 'Group Type',
     items: [
-      { id: 'religious', name: 'Religious', icon: Building2, count: 30 },
-      { id: 'political', name: 'Political', icon: Users, count: 19 },
-      { id: 'social', name: 'Social', icon: MessageSquare, count: 5 },
-      { id: 'other', name: 'Other', icon: Globe, count: 46 },
+      { id: 'religious', name: 'Religious', icon: Building2, count: 153 },
+      { id: 'political', name: 'Political', icon: Users, count: 10 },
+      { id: 'social', name: 'Social', icon: MessageSquare, count: 27 },
+      { id: 'professional', name: 'Professional', icon: Building2, count: 99 },
+      { id: 'cultural', name: 'Cultural', icon: Globe, count: 120 },
+      { id: 'other', name: 'Other', icon: Globe, count: 236 },
     ],
   },
   {
     title: 'Risk Level',
     items: [
-      { id: 'high-risk', name: 'High Risk', icon: AlertTriangle, count: 7, color: 'text-red-600' },
-      { id: 'medium-risk', name: 'Medium Risk', icon: Shield, count: 13, color: 'text-orange-600' },
-      { id: 'low-risk', name: 'Low Risk', icon: Shield, count: 80, color: 'text-green-600' },
+      { id: 'high-risk', name: 'High Risk', icon: AlertTriangle, count: 18, color: 'text-red-600' },
+      { id: 'medium-risk', name: 'Medium Risk', icon: Shield, count: 26, color: 'text-orange-600' },
+      { id: 'low-risk', name: 'Low Risk', icon: Shield, count: 601, color: 'text-green-600' },
     ],
   },
   {
@@ -53,16 +55,29 @@ const filterCategories = [
   {
     title: 'Platform',
     items: [
-      { id: 'facebook', name: 'Facebook', icon: Globe, count: 100 },
-      { id: 'instagram', name: 'Instagram', icon: Globe, count: 47 },
-      { id: 'twitter', name: 'Twitter', icon: Globe, count: 33 },
-      { id: 'youtube', name: 'YouTube', icon: Globe, count: 21 },
+      { id: 'facebook', name: 'Facebook', icon: Globe, count: 608 },
+      { id: 'instagram', name: 'Instagram', icon: Globe, count: 94 },
+      { id: 'twitter', name: 'Twitter', icon: Globe, count: 119 },
+      { id: 'youtube', name: 'YouTube', icon: Globe, count: 14 },
     ],
   },
   {
     title: 'Sheets',
     items: [
-      { id: 'hindu-organizations', name: 'Hindu Organizations', icon: Building2, count: 102 },
+      { id: 'right-hindu-groups', name: 'Right Hindu Groups', icon: Building2, count: 100 },
+      { id: 'right-hindu-persons', name: 'Right Hindu Persons', icon: Users, count: 38 },
+      { id: 'right-wing-muslim-groups', name: 'Right Wing Muslim Groups', icon: Building2, count: 10 },
+      { id: 'human-rights', name: 'Human Rights', icon: Shield, count: 18 },
+      { id: 'all-farmers-org-karnataka', name: 'ALL Farmers ORG Karnataka', icon: Building2, count: 87 },
+      { id: 'trade-unions', name: 'Trade Unions', icon: Users, count: 12 },
+      { id: 'rrp', name: 'RRP', icon: Building2, count: 53 },
+      { id: 'students-org', name: 'Students ORG', icon: Users, count: 6 },
+      { id: 'christians-activist', name: 'Christians Activist', icon: Users, count: 4 },
+      { id: 'kannadda', name: 'Kannadda', icon: Building2, count: 120 },
+      { id: 'woman', name: 'Woman', icon: Users, count: 1 },
+      { id: 'mixed', name: 'Mixed', icon: Globe, count: 160 },
+      { id: 'mixed-2', name: 'Mixed 2', icon: Globe, count: 31 },
+      { id: 'political', name: 'Political', icon: Building2, count: 5 },
     ],
   },
   {
@@ -138,7 +153,7 @@ export function GroupsSidebar({ onFilterChange, activeFilter, onViewTypeChange, 
                       <span className="truncate">{item.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      {item.color && (
+                      {'color' in item && item.color && (
                         <div className={`w-2 h-2 rounded-full ${item.color.replace('text-', 'bg-')}`} />
                       )}
                       <Badge 
@@ -165,19 +180,19 @@ export function GroupsSidebar({ onFilterChange, activeFilter, onViewTypeChange, 
           <CardContent className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Total Groups</span>
-              <span className="font-medium">100</span>
+              <span className="font-medium">645</span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">High Risk</span>
-              <span className="font-medium text-red-600">7</span>
+              <span className="font-medium text-red-600">18</span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Monitored</span>
-              <span className="font-medium text-blue-600">25</span>
+              <span className="font-medium text-blue-600">18</span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Total Members</span>
-              <span className="font-medium">2.1M</span>
+              <span className="font-medium">1.4M</span>
             </div>
           </CardContent>
         </Card>

@@ -67,17 +67,10 @@ export function PerformanceMonitor() {
     return () => clearTimeout(timeout)
   }, [])
 
-  // Toggle visibility with Ctrl+Shift+P
+  // Keyboard shortcuts have been disabled
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && e.key === 'P') {
-        e.preventDefault()
-        setIsVisible(prev => !prev)
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    // No keyboard shortcuts are active
+    return () => {}
   }, [])
 
   if (!metrics || !isVisible) return null

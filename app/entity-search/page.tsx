@@ -717,15 +717,48 @@ export default function EntitySearchPage() {
     const query = searchQuery || originalQuery
     if (!query) return
 
-    // Remove the failed result
-    setResults(prev => prev.filter(r => !(r.type === optionId && r.error)))
+    // Find the index of the failed result
+    const resultIndex = results.findIndex(r => r.type === optionId && r.error)
+    if (resultIndex === -1) return
+
+    // Set loading state for the specific result
+    setResults(prev => {
+      const newResults = [...prev]
+      newResults[resultIndex] = {
+        ...newResults[resultIndex],
+        loading: true,
+        error: undefined
+      }
+      return newResults
+    })
     
     // Retry the search
     try {
       const result = await makeApiCall(optionId, query, station, firNumber)
-      setResults(prev => [result, ...prev])
+      
+      // Update the specific result
+      setResults(prev => {
+        const newResults = [...prev]
+        newResults[resultIndex] = result
+        return newResults
+      })
     } catch (error) {
       console.error('Retry failed:', error)
+      
+      // Update with error state
+      const errorResult: SearchResult = {
+        type: optionId,
+        title: searchOptions.find(opt => opt.id === optionId)?.label || optionId,
+        found: false,
+        data: null,
+        error: 'Retry failed. Please try again.'
+      }
+      
+      setResults(prev => {
+        const newResults = [...prev]
+        newResults[resultIndex] = errorResult
+        return newResults
+      })
     }
   }
 
@@ -787,7 +820,7 @@ export default function EntitySearchPage() {
       const isVehicleQuery = /^[A-Z]{2}[\s-]?\d{2}[\s-]?[A-Z]{1,2}[\s-]?\d{4}$/i.test(query)
 
       switch (optionId) {
-        // IronVeil Entity Search APIs
+        // IronVeil Entity Search APIs - Real API calls
         case 'ironveil-username':
           result = await api.osint.ironveilSearch({ 
             entityType: 'username', 
@@ -843,12 +876,12 @@ export default function EntitySearchPage() {
             firNo 
           })
           break
-        // TrueCaller
+        // TrueCaller - Real API call
         case 'truecaller':
           if (!isMobileQuery) throw new Error('Invalid mobile number format')
           result = await api.osint.truecallerSearch({ mobile_number: query, org, firNo })
           break
-        // Mobile Search APIs
+        // Mobile Search APIs - Real API calls
         case 'mobile-to-name':
           if (!isMobileQuery) throw new Error('Invalid mobile number format')
           result = await api.osint.mobileToName({ mobile_number: query, org, firNo })
@@ -869,7 +902,7 @@ export default function EntitySearchPage() {
           if (!isMobileQuery) throw new Error('Invalid mobile number format')
           result = await api.osint.mobileToPAN({ mobile_number: query, org, firNo })
           break
-        // Vehicle Search APIs
+        // Vehicle Search APIs - Real API calls
         case 'vehicle-rc':
           if (!isVehicleQuery) throw new Error('Invalid vehicle number format')
           result = await api.osint.rcDetails({ rc_number: query, org, firNo })
@@ -882,7 +915,7 @@ export default function EntitySearchPage() {
           if (!isVehicleQuery) throw new Error('Invalid vehicle number format')
           result = await checkPUCStatus(query, vehicleType)
           break
-        // Social Entity Analytics
+        // Social Entity Analytics - Real API calls
         case 'entity-analytics':
           result = await api.social.getEntityAnalytics({ 
             query,
@@ -977,14 +1010,45 @@ export default function EntitySearchPage() {
     
     setResults(initialResults)
 
-    // Make API calls
+    // Make individual API calls - render results as they come in
     try {
-      const searchPromises = selectedOptions.map(optionId =>
-        makeApiCall(optionId, searchQuery, station, firNumber)
-      )
+      // Create individual promises for each search option
+      const searchPromises = selectedOptions.map(async (optionId, index) => {
+        try {
+          const result = await makeApiCall(optionId, searchQuery, station, firNumber)
+          
+          // Update the specific result in the state
+          setResults(prev => {
+            const newResults = [...prev]
+            newResults[index] = result
+            return newResults
+          })
+          
+          return result
+        } catch (error) {
+          console.error(`Search error for ${optionId}:`, error)
+          
+          // Update with error state
+          const errorResult: SearchResult = {
+            type: optionId,
+            title: searchOptions.find(opt => opt.id === optionId)?.label || optionId,
+            found: false,
+            data: null,
+            error: 'An error occurred during search. Please try again.'
+          }
+          
+          setResults(prev => {
+            const newResults = [...prev]
+            newResults[index] = errorResult
+            return newResults
+          })
+          
+          return errorResult
+        }
+      })
 
-      const searchResults = await Promise.all(searchPromises)
-      setResults(searchResults)
+      // Wait for all promises to complete (but results are already rendered)
+      await Promise.allSettled(searchPromises)
     } catch (error) {
       console.error('Search error:', error)
       setFormError('An error occurred during search. Please try again.')
@@ -1092,29 +1156,31 @@ export default function EntitySearchPage() {
                   <Label htmlFor="search-query">
                     {searchType === 'general' ? 'Search Query *' : searchType === 'mobile' ? 'Mobile Number *' : 'Vehicle Number *'}
                   </Label>
-                  <SanitizedSearchInput
-                    id="search-query"
-                    placeholder={searchType === 'general' 
-                      ? "Enter username, email, domain, name, or hash"
-                      : searchType === 'mobile' 
-                      ? "Enter 10-digit mobile number (e.g., 9876543210)" 
-                      : "Enter vehicle number (e.g., KA01AB1234 or KA-01-AB-1234)"}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    disabled={isSearching}
-                    onSanitizedChange={(sanitized, isValid, error) => {
-                      if (isValid) {
-                        setSearchQuery(sanitized)
-                      }
-                    }}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {searchType === 'general'
-                      ? 'Enter username, email, domain, name, or password hash for IronVeil search'
-                      : searchType === 'mobile' 
-                      ? 'Enter a valid 10-digit Indian mobile number' 
-                      : 'Vehicle number format is flexible (7-13 characters)'}
-                  </p>
+                  <div className="space-y-1">
+                    <SanitizedSearchInput
+                      id="search-query"
+                      placeholder={searchType === 'general' 
+                        ? "Enter username, email, domain, name, or hash"
+                        : searchType === 'mobile' 
+                        ? "Enter 10-digit mobile number (e.g., 9876543210)" 
+                        : "Enter vehicle number (e.g., KA01AB1234 or KA-01-AB-1234)"}
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      disabled={isSearching}
+                      onSanitizedChange={(sanitized, isValid, error) => {
+                        if (isValid) {
+                          setSearchQuery(sanitized)
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground mt-4">
+                      {searchType === 'general'
+                        ? 'Enter username, email, domain, name, or password hash for IronVeil search'
+                        : searchType === 'mobile' 
+                        ? 'Enter a valid 10-digit Indian mobile number' 
+                        : 'Vehicle number format is flexible (7-13 characters)'}
+                    </p>
+                  </div>
                 </div>
 
                 {/* Vehicle Type Selection - Only show for vehicle search and when PUC checking is selected */}

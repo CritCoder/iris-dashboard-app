@@ -31,15 +31,8 @@ export function KeyboardShortcutsDialog() {
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === '?' && !e.metaKey && !e.ctrlKey) {
-        e.preventDefault()
-        setOpen(true)
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    // Keyboard shortcuts have been disabled
+    return () => {}
   }, [])
 
   return (

@@ -30,7 +30,6 @@ export default function robots(): MetadataRoute.Robots {
           '/profiles/',
           '/analysis-history/',
           '/breached-data/',
-          '/communities-groups/',
           '/groups/',
           '/osint-tools/',
           '/social-inbox/',

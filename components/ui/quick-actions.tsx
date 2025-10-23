@@ -73,7 +73,7 @@ export function QuickActions() {
             <MapPin className="mr-2 h-4 w-4" />
             <span>Locations</span>
           </CommandItem>
-          <CommandItem onSelect={() => navigate('/communities-groups')}>
+          <CommandItem onSelect={() => navigate('/groups')}>
             <Building2 className="mr-2 h-4 w-4" />
             <span>Groups</span>
           </CommandItem>

@@ -102,8 +102,8 @@ export const navConfig: NavSection[] = [
         id: 'groups',
         label: 'Groups',
         icon: Building2,
-        href: '/communities-groups',
-        description: 'Communities and groups'
+        href: '/groups',
+        description: 'Social groups and communities'
       }
     ]
   },

@@ -1,0 +1,302 @@
+{
+  "summary": {
+    "totalSheets": 14,
+    "totalGroups": 410,
+    "bySheet": {
+      "Right Hindu Groups": 100,
+      "Right Hindu Persons": 39,
+      "Trade Unions": 9,
+      "RRP": 0,
+      "Students ORG": 6,
+      "Christians Activist": 0,
+      "Kannadda ": 1,
+      "Woman": 0,
+      "Political": 0,
+      "Right Wing Muslim Groups": 10,
+      "Human Rights": 18,
+      "ALL Farmers ORG Karnataka": 89,
+      "Mixed": 107,
+      "Mixed 2": 31
+    },
+    "byType": {
+      "religious": 149,
+      "professional": 98,
+      "social": 25,
+      "cultural": 1,
+      "other": 132,
+      "political": 5
+    },
+    "byRiskLevel": {
+      "low": 367,
+      "medium": 26,
+      "high": 17
+    },
+    "errors": []
+  },
+  "sampleGroups": [
+    {
+      "id": "right_hindu_groups_1",
+      "name": "ಕಠೋರ ಹಿಂದುತ್ವವಾದಿಗಳು ಹಿಂದೂ ಜಾಗೃತಿ ಸೇನೆ",
+      "type": "religious",
+      "members": 3543,
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "primaryPlatform": "facebook",
+      "description": "ಕಠೋರ ಹಿಂದುತ್ವವಾದಿಗಳು ಹಿಂದೂ ಜಾಗೃತಿ ಸೇನೆ - 3,543 members",
+      "riskLevel": "low",
+      "category": "Right Hindu Groups",
+      "sheet": "Right Hindu Groups",
+      "location": "Yalahanka",
+      "contactInfo": {
+        "phone": 1919381307652,
+        "email": "rg065726@gmail.com"
+      },
+      "socialMedia": {
+        "facebook": "https://www.facebook.com/groups/481726962295310/?ref=share",
+        "instagram": "https://www.instagram.com/hindhu_jagruthii_sene/"
+      },
+      "influencers": "https://www.facebook.com/groups/481726962295310/user/100046617692917/Shivbhagath Bhagathsingh\nಕೆಂಪೇಗೌಡ ಒಕ್ಕಲಿಗರ ಮೀಸಲಾತಿ ಹೋರಾಟ ಸಮಿತಿ(Admin)\nVinaygowda",
+      "status": "active",
+      "monitoringEnabled": false,
+      "createdAt": "2025-10-23T18:41:00.863Z",
+      "updatedAt": "2025-10-23T18:41:00.863Z"
+    },
+    {
+      "id": "right_hindu_groups_2",
+      "name": "ಅಖಿಲಾ ಕರ್ನಾಟಕ ಹಿಂದೂ ಸಾಮ್ರಾಟ್ ಶಿವಾಜಿ ಸೇನಾ",
+      "type": "religious",
+      "members": 100,
+      "platforms": [
+        "facebook"
+      ],
+      "primaryPlatform": "facebook",
+      "description": "ಅಖಿಲಾ ಕರ್ನಾಟಕ ಹಿಂದೂ ಸಾಮ್ರಾಟ್ ಶಿವಾಜಿ ಸೇನಾ - 100 members",
+      "riskLevel": "low",
+      "category": "Right Hindu Groups",
+      "sheet": "Right Hindu Groups",
+      "location": "Yadagiri",
+      "contactInfo": {
+        "phone": 9449477555
+      },
+      "socialMedia": {
+        "facebook": "https://www.facebook.com/groups/503501497182282/members"
+      },
+      "influencers": "Parashuram Segurkar (Admin1)\nAmbaresh Hindu (Admin2)",
+      "status": "active",
+      "monitoringEnabled": false,
+      "createdAt": "2025-10-23T18:41:00.863Z",
+      "updatedAt": "2025-10-23T18:41:00.863Z"
+    },
+    {
+      "id": "right_hindu_groups_3",
+      "name": "ಬಲಿಷ್ಠ ಹಿಂದೂರಾಷ್ಟ್ರ",
+      "type": "religious",
+      "members": 19905,
+      "platforms": [
+        "facebook"
+      ],
+      "primaryPlatform": "facebook",
+      "description": "ಬಲಿಷ್ಠ ಹಿಂದೂರಾಷ್ಟ್ರ - 19,905 members",
+      "riskLevel": "low",
+      "category": "Right Hindu Groups",
+      "sheet": "Right Hindu Groups",
+      "location": "Bengaluru",
+      "contactInfo": null,
+      "socialMedia": {
+        "facebook": "https://www.facebook.com/groups/126680487914954/members"
+      },
+      "influencers": "Sharath Chandra",
+      "status": "active",
+      "monitoringEnabled": false,
+      "createdAt": "2025-10-23T18:41:00.863Z",
+      "updatedAt": "2025-10-23T18:41:00.863Z"
+    },
+    {
+      "id": "right_hindu_groups_4",
+      "name": "ಕೇಸರಿ ಭಾರತ",
+      "type": "religious",
+      "members": 83906,
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "primaryPlatform": "facebook",
+      "description": "ಕೇಸರಿ ಭಾರತ - 83,906 members",
+      "riskLevel": "medium",
+      "category": "Right Hindu Groups",
+      "sheet": "Right Hindu Groups",
+      "location": "Bengaluru",
+      "contactInfo": null,
+      "socialMedia": {
+        "facebook": "https://www.facebook.com/groups/1578203138931997/members",
+        "instagram": "https://www.instagram.com/kesari_bharata/"
+      },
+      "influencers": "Raghavendra Reddy",
+      "status": "active",
+      "monitoringEnabled": false,
+      "createdAt": "2025-10-23T18:41:00.863Z",
+      "updatedAt": "2025-10-23T18:41:00.863Z"
+    },
+    {
+      "id": "right_hindu_groups_5",
+      "name": "ಹಿಂದೂ ರಾಷ್ಟ್ರ",
+      "type": "religious",
+      "members": 4567,
+      "platforms": [
+        "facebook",
+        "twitter",
+        "instagram"
+      ],
+      "primaryPlatform": "facebook",
+      "description": "ಹಿಂದೂ ರಾಷ್ಟ್ರ - 4,567 members",
+      "riskLevel": "low",
+      "category": "Right Hindu Groups",
+      "sheet": "Right Hindu Groups",
+      "location": "Vijaypura",
+      "contactInfo": null,
+      "socialMedia": {
+        "facebook": "https://www.facebook.com/groups/3522107411173491/members",
+        "twitter": "https://twitter.com/GlobalHindu",
+        "instagram": "https://www.instagram.com/hindu._.rastra/"
+      },
+      "influencers": "Mantesh M",
+      "status": "active",
+      "monitoringEnabled": false,
+      "createdAt": "2025-10-23T18:41:00.863Z",
+      "updatedAt": "2025-10-23T18:41:00.863Z"
+    },
+    {
+      "id": "right_hindu_groups_6",
+      "name": "ಜಯತು ಸನಾತನ ರಾಷ್ಟ್ರ",
+      "type": "religious",
+      "members": 1767,
+      "platforms": [
+        "facebook"
+      ],
+      "primaryPlatform": "facebook",
+      "description": "ಜಯತು ಸನಾತನ ರಾಷ್ಟ್ರ - 1,767 members",
+      "riskLevel": "low",
+      "category": "Right Hindu Groups",
+      "sheet": "Right Hindu Groups",
+      "location": "Bengaluru",
+      "contactInfo": {
+        "email": "anilsv106@gmail.com"
+      },
+      "socialMedia": {
+        "facebook": "https://www.facebook.com/groups/1217587278614217/?ref=share"
+      },
+      "influencers": "Anil Kumar SV (Admin1)\nAnil Sv Gowda's(Admin2)",
+      "status": "active",
+      "monitoringEnabled": false,
+      "createdAt": "2025-10-23T18:41:00.863Z",
+      "updatedAt": "2025-10-23T18:41:00.863Z"
+    },
+    {
+      "id": "right_hindu_groups_7",
+      "name": "ಹಿಂದೂ ಹುಲಿ ಬಸನಗೌಡ ಪಾಟೀಲ ಅಭಿಮಾನಿಗಳು",
+      "type": "religious",
+      "members": 9141,
+      "platforms": [
+        "facebook"
+      ],
+      "primaryPlatform": "facebook",
+      "description": "ಹಿಂದೂ ಹುಲಿ ಬಸನಗೌಡ ಪಾಟೀಲ ಅಭಿಮಾನಿಗಳು - 9,141 members",
+      "riskLevel": "low",
+      "category": "Right Hindu Groups",
+      "sheet": "Right Hindu Groups",
+      "location": "Jamakandi",
+      "contactInfo": null,
+      "socialMedia": {
+        "facebook": "https://www.facebook.com/groups/1592825204237356/members"
+      },
+      "influencers": "Hanamant Yamagar(Admin1)",
+      "status": "active",
+      "monitoringEnabled": false,
+      "createdAt": "2025-10-23T18:41:00.863Z",
+      "updatedAt": "2025-10-23T18:41:00.863Z"
+    },
+    {
+      "id": "right_hindu_groups_8",
+      "name": "ಯೋಗಿಜೀ ಫ್ಯಾನ್ಸ್ ಕರ್ನಾಟಕ",
+      "type": "religious",
+      "members": 30892,
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "primaryPlatform": "facebook",
+      "description": "ಯೋಗಿಜೀ ಫ್ಯಾನ್ಸ್ ಕರ್ನಾಟಕ - 30,892 members",
+      "riskLevel": "low",
+      "category": "Right Hindu Groups",
+      "sheet": "Right Hindu Groups",
+      "location": "Bengaluru",
+      "contactInfo": null,
+      "socialMedia": {
+        "facebook": "https://www.facebook.com/groups/410546292958298",
+        "instagram": "https://www.instagram.com/yogiji_ni_moj/"
+      },
+      "influencers": "Mahesh Vikram Hegde                  and India with Modi(Admin)",
+      "status": "active",
+      "monitoringEnabled": false,
+      "createdAt": "2025-10-23T18:41:00.863Z",
+      "updatedAt": "2025-10-23T18:41:00.863Z"
+    },
+    {
+      "id": "right_hindu_groups_9",
+      "name": "ನರೇಂದ್ರ ಮೋದಿ ಅಭಿಮಾನಿಗಳು ಕರ್ನಾಟಕ.",
+      "type": "religious",
+      "members": 99106,
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "primaryPlatform": "facebook",
+      "description": "ನರೇಂದ್ರ ಮೋದಿ ಅಭಿಮಾನಿಗಳು ಕರ್ನಾಟಕ. - 99,106 members",
+      "riskLevel": "medium",
+      "category": "Right Hindu Groups",
+      "sheet": "Right Hindu Groups",
+      "location": "Mangalore",
+      "contactInfo": null,
+      "socialMedia": {
+        "facebook": "https://www.facebook.com/groups/2114701415476878/members",
+        "instagram": "https://www.instagram.com/narendra_modi_fns_club_karnatk/"
+      },
+      "influencers": "Modi fans for karunadu",
+      "status": "active",
+      "monitoringEnabled": false,
+      "createdAt": "2025-10-23T18:41:00.863Z",
+      "updatedAt": "2025-10-23T18:41:00.863Z"
+    },
+    {
+      "id": "right_hindu_groups_10",
+      "name": "Postcard ಕನ್ನಡ",
+      "type": "religious",
+      "members": 156388,
+      "platforms": [
+        "facebook",
+        "twitter",
+        "instagram"
+      ],
+      "primaryPlatform": "facebook",
+      "description": "Postcard ಕನ್ನಡ - 156,388 members",
+      "riskLevel": "medium",
+      "category": "Right Hindu Groups",
+      "sheet": "Right Hindu Groups",
+      "location": "Mangalore",
+      "contactInfo": null,
+      "socialMedia": {
+        "facebook": "https://www.facebook.com/PostcardKanada",
+        "twitter": "https://twitter.com/PostcardKannada",
+        "instagram": "https://www.instagram.com/postcard_news/"
+      },
+      "influencers": "Mahesh Vikram Hegade",
+      "status": "active",
+      "monitoringEnabled": false,
+      "createdAt": "2025-10-23T18:41:00.863Z",
+      "updatedAt": "2025-10-23T18:41:00.863Z"
+    }
+  ],
+  "totalGroups": 410
+}
