@@ -31,7 +31,8 @@
 import { useState, useMemo, Suspense, useEffect, useCallback, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { PageLayout } from '@/components/layout/page-layout'
-import { Loader2, MessageCircle } from 'lucide-react'
+import { Loader2, MessageCircle, ChevronDown } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { PostCard } from '@/components/posts/post-card'
 import { ExploreSidebar } from '@/components/explore/explore-sidebar'
@@ -44,7 +45,8 @@ import {
   EmptyTitle,
 } from '@/components/ui/empty'
 import Masonry from 'react-masonry-css'
-import { useSocialPosts } from '@/hooks/use-api' // Using the hook for data fetching
+import { useInfiniteSocialPosts } from '@/hooks/use-infinite-social-posts'
+import { useInfiniteScroll } from '@/hooks/use-infinite-scroll'
 import { convertToPostCardFormat } from '@/lib/utils'
 
 function SocialFeedContent() {
@@ -68,15 +70,26 @@ function SocialFeedContent() {
 
   const {
     data: postsData,
-    pagination,
     loading,
+    loadingMore,
     error,
+    hasNextPage,
+    loadMore,
     refetch,
-  } = useSocialPosts(apiParams)
+    total
+  } = useInfiniteSocialPosts(apiParams)
 
   const posts = useMemo(() => {
     return postsData ? postsData.map(convertToPostCardFormat) : []
   }, [postsData])
+
+  // Infinite scroll setup
+  const { loadMoreRef } = useInfiniteScroll({
+    hasNextPage,
+    loading: loadingMore,
+    onLoadMore: loadMore,
+    threshold: 300
+  })
 
   return (
     <PageLayout>
@@ -90,7 +103,7 @@ function SocialFeedContent() {
           <div className="h-16 flex-shrink-0 flex items-center px-4 border-b border-border bg-background">
             <h1 className="text-xl font-bold text-foreground">Social Feed</h1>
             <span className="text-sm text-muted-foreground ml-auto">
-              {posts.length} posts
+              {posts.length} of {total} posts
             </span>
           </div>
 
@@ -126,7 +139,41 @@ function SocialFeedContent() {
                       </div>
                     ))}
                   </Masonry>
-                  {/* TODO: Add infinite scroll */}
+                  
+                  {/* Infinite scroll trigger */}
+                  {hasNextPage && (
+                    <div ref={loadMoreRef} className="flex flex-col items-center gap-4 py-8">
+                      {loadingMore ? (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Loading more posts...</span>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="text-muted-foreground text-sm">
+                            Scroll to load more posts
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={loadMore}
+                            className="gap-2"
+                          >
+                            <ChevronDown className="w-4 h-4" />
+                            Load More Posts
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  
+                  {!hasNextPage && posts.length > 0 && (
+                    <div className="flex justify-center py-8">
+                      <div className="text-muted-foreground text-sm">
+                        You've reached the end! No more posts to load.
+                      </div>
+                    </div>
+                  )}
                 </>
               ) : (
                 <Empty>
