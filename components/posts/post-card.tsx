@@ -1,10 +1,11 @@
 'use client'
 
 import { Heart, MessageCircle, Share2, Eye, ExternalLink } from 'lucide-react'
-import { FacebookIcon, InstagramIcon, TwitterIcon } from '@/components/ui/platform-icons'
+import { FacebookIcon, InstagramIcon, TwitterIcon, NewsIcon } from '@/components/ui/platform-icons'
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card'
 import { TableRow, TableCell } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import { useGlobalPostModal } from '@/contexts/global-post-modal-context'
 import Link from 'next/link'
 
 export interface Post {
@@ -31,10 +32,14 @@ interface PostCardProps {
 }
 
 export function PostCard({ post, view = 'grid', href, campaignId }: PostCardProps) {
+  const { openPost } = useGlobalPostModal()
+  
   const platformIcons = {
     facebook: FacebookIcon,
     twitter: TwitterIcon,
-    instagram: InstagramIcon
+    instagram: InstagramIcon,
+    'india-news': NewsIcon,
+    news: NewsIcon
   }
 
   // Generate the correct href based on campaignId
@@ -42,6 +47,12 @@ export function PostCard({ post, view = 'grid', href, campaignId }: PostCardProp
     if (href) return href
     if (campaignId) return `/analysis-history/${campaignId}/post/${post.id}`
     return `/social-feed/post/${post.id}` // fallback for backward compatibility
+  }
+
+  // Handle post click - use modal for all posts
+  const handlePostClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    openPost(post.id, campaignId)
   }
 
   const sentimentColors = {
@@ -55,7 +66,10 @@ export function PostCard({ post, view = 'grid', href, campaignId }: PostCardProp
 
   if (view === 'table') {
     return (
-      <TableRow className="hover:bg-accent/20">
+      <TableRow 
+        className="hover:bg-accent/20 cursor-pointer"
+        onClick={handlePostClick}
+      >
         <TableCell>
           <div className="flex items-center gap-2">
             <IconComponent className="w-4 h-4 text-muted-foreground" />
@@ -103,7 +117,7 @@ export function PostCard({ post, view = 'grid', href, campaignId }: PostCardProp
 
   if (view === 'list') {
     return (
-      <Link href={getPostHref()}>
+      <Link href={getPostHref()} onClick={handlePostClick}>
         <Card className={`hover:bg-accent/20 transition-colors cursor-pointer ${sentimentColors[post.sentiment]} p-4 h-20`}>
           <div className="flex items-center gap-4 h-full">
             <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -150,7 +164,7 @@ export function PostCard({ post, view = 'grid', href, campaignId }: PostCardProp
 
   // Default grid view - Twitter-style tweet card
   return (
-    <Link href={getPostHref()}>
+    <Link href={getPostHref()} onClick={handlePostClick}>
       <Card className={`hover:bg-accent/5 transition-all duration-200 cursor-pointer border-border/40 hover:border-border/60 hover:shadow-sm bg-card/50 backdrop-blur-sm h-64 flex flex-col`}>
         <div className="p-4 flex flex-col h-full">
           {/* Tweet Header - Avatar, Name, Handle */}

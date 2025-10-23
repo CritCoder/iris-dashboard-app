@@ -122,34 +122,43 @@ select {
 
 @layer base {
   :root {
-    /* Light theme tokens */
+    /* Light theme tokens - Improved contrast */
     --background: 0 0% 100%;
-    --foreground: 0 0% 10%;
+    --foreground: 0 0% 3.9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 12%;
+    --card-foreground: 0 0% 3.9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 12%;
+    --popover-foreground: 0 0% 3.9%;
 
     --primary: 221 83% 53%;
-    --primary-foreground: 0 0% 100%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 0 0% 94%;
-    --secondary-foreground: 0 0% 15%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
 
-    --muted: 0 0% 94%;
-    --muted-foreground: 0 0% 35%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
 
-    --accent: 0 0% 94%;
-    --accent-foreground: 0 0% 15%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
-    --ring: 240 6% 25%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 221 83% 53%;
+
+    /* Light mode specific improvements */
+    --light-text-primary: 0 0% 3.9%;
+    --light-text-secondary: 0 0% 45.1%;
+    --light-text-tertiary: 0 0% 65%;
+    --light-bg-subtle: 0 0% 98%;
+    --light-bg-muted: 0 0% 96.1%;
+    --light-border-subtle: 0 0% 89.8%;
+    --light-border-strong: 0 0% 80%;
 
     --radius: 0.5rem; /* 8px base radius */
     
@@ -649,6 +658,196 @@ input[id="radio-poi"]:checked ~ .glider {
     }
   100% {
     opacity: 1;
+    }
+  }
+}
+
+/* Light mode contrast improvements */
+@layer utilities {
+  .light-mode-text-primary {
+    color: hsl(var(--light-text-primary));
+  }
+  
+  .light-mode-text-secondary {
+    color: hsl(var(--light-text-secondary));
+  }
+  
+  .light-mode-text-tertiary {
+    color: hsl(var(--light-text-tertiary));
+  }
+  
+  .light-mode-bg-subtle {
+    background-color: hsl(var(--light-bg-subtle));
+  }
+  
+  .light-mode-bg-muted {
+    background-color: hsl(var(--light-bg-muted));
+  }
+  
+  .light-mode-border-subtle {
+    border-color: hsl(var(--light-border-subtle));
+  }
+  
+  .light-mode-border-strong {
+    border-color: hsl(var(--light-border-strong));
+  }
+
+  /* High contrast text for light mode */
+  .light-mode-high-contrast {
+    color: hsl(0 0% 0%);
+  }
+  
+  .light-mode-high-contrast-bg {
+    background-color: hsl(0 0% 100%);
+  }
+
+  /* Improved button contrast in light mode */
+  .light-mode-button-primary {
+    background-color: hsl(221 83% 53%);
+    color: hsl(0 0% 98%);
+    border: 1px solid hsl(221 83% 53%);
+  }
+  
+  .light-mode-button-primary:hover {
+    background-color: hsl(221 83% 45%);
+    border-color: hsl(221 83% 45%);
+  }
+  
+  .light-mode-button-secondary {
+    background-color: hsl(0 0% 96.1%);
+    color: hsl(0 0% 9%);
+    border: 1px solid hsl(0 0% 89.8%);
+  }
+  
+  .light-mode-button-secondary:hover {
+    background-color: hsl(0 0% 90%);
+    border-color: hsl(0 0% 80%);
+  }
+
+  /* Force high contrast in light mode for critical elements */
+  .light-mode-force-contrast {
+    color: hsl(0 0% 0%) !important;
+  }
+  
+  .light-mode-force-contrast-bg {
+    background-color: hsl(0 0% 100%) !important;
+  }
+
+  /* Improved card contrast in light mode */
+  .light-mode-card {
+    background-color: hsl(0 0% 100%);
+    border: 1px solid hsl(0 0% 89.8%);
+    color: hsl(0 0% 3.9%);
+  }
+  
+  .light-mode-card:hover {
+    border-color: hsl(0 0% 80%);
+  }
+
+  /* Better sidebar contrast in light mode */
+  .light-mode-sidebar {
+    background-color: hsl(0 0% 98%);
+    border-color: hsl(0 0% 89.8%);
+  }
+  
+  .light-mode-sidebar-item {
+    color: hsl(0 0% 3.9%);
+  }
+  
+  .light-mode-sidebar-item:hover {
+    background-color: hsl(0 0% 96.1%);
+    color: hsl(0 0% 0%);
+  }
+  
+  .light-mode-sidebar-item.active {
+    background-color: hsl(221 83% 53%);
+    color: hsl(0 0% 98%);
+  }
+
+  /* Force white text on active/primary elements */
+  .bg-primary, .bg-primary-foreground {
+    color: hsl(0 0% 98%) !important;
+  }
+  
+  .bg-primary * {
+    color: hsl(0 0% 98%) !important;
+  }
+  
+  .text-primary-foreground {
+    color: hsl(0 0% 98%) !important;
+  }
+  
+  /* Force white text on active buttons and pagination */
+  button.bg-primary, 
+  button.bg-primary-foreground,
+  .bg-primary button,
+  .bg-primary-foreground button {
+    color: hsl(0 0% 98%) !important;
+  }
+  
+  /* Force white text on active pagination */
+  .pagination .active,
+  .pagination .current,
+  button[aria-current="page"] {
+    color: hsl(0 0% 98%) !important;
+  }
+
+  /* Automatic light mode improvements */
+  :root:not(.dark) {
+    /* Force better contrast for text elements */
+    h1, h2, h3, h4, h5, h6 {
+      color: hsl(0 0% 3.9%) !important;
+    }
+    
+    p:not(.text-primary-foreground):not(.text-secondary-foreground):not(.text-accent-foreground), 
+    span:not(.text-primary-foreground):not(.text-secondary-foreground):not(.text-accent-foreground), 
+    div:not(.text-primary-foreground):not(.text-secondary-foreground):not(.text-accent-foreground), 
+    li:not(.text-primary-foreground):not(.text-secondary-foreground):not(.text-accent-foreground) {
+      color: hsl(0 0% 3.9%);
+    }
+    
+    /* Improve button contrast - but not for active/primary buttons */
+    button:not(.dark):not(.bg-primary):not(.bg-secondary):not(.bg-accent) {
+      color: hsl(0 0% 3.9%);
+    }
+    
+    /* Improve input contrast */
+    input, textarea, select {
+      background-color: hsl(0 0% 100%);
+      border-color: hsl(0 0% 89.8%);
+      color: hsl(0 0% 3.9%);
+    }
+    
+    input:focus, textarea:focus, select:focus {
+      border-color: hsl(221 83% 53%);
+      box-shadow: 0 0 0 2px hsl(221 83% 53% / 0.2);
+    }
+    
+    /* Improve card contrast */
+    .card, [class*="card"] {
+      background-color: hsl(0 0% 100%);
+      border-color: hsl(0 0% 89.8%);
+      color: hsl(0 0% 3.9%);
+    }
+    
+    /* Improve sidebar contrast */
+    .sidebar, [class*="sidebar"] {
+      background-color: hsl(0 0% 98%);
+      border-color: hsl(0 0% 89.8%);
+    }
+    
+    /* Improve table contrast */
+    table, th, td {
+      background-color: hsl(0 0% 100%);
+      color: hsl(0 0% 3.9%);
+      border-color: hsl(0 0% 89.8%);
+    }
+    
+    /* Improve badge contrast */
+    .badge, [class*="badge"] {
+      background-color: hsl(0 0% 96.1%);
+      color: hsl(0 0% 9%);
+      border-color: hsl(0 0% 89.8%);
     }
   }
 }

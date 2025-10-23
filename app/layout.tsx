@@ -3,11 +3,13 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/contexts/theme-context'
 import { AuthProvider } from '@/contexts/auth-context'
+import { GlobalPostModalProvider } from '@/contexts/global-post-modal-context'
 import { ToastProvider } from '@/components/ui/toast-provider'
 import { RouteProgress } from '@/components/layout/route-progress'
 import { PageTransition } from '@/components/layout/page-transition'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import { ClientLayout } from '@/components/layout/client-layout'
+import { GlobalPostModal } from '@/components/posts/global-post-modal'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -30,15 +32,18 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased bg-background text-foreground`}>
         <ThemeProvider>
           <AuthProvider>
-            <ProtectedRoute>
-              <ToastProvider />
-              <RouteProgress />
-              <ClientLayout>
-                <PageTransition className="flex-1 min-h-0 flex flex-col w-full">
-                  {children}
-                </PageTransition>
-              </ClientLayout>
-            </ProtectedRoute>
+            <GlobalPostModalProvider>
+              <ProtectedRoute>
+                <ToastProvider />
+                <RouteProgress />
+                <ClientLayout>
+                  <PageTransition className="flex-1 min-h-0 flex flex-col w-full">
+                    {children}
+                  </PageTransition>
+                </ClientLayout>
+                <GlobalPostModal />
+              </ProtectedRoute>
+            </GlobalPostModalProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

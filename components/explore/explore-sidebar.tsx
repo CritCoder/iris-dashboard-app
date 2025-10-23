@@ -121,7 +121,7 @@ export function ExploreSidebar({
                     }}
                   >
                     <div className="flex items-center">
-                      <Icon className={`mr-3 h-4 w-4 flex-shrink-0 ${active ? '' : 'text-muted-foreground'}`} />
+                      <Icon className={`mr-3 h-4 w-4 flex-shrink-0 ${active ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
                       <span>{item.name}</span>
                     </div>
                   </Link>

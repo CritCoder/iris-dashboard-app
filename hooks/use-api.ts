@@ -236,7 +236,9 @@ export function useSocialPosts(params?: any) {
     try {
       setLoading(true)
       setError(null)
+      console.log('🚀 Fetching social posts with params:', apiParams)
       const response = await api.social.getPosts(apiParams)
+      console.log('📊 Social posts API response:', response)
       if (response.success && response.data) {
         const responseData = response.data as any
         if (Array.isArray(responseData.data) && responseData.pagination) {

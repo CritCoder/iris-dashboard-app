@@ -2,7 +2,8 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { useAuth } from '@/contexts/auth-context'
 import { 
   Home, 
   Users, 
@@ -16,7 +17,8 @@ import {
   UsersRound,
   Inbox,
   Package,
-  DatabaseZap
+  DatabaseZap,
+  LogOut
 } from 'lucide-react'
 import { SimpleTooltip } from '@/components/ui/rich-tooltip'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
@@ -75,10 +77,20 @@ const navSections: NavSection[] = [
 
 export function IconSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
+  const { logout } = useAuth()
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/'
     return pathname.startsWith(href)
+  }
+
+  const handleLogout = () => {
+    // Show confirmation dialog
+    if (window.confirm('Are you sure you want to logout?')) {
+      // Use the AuthContext logout function for proper cleanup and redirect
+      logout()
+    }
   }
 
   return (
@@ -131,7 +143,9 @@ export function IconSidebar() {
                         </motion.div>
                       </Link>
                     </SimpleTooltip>
-                    <span className="text-[8px] text-muted-foreground/70 text-center leading-tight max-w-12">
+                    <span className={`text-[8px] text-center leading-tight max-w-12 ${
+                      active ? 'text-primary-foreground' : 'text-muted-foreground/70'
+                    }`}>
                       {item.label}
                     </span>
                   </div>
@@ -159,6 +173,17 @@ export function IconSidebar() {
           <div className="w-12 h-12 flex items-center justify-center">
             <ThemeToggle />
           </div>
+        </SimpleTooltip>
+
+        <SimpleTooltip content="Logout" side="right">
+          <motion.button
+            onClick={handleLogout}
+            className="w-12 h-12 rounded-xl flex items-center justify-center text-muted-foreground hover:bg-red-50 hover:text-red-600 hover:border-red-200 border border-transparent transition-all"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <LogOut className="w-5 h-5" strokeWidth={1.5} />
+          </motion.button>
         </SimpleTooltip>
       </div>
     </div>

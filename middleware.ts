@@ -14,18 +14,11 @@ const publicRoutes = [
   '/page-test',
   '/test-map', // For testing Google Maps
   '/test-osm', // For testing OpenStreetMap
-  '/social-feed', // Temporarily public for development
-  '/locations', // Temporarily public for development
-  '/profiles', // Temporarily public for development
-  '/analysis-history', // Temporarily public for development
-  '/communities-groups', // Temporarily public for development
-  '/', // Dashboard temporarily public for development
 ]
 
 // Define public route patterns that don't require authentication
 const publicRoutePatterns = [
-  /^\/social-feed\/post\/[^\/]+$/, // Social feed individual posts
-  /^\/analysis-history\/[^\/]+\/post\/[^\/]+$/, // Analysis history individual posts
+  // No public route patterns - all routes require authentication
 ]
 
 // Define static assets and Next.js internals to exclude from middleware
@@ -57,18 +50,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Check for authentication token
-  const token = request.cookies.get('auth_token')?.value
-
-  // If no token found, redirect to login
-  if (!token) {
-    const loginUrl = new URL('/login', request.url)
-    // Add the original URL as a redirect parameter so we can send them back after login
-    loginUrl.searchParams.set('redirect', pathname)
-    return NextResponse.redirect(loginUrl)
-  }
-
-  // Token exists, allow the request to continue
+  // Since we use localStorage for tokens (client-side), we can't check them in middleware
+  // The ProtectedRoute component will handle authentication on the client side
+  // For now, allow all requests to pass through and let client-side auth handle it
   return NextResponse.next()
 }
 

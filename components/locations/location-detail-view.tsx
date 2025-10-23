@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { api } from '@/lib/api'
 import Link from 'next/link'
+import { useGlobalPostModal } from '@/contexts/global-post-modal-context'
 import { AnimatedGrid, AnimatedCard } from '@/components/ui/animated'
 
 interface Location {
@@ -58,6 +59,7 @@ export function LocationDetailView({ location, onBack }: LocationDetailViewProps
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { openPost } = useGlobalPostModal()
   const [filter, setFilter] = useState<'latest' | 'positive' | 'negative'>('latest')
 
   useEffect(() => {
@@ -307,10 +309,10 @@ export function LocationDetailView({ location, onBack }: LocationDetailViewProps
 
               return (
                 <AnimatedCard key={post.id}>
-                  <Link href={`/analysis-history/1/post/${post.id}`}>
-                    <Card 
-                      className={`p-4 hover:bg-accent/5 transition-all cursor-pointer h-full flex flex-col ${getSentimentColor(sentiment)}`}
-                    >
+                  <Card 
+                    className={`p-4 hover:bg-accent/5 transition-all cursor-pointer h-full flex flex-col ${getSentimentColor(sentiment)}`}
+                    onClick={() => openPost(post.id, '1')}
+                  >
                       {/* Post Header */}
                       <div className="flex items-start gap-3 mb-3 flex-shrink-0">
                         <div className={`w-8 h-8 rounded-full ${getPlatformColor(post.platform)} flex items-center justify-center text-white text-xs font-semibold flex-shrink-0`}>
@@ -361,7 +363,6 @@ export function LocationDetailView({ location, onBack }: LocationDetailViewProps
                         )}
                       </div>
                     </Card>
-                  </Link>
                 </AnimatedCard>
               )
             })}

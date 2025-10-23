@@ -122,6 +122,50 @@ function CampaignDetailPage() {
   const campaignId = params.id as string
   const { data: campaigns, loading: campaignsLoading, error: campaignsError } = useCampaigns({ enabled: true })
 
+  // Check authentication status
+  const [authError, setAuthError] = useState<string | null>(null)
+  
+  const handleAuthError = () => {
+    // Clear all auth data
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      localStorage.removeItem('organization')
+    }
+    // Redirect to login
+    router.push('/login')
+  }
+  
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    if (!token) {
+      setAuthError('No authentication token found')
+      console.error('🔐 Authentication Error: No token found in localStorage')
+    } else {
+      // Check if token is expired (basic JWT check)
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]))
+        const now = Date.now() / 1000
+        if (payload.exp && payload.exp < now) {
+          setAuthError('Authentication token has expired')
+          console.error('🔐 Authentication Error: Token expired at', new Date(payload.exp * 1000))
+        } else {
+          setAuthError(null)
+          console.log('🔐 Authentication: Token is valid, expires at', new Date(payload.exp * 1000))
+          
+          // Check if token expires soon (within 5 minutes) and warn user
+          const fiveMinutesFromNow = (Date.now() / 1000) + (5 * 60)
+          if (payload.exp && payload.exp < fiveMinutesFromNow) {
+            console.warn('🔐 Authentication Warning: Token expires soon at', new Date(payload.exp * 1000))
+          }
+        }
+      } catch (err) {
+        setAuthError('Invalid authentication token format')
+        console.error('🔐 Authentication Error: Invalid token format', err)
+      }
+    }
+  }, [])
+
   // URL parameter management
   const updateUrlParams = (newParams: Record<string, string | undefined>, clearFilters: boolean = false) => {
     const current = new URLSearchParams(searchParams.toString())
@@ -419,6 +463,21 @@ function CampaignDetailPage() {
 
   // Convert API posts to PostCard format
   const allPosts = postsData && Array.isArray(postsData) ? postsData.map(convertToPostCardFormat) : []
+  
+  // Debug logging
+  console.log('🔍 Analysis History Debug:', {
+    campaignId,
+    campaigns,
+    currentCampaign,
+    postsData,
+    postsLoading,
+    postsError,
+    allPosts: allPosts.length,
+    apiParams,
+    // Authentication debug
+    token: typeof window !== 'undefined' ? localStorage.getItem('token') : 'server-side',
+    user: typeof window !== 'undefined' ? localStorage.getItem('user') : 'server-side'
+  })
 
   // Convert API profiles to ProfileCard format
   const allProfiles = profilesData && Array.isArray(profilesData) ? profilesData.map(convertToProfileCardFormat) : []
@@ -1002,7 +1061,7 @@ function CampaignDetailPage() {
                               key={subIndex}
                               className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors border ${
                                 active 
-                                  ? 'bg-white text-black' 
+                                  ? 'bg-primary text-primary-foreground' 
                                   : 'text-muted-foreground hover:text-foreground hover:bg-accent/50 border-transparent hover:border-border/50'
                               }`}
                               onClick={(e) => {
@@ -1010,7 +1069,7 @@ function CampaignDetailPage() {
                                 handleMenuItemSelect(subItem, activeMenuItem.id)
                               }}
                             >
-                              <SubIcon className={`w-3 h-3 flex-shrink-0 ${active ? 'text-black' : 'text-gray-400'}`} />
+                              <SubIcon className={`w-3 h-3 flex-shrink-0 ${active ? 'text-primary-foreground' : 'text-gray-400'}`} />
                               <span className="text-left truncate">{subItem.name}</span>
                             </button>
                           )
@@ -1027,7 +1086,33 @@ function CampaignDetailPage() {
           <div className="flex-1 flex flex-col overflow-hidden min-h-0">
             <div className="flex-1 overflow-y-auto p-6 min-h-0">
               {activeAnalysisTab === 'social-feed' && (
-                selectedNavItem ? (
+                authError ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="text-center text-muted-foreground">
+                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
+                        <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                      </div>
+                      <p className="text-lg font-semibold text-red-600 mb-2">Authentication Error</p>
+                      <p className="text-sm text-red-500 mb-4">{authError}</p>
+                      <div className="space-y-2">
+                        <button 
+                          onClick={() => window.location.reload()} 
+                          className="px-4 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+                        >
+                          Refresh Page
+                        </button>
+                        <button 
+                          onClick={handleAuthError} 
+                          className="px-4 py-2 bg-gray-600 text-white text-sm rounded hover:bg-gray-700 transition-colors ml-2"
+                        >
+                          Clear Auth & Login
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : selectedNavItem ? (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
@@ -1060,6 +1145,27 @@ function CampaignDetailPage() {
                     <div className="text-center text-muted-foreground">
                       <p className="text-sm text-red-500 mb-2">Failed to load posts</p>
                       <p className="text-xs">{postsError}</p>
+                      {postsError.includes('Authentication') || postsError.includes('401') ? (
+                        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <p className="text-sm text-red-700 font-medium">Authentication Issue Detected</p>
+                          <p className="text-xs text-red-600 mt-1">
+                            Your session may have expired. Please try refreshing the page or logging in again.
+                          </p>
+                          <button 
+                            onClick={() => window.location.reload()} 
+                            className="mt-2 px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                          >
+                            Refresh Page
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : allPosts.length === 0 ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="text-center text-muted-foreground">
+                      <p className="text-sm mb-2">No posts found for this campaign</p>
+                      <p className="text-xs">Try adjusting your filters or check if the campaign has any associated posts.</p>
                     </div>
                   </div>
                 ) : (

@@ -129,15 +129,15 @@ export function ExploreSidebar({ totalPosts = 0, searchQuery, setSearchQuery }: 
                     href={href}
                     key={item.name}
                     className={`flex items-center justify-between px-3 py-1.5 text-xs font-medium rounded-md group transition-all duration-200 ${
-                      active ? 'bg-white text-black' : 'text-gray-300 hover:bg-gray-800/60 hover:text-white'
+                      active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                     }`}
                   >
                     <div className="flex items-center">
-                      <Icon className={`mr-3 h-4 w-4 flex-shrink-0 ${active ? 'text-black' : 'text-gray-400 group-hover:text-gray-300'}`} />
+                      <Icon className={`mr-3 h-4 w-4 flex-shrink-0 ${active ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-accent-foreground'}`} />
                       <span>{item.name}</span>
                     </div>
                     {showCount && (
-                      <span className={`text-xs font-bold terminal-text ${active ? 'text-black' : 'text-cyan-400'}`}>
+                      <span className={`text-xs font-bold terminal-text ${active ? 'text-primary-foreground' : 'text-cyan-400'}`}>
                         {totalPosts}
                       </span>
                     )}

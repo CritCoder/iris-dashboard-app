@@ -47,6 +47,7 @@ import {
 import Masonry from 'react-masonry-css'
 import { useInfiniteSocialPosts } from '@/hooks/use-infinite-social-posts'
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll'
+import { useScrollRestoration } from '@/hooks/use-scroll-restoration'
 import { convertToPostCardFormat } from '@/lib/utils'
 
 function SocialFeedContent() {
@@ -54,6 +55,10 @@ function SocialFeedContent() {
   const searchParams = useSearchParams()
 
   const handleFilterChange = (params: Record<string, string>) => {
+    // Clear scroll position when filters change
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('scroll_social-feed')
+    }
     const newParams = new URLSearchParams(params)
     router.push(`/social-feed?${newParams.toString()}`)
   }
@@ -79,6 +84,9 @@ function SocialFeedContent() {
     total
   } = useInfiniteSocialPosts(apiParams)
 
+  // Debug total count
+  console.log('📱 Social Feed - Total posts:', total, 'Posts data length:', postsData?.length, 'Loading:', loading, 'Error:', error)
+
   const posts = useMemo(() => {
     return postsData ? postsData.map(convertToPostCardFormat) : []
   }, [postsData])
@@ -90,6 +98,24 @@ function SocialFeedContent() {
     onLoadMore: loadMore,
     threshold: 300
   })
+
+  // Scroll restoration setup
+  const scrollContainerRef = useScrollRestoration('social-feed')
+
+  // Handle scroll restoration after posts are loaded (for infinite scroll)
+  useEffect(() => {
+    if (posts.length > 0 && scrollContainerRef.current) {
+      // Small delay to ensure DOM is updated
+      const timer = setTimeout(() => {
+        const savedPosition = sessionStorage.getItem('scroll_social-feed')
+        if (savedPosition && scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTop = parseInt(savedPosition, 10)
+        }
+      }, 100)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [posts.length])
 
   return (
     <PageLayout>
@@ -103,11 +129,12 @@ function SocialFeedContent() {
           <div className="h-16 flex-shrink-0 flex items-center px-4 border-b border-border bg-background">
             <h1 className="text-xl font-bold text-foreground">Social Feed</h1>
             <span className="text-sm text-muted-foreground ml-auto">
-              {posts.length} of {total} posts
+              {posts.length} of {total || '?'} posts
+              {error && <span className="text-red-500 ml-2">(API Error)</span>}
             </span>
           </div>
 
-          <div className="flex-1 overflow-y-auto">
+          <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
             <div className="p-2 sm:p-3">
               {loading && posts.length === 0 ? (
                 <SocialFeedSkeleton />
@@ -118,7 +145,19 @@ function SocialFeedContent() {
                       <MessageCircle className="w-12 h-12 text-muted-foreground" />
                     </EmptyMedia>
                     <EmptyTitle>Error Loading Posts</EmptyTitle>
-                    <EmptyDescription>{error}</EmptyDescription>
+                    <EmptyDescription>
+                      {error.includes('Authentication') ? 
+                        'Authentication failed. Please login again.' : 
+                        error
+                      }
+                    </EmptyDescription>
+                    {error.includes('Authentication') && (
+                      <div className="mt-4">
+                        <Button onClick={() => window.location.href = '/login'}>
+                          Go to Login
+                        </Button>
+                      </div>
+                    )}
                   </EmptyHeader>
                 </Empty>
               ) : posts.length > 0 ? (
@@ -192,6 +231,8 @@ function SocialFeedContent() {
           </div>
         </div>
       </div>
+      
+      
       <style jsx global>{`
         .my-masonry-grid {
           display: -webkit-box;
