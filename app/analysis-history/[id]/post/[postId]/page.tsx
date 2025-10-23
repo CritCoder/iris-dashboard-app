@@ -62,7 +62,7 @@ export default function PostAnalysisPage() {
         console.log('📊 POST API RESPONSE:', response)
         
         if (response.success && response.data) {
-          const post = response.data
+          const post = response.data as any
           
           // Transform API response to match our interface
           const transformedPost: PostData = {

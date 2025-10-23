@@ -27,13 +27,21 @@ interface PostCardProps {
   post: Post
   view?: 'grid' | 'list' | 'table'
   href?: string
+  campaignId?: string
 }
 
-export function PostCard({ post, view = 'grid', href }: PostCardProps) {
+export function PostCard({ post, view = 'grid', href, campaignId }: PostCardProps) {
   const platformIcons = {
     facebook: FacebookIcon,
     twitter: TwitterIcon,
     instagram: InstagramIcon
+  }
+
+  // Generate the correct href based on campaignId
+  const getPostHref = () => {
+    if (href) return href
+    if (campaignId) return `/analysis-history/${campaignId}/post/${post.id}`
+    return `/social-feed/post/${post.id}` // fallback for backward compatibility
   }
 
   const sentimentColors = {
@@ -81,7 +89,7 @@ export function PostCard({ post, view = 'grid', href }: PostCardProps) {
           </div>
         </TableCell>
         <TableCell>
-          <Link href={href || `/social-feed/post/${post.id}`}>
+          <Link href={getPostHref()}>
             <button className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors">
               <Eye className="w-3 h-3" />
               <span>View</span>
@@ -95,7 +103,7 @@ export function PostCard({ post, view = 'grid', href }: PostCardProps) {
 
   if (view === 'list') {
     return (
-      <Link href={href || `/social-feed/post/${post.id}`}>
+      <Link href={getPostHref()}>
         <Card className={`hover:bg-accent/20 transition-colors cursor-pointer ${sentimentColors[post.sentiment]} p-4 h-20`}>
           <div className="flex items-center gap-4 h-full">
             <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -142,7 +150,7 @@ export function PostCard({ post, view = 'grid', href }: PostCardProps) {
 
   // Default grid view - Twitter-style tweet card
   return (
-    <Link href={href || `/social-feed/post/${post.id}`}>
+    <Link href={getPostHref()}>
       <Card className={`hover:bg-accent/5 transition-all duration-200 cursor-pointer border-border/40 hover:border-border/60 hover:shadow-sm bg-card/50 backdrop-blur-sm h-64 flex flex-col`}>
         <div className="p-4 flex flex-col h-full">
           {/* Tweet Header - Avatar, Name, Handle */}

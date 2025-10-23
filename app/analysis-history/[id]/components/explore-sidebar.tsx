@@ -20,7 +20,6 @@ import {
   Facebook,
   Instagram,
   Youtube,
-  Reddit,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Search } from 'lucide-react'
@@ -53,7 +52,7 @@ const menuItems = [
       { name: 'Facebook', icon: Facebook, params: { platform: 'facebook' } },
       { name: 'Instagram', icon: Instagram, params: { platform: 'instagram' } },
       { name: 'YouTube', icon: Youtube, params: { platform: 'youtube' } },
-      { name: 'Reddit', icon: Reddit, params: { platform: 'reddit' } },
+      { name: 'Reddit', icon: Globe, params: { platform: 'reddit' } },
     ],
   },
   {
@@ -66,10 +65,16 @@ const menuItems = [
   },
 ]
 
-export function ExploreSidebar({ totalPosts = 0, searchQuery, setSearchQuery }) {
+interface ExploreSidebarProps {
+  totalPosts?: number;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+}
+
+export function ExploreSidebar({ totalPosts = 0, searchQuery, setSearchQuery }: ExploreSidebarProps) {
   const searchParams = useSearchParams()
 
-  const isActive = (params) => {
+  const isActive = (params: Record<string, string>) => {
     const currentParams = new URLSearchParams(searchParams.toString())
     const itemParams = new URLSearchParams(params)
     currentParams.sort()

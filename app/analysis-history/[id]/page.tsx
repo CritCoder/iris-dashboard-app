@@ -473,7 +473,8 @@ function CampaignDetailPage() {
 
   // Handle entity click
   const handleEntityBack = () => {
-    setSelectedEntity(null)
+    // TODO: implement entity selection state
+    console.log('Entity back clicked')
   }
 
   // Handle location click

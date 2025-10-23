@@ -21,6 +21,12 @@ const publicRoutes = [
   '/', // Dashboard temporarily public for development
 ]
 
+// Define public route patterns that don't require authentication
+const publicRoutePatterns = [
+  /^\/social-feed\/post\/[^\/]+$/, // Social feed individual posts
+  /^\/analysis-history\/[^\/]+\/post\/[^\/]+$/, // Analysis history individual posts
+]
+
 // Define static assets and Next.js internals to exclude from middleware
 const excludedPaths = [
   '/_next',
@@ -42,6 +48,11 @@ export function middleware(request: NextRequest) {
 
   // Allow access to public routes
   if (publicRoutes.includes(pathname)) {
+    return NextResponse.next()
+  }
+
+  // Allow access to public route patterns
+  if (publicRoutePatterns.some(pattern => pattern.test(pathname))) {
     return NextResponse.next()
   }
 

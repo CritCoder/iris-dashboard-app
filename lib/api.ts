@@ -1,7 +1,7 @@
 // API Service Layer for OSINT Turbo Dashboard
 // Base configuration and utility functions
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://irisnet.wiredleap.com'
 
 // Types for API responses
 export interface ApiResponse<T = any> {
