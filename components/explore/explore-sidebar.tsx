@@ -17,7 +17,7 @@ import {
   Frown,
   MinusCircle,
 } from 'lucide-react'
-import { FaTwitter, FaFacebook, FaInstagram, FaYoutube, FaReddit } from 'react-icons/fa'
+import { FaTwitter, FaFacebook, FaInstagram, FaYoutube } from 'react-icons/fa'
 import { Input } from '@/components/ui/input'
 import { Search } from 'lucide-react'
 
@@ -49,7 +49,6 @@ const menuItems = [
       { name: 'Facebook', icon: FaFacebook, params: { platform: 'facebook' } },
       { name: 'Instagram', icon: FaInstagram, params: { platform: 'instagram' } },
       { name: 'YouTube', icon: FaYoutube, params: { platform: 'youtube' } },
-      { name: 'Reddit', icon: FaReddit, params: { platform: 'reddit' } },
     ],
   },
   {
@@ -65,9 +64,11 @@ const menuItems = [
 export function ExploreSidebar({
   onFilterChange,
   activeParams,
+  filterCounts,
 }: {
   onFilterChange: (params: Record<string, string>) => void
   activeParams: URLSearchParams
+  filterCounts?: Record<string, number>
 }) {
   const pathname = usePathname()
 
@@ -120,9 +121,20 @@ export function ExploreSidebar({
                       onFilterChange(item.params)
                     }}
                   >
-                    <div className="flex items-center">
-                      <Icon className={`mr-3 h-4 w-4 flex-shrink-0 ${active ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
-                      <span>{item.name}</span>
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center">
+                        <Icon className={`mr-3 h-4 w-4 flex-shrink-0 ${active ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
+                        <span>{item.name}</span>
+                      </div>
+                      {filterCounts && filterCounts[item.name] !== undefined && (
+                        <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                          active 
+                            ? 'bg-primary-foreground/20 text-primary-foreground' 
+                            : 'bg-muted text-muted-foreground'
+                        }`}>
+                          {filterCounts[item.name]}
+                        </span>
+                      )}
                     </div>
                   </Link>
                 )

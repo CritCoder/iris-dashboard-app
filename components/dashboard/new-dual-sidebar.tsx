@@ -87,7 +87,7 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
     { id: 'profiles', label: 'Profiles', icon: Users, href: '/profiles', submenu: undefined, description: 'who is talking' },
     { id: 'entities', label: 'Entities', icon: Hash, href: '/entities', submenu: undefined, description: 'what is being talked about' },
     { id: 'locations', label: 'Locations', icon: MapPin, href: '/locations', submenu: undefined, description: 'where things are happening' },
-    { id: 'groups', label: 'Groups', icon: Building2, href: '/communities-groups', submenu: 'groups', description: 'communities and groups' },
+    { id: 'groups', label: 'Groups', icon: Building2, href: '/groups', submenu: 'groups', description: 'communities and groups' },
   ], [])
 
 
@@ -96,33 +96,33 @@ function DualSidebarContent({ activeNavItem, setActiveNavItem, expandedSubMenu, 
     {
       category: 'PRIMARY',
       items: [
-        { id: 'all-communities-groups', label: 'All Communities & Groups', icon: Building2, href: '/communities-groups' },
-        { id: 'communities-only', label: 'Communities Only', icon: Building2, href: '/communities-groups?view=communities' },
-        { id: 'groups-only', label: 'Groups Only', icon: Users, href: '/communities-groups?view=groups' },
+        { id: 'all-groups', label: 'All Groups', icon: Building2, href: '/groups' },
+        { id: 'monitored-groups', label: 'Monitored Groups', icon: Eye, href: '/groups?view=monitored' },
+        { id: 'suspicious-groups', label: 'Suspicious Groups', icon: AlertTriangle, href: '/groups?view=suspicious' },
       ]
     },
     {
       category: 'COMMUNITY TYPE',
       items: [
-        { id: 'political', label: 'Political Communities', icon: Building2, href: '/communities-groups?type=political' },
-        { id: 'social', label: 'Social Communities', icon: Users, href: '/communities-groups?type=social' },
-        { id: 'professional', label: 'Professional Groups', icon: Building2, href: '/communities-groups?type=professional' },
+        { id: 'religious', label: 'Religious Groups', icon: Building2, href: '/groups?type=religious' },
+        { id: 'political', label: 'Political Groups', icon: Users, href: '/groups?type=political' },
+        { id: 'social', label: 'Social Groups', icon: Users, href: '/groups?type=social' },
       ]
     },
     {
       category: 'GROUP TYPE',
       items: [
-        { id: 'public-groups', label: 'Public Groups', icon: Globe, href: '/communities-groups?type=public' },
-        { id: 'private-groups', label: 'Private Groups', icon: Shield, href: '/communities-groups?type=private' },
-        { id: 'closed-groups', label: 'Closed Groups', icon: Building2, href: '/communities-groups?type=closed' },
+        { id: 'high-risk', label: 'High Risk Groups', icon: AlertTriangle, href: '/groups?risk=high' },
+        { id: 'medium-risk', label: 'Medium Risk Groups', icon: Shield, href: '/groups?risk=medium' },
+        { id: 'low-risk', label: 'Low Risk Groups', icon: Shield, href: '/groups?risk=low' },
       ]
     },
     {
       category: 'ACTIVITY & SIZE',
       items: [
-        { id: 'high-activity', label: 'High Activity', icon: TrendingUp, href: '/communities-groups?activity=high' },
-        { id: 'large-groups', label: 'Large Groups (10k+)', icon: TrendingUp, href: '/communities-groups?size=large' },
-        { id: 'active', label: 'Recently Active', icon: BarChart3, href: '/communities-groups?status=active' },
+        { id: 'monitored', label: 'Monitored Groups', icon: Eye, href: '/groups?monitored=true' },
+        { id: 'large-groups', label: 'Large Groups (10k+)', icon: TrendingUp, href: '/groups?size=large' },
+        { id: 'facebook', label: 'Facebook Groups', icon: Globe, href: '/groups?platform=facebook' },
       ]
     }
   ], [])

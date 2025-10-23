@@ -264,7 +264,7 @@ export default function LoginPage() {
                   placeholder="you@example.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full bg-white/5 backdrop-blur-sm border border-white/10 text-white placeholder:text-zinc-400 h-12 text-base font-medium px-4 rounded-lg transition-all duration-200 focus:outline-none focus:border-white/30 focus:bg-white/10"
+                  className="w-full bg-white/5 backdrop-blur-sm border border-white/10 text-black placeholder:text-zinc-400 h-12 text-base font-medium px-4 rounded-lg transition-all duration-200 focus:outline-none focus:border-white/30 focus:bg-white/10"
                 />
               </div>
               <div className={`space-y-2 absolute w-full transition-all duration-300 ease-in-out ${
@@ -306,7 +306,7 @@ export default function LoginPage() {
                       const value = e.target.value.replace(/\D/g, '').slice(0, 10)
                       setFormData({ ...formData, mobile: value })
                     }}
-                    className="bg-white/5 backdrop-blur-sm border border-white/10 text-white placeholder:text-zinc-400 flex-1 h-12 text-base font-medium px-4 rounded-lg transition-all duration-200 focus:outline-none focus:border-white/30 focus:bg-white/10"
+                    className="bg-white/5 backdrop-blur-sm border border-white/10 text-black placeholder:text-zinc-400 flex-1 h-12 text-base font-medium px-4 rounded-lg transition-all duration-200 focus:outline-none focus:border-white/30 focus:bg-white/10"
                     maxLength={10}
                   />
                   </div>
@@ -362,19 +362,19 @@ export default function LoginPage() {
         </div>
 
         {/* Footer */}
-        <div className="mt-8 text-center text-xs text-zinc-600">
+        <div className="mt-8 text-center text-xs text-zinc-300">
           <p>By continuing, you agree to our</p>
           <div className="flex items-center justify-center gap-2 mt-1">
             <button 
               onClick={() => setShowTerms(true)}
-              className="hover:text-zinc-400 underline"
+              className="hover:text-zinc-200 underline"
             >
               Terms of Service
             </button>
             <span>·</span>
             <button 
               onClick={() => setShowPrivacy(true)}
-              className="hover:text-zinc-400 underline"
+              className="hover:text-zinc-200 underline"
             >
               Privacy Policy
             </button>

@@ -1,7 +1,7 @@
 'use client'
 
 import { Users, MessageCircle, Eye, ExternalLink, MapPin, Globe, CheckCircle } from 'lucide-react'
-import { FacebookIcon, InstagramIcon, TwitterIcon, YouTubeIcon, TikTokIcon, RedditIcon } from '@/components/ui/platform-icons'
+import { FacebookIcon, InstagramIcon, TwitterIcon, YouTubeIcon, TikTokIcon } from '@/components/ui/platform-icons'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { TableRow, TableCell } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -13,7 +13,7 @@ export interface Profile {
   id: string
   username: string
   displayName?: string | null
-  platform: 'facebook' | 'twitter' | 'instagram' | 'youtube' | 'reddit' | 'tiktok'
+  platform: 'facebook' | 'twitter' | 'instagram' | 'youtube' | 'tiktok'
   profileImageUrl?: string
   bio?: string | null
   followerCount?: number | null
@@ -40,7 +40,6 @@ export function ProfileCard({ profile, view = 'grid', campaignId = '1', onClick 
     twitter: TwitterIcon,
     instagram: InstagramIcon,
     youtube: YouTubeIcon,
-    reddit: RedditIcon,
     tiktok: TikTokIcon
   }
 

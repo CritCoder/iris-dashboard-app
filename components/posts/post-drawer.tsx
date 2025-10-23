@@ -21,7 +21,7 @@ interface PostDrawerProps {
 interface PostData {
   id: string
   author: string
-  platform: 'facebook' | 'twitter' | 'instagram' | 'youtube' | 'reddit' | 'news' | 'india-news'
+  platform: 'facebook' | 'twitter' | 'instagram' | 'youtube' | 'news' | 'india-news'
   content: string
   timestamp: string
   likes: number

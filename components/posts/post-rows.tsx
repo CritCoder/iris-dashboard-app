@@ -35,18 +35,16 @@ function PostRow({ title, description, posts, campaignId = '1', onSeeAll }: Post
         </Button>
       </div>
 
-      <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
-        <div className="flex gap-4 pb-2 min-w-max">
-          {posts.slice(0, 6).map((post) => (
-            <div key={post.id} className="w-80 flex-shrink-0">
-              <PostCard
-                post={post}
-                view="grid"
-                campaignId={campaignId}
-              />
-            </div>
-          ))}
-        </div>
+      <div className="space-y-4">
+        {posts.slice(0, 10).map((post) => (
+          <div key={post.id} className="w-full">
+            <PostCard
+              post={post}
+              view="grid"
+              campaignId={campaignId}
+            />
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -59,105 +57,121 @@ interface PostRowsProps {
 }
 
 export function PostRows({ posts, campaignId = '1', onCategorySelect }: PostRowsProps) {
-  // Filter posts by different criteria
-  const latestPosts = posts.filter(() => true).slice(0, 6)
+  // Filter posts by different criteria for different columns
+  const latestPosts = posts.filter(() => true).slice(0, 20)
 
   const highImpactPosts = posts.filter(post =>
     post.likes > 100 || post.shares > 50
-  )
+  ).slice(0, 20)
 
   const viralNegativePosts = posts.filter(post =>
     post.sentiment === 'negative' && post.shares > 10
-  )
+  ).slice(0, 20)
 
   const trendingDiscussions = posts.filter(post =>
     post.comments > 10
-  ).sort((a, b) => b.comments - a.comments)
+  ).sort((a, b) => b.comments - a.comments).slice(0, 20)
 
   const positivePosts = posts.filter(post =>
     post.sentiment === 'positive'
-  )
+  ).slice(0, 20)
 
   const twitterPosts = posts.filter(post =>
     post.platform === 'twitter'
-  )
+  ).slice(0, 20)
 
   const facebookPosts = posts.filter(post =>
     post.platform === 'facebook'
-  )
+  ).slice(0, 20)
 
   const instagramPosts = posts.filter(post =>
     post.platform === 'instagram'
-  )
+  ).slice(0, 20)
 
-  const sections = [
+  // Create column data for TweetDeck-style layout
+  const columns = [
     {
       title: "Latest Posts",
-      description: "Most recent social media activity",
+      description: "Most recent activity",
       posts: latestPosts,
+      bgClass: "bg-blue-500/5 border-blue-500/20"
     },
     {
       title: "High Impact",
-      description: "Posts with significant engagement",
+      description: "Significant engagement",
       posts: highImpactPosts,
+      bgClass: "bg-green-500/5 border-green-500/20"
     },
     {
-      title: "Viral Negative",
-      description: "Negative content gaining traction",
-      posts: viralNegativePosts,
-    },
-    {
-      title: "Trending Discussions",
-      description: "Posts sparking conversations",
+      title: "Trending",
+      description: "Active discussions",
       posts: trendingDiscussions,
-    },
-    {
-      title: "Positive Sentiment",
-      description: "Uplifting and positive content",
-      posts: positivePosts,
+      bgClass: "bg-orange-500/5 border-orange-500/20"
     },
     {
       title: "Twitter",
-      description: "Content from Twitter/X",
+      description: "Twitter content",
       posts: twitterPosts,
-    },
-    {
-      title: "Facebook",
-      description: "Content from Facebook",
-      posts: facebookPosts,
-    },
-    {
-      title: "Instagram",
-      description: "Content from Instagram",
-      posts: instagramPosts,
-    },
-  ].filter(section => section.posts.length > 0) // Only show sections with content
+      bgClass: "bg-purple-500/5 border-purple-500/20"
+    }
+  ].filter(column => column.posts.length > 0) // Only show columns with content
+
+  if (columns.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <div className="text-muted-foreground">
+          <p>No posts available</p>
+          <p className="text-sm mt-1">Try adjusting your filters</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-6">
-      {sections.map((section, index) => (
-        <PostRow
-          key={index}
-          title={section.title}
-          description={section.description}
-          posts={section.posts}
-          campaignId={campaignId}
-          onSeeAll={() => {
-            if (onCategorySelect) {
-              onCategorySelect(section.title)
-            }
-          }}
-        />
-      ))}
+    <div className="h-full overflow-hidden">
+      <div className="flex gap-6 h-full">
+        {columns.map((column, index) => (
+          <div
+            key={index}
+            className={`flex-1 min-w-0 flex flex-col h-full border rounded-lg ${column.bgClass}`}
+          >
+            {/* Column Header */}
+            <div className="flex-shrink-0 p-4 border-b border-border/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">{column.title}</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">{column.description}</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    if (onCategorySelect) {
+                      onCategorySelect(column.title)
+                    }
+                  }}
+                  className="text-primary hover:text-primary/80 gap-1 text-xs h-6 px-2"
+                >
+                  <ChevronRight className="w-3 h-3" />
+                </Button>
+              </div>
+            </div>
 
-      {sections.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-muted-foreground">
-            <p>No posts available</p>
-            <p className="text-sm mt-1">Try adjusting your filters</p>
+            {/* Column Content - Scrollable */}
+            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+              {column.posts.map((post) => (
+                <div key={post.id} className="w-full">
+                  <PostCard
+                    post={post}
+                    view="grid"
+                    campaignId={campaignId}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        ))}
+      </div>
     </div>
   )
 }

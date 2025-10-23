@@ -2,17 +2,17 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { api } from '@/lib/api'
 
 // Sample data generator for fallback
-const generateSamplePosts = (count: number = 20) => {
+const generateSamplePosts = (count: number = 20, offset: number = 0) => {
   const platforms = ['twitter', 'facebook', 'instagram', 'news']
   const sentiments = ['POSITIVE', 'NEUTRAL', 'NEGATIVE']
   const authors = ['john_doe', 'jane_smith', 'news_agency', 'tech_blog', 'user123']
   
   return Array.from({ length: count }, (_, i) => ({
-    id: `sample-${i + 1}`,
-    content: `Sample post content ${i + 1}. This is a ${sentiments[i % sentiments.length].toLowerCase()} post about current events.`,
+    id: `sample-${Date.now()}-${offset + i}`, // Unique ID with timestamp and offset
+    content: `Sample post content ${offset + i + 1}. This is a ${sentiments[i % sentiments.length].toLowerCase()} post about current events.`,
     author: authors[i % authors.length],
     platform: platforms[i % platforms.length],
-    timestamp: new Date(Date.now() - i * 3600000).toISOString(), // 1 hour apart
+    timestamp: new Date(Date.now() - (offset + i) * 3600000).toISOString(), // 1 hour apart
     likes: Math.floor(Math.random() * 1000),
     comments: Math.floor(Math.random() * 100),
     shares: Math.floor(Math.random() * 50),
@@ -79,6 +79,28 @@ export function useInfiniteSocialPosts(params: InfiniteSocialPostsParams = {}): 
       setLoading(true)
     }
     setError(null)
+
+    // Check if we have a token, if not use sample data immediately
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    if (!token) {
+      console.log('🔄 No token found, using sample data')
+      const offset = isLoadMore ? (page - 1) * limit : 0
+      const sampleData = generateSamplePosts(limit, offset)
+      
+      if (isLoadMore) {
+        setData(prevData => [...prevData, ...sampleData])
+      } else {
+        setData(sampleData)
+        setTotal(sampleData.length)
+      }
+      
+      // For sample data, allow infinite scroll
+      setHasNextPage(true)
+      setLoading(false)
+      setLoadingMore(false)
+      isLoadingRef.current = false
+      return
+    }
 
     try {
       const apiParams = {
@@ -151,7 +173,8 @@ export function useInfiniteSocialPosts(params: InfiniteSocialPostsParams = {}): 
       const isAuthError = err instanceof Error && (
         err.message.includes('Authentication') || 
         err.message.includes('401') || 
-        err.message.includes('Token expired')
+        err.message.includes('Token expired') ||
+        err.message.includes('Authentication failed')
       )
       
       if (isAuthError) {
@@ -163,7 +186,8 @@ export function useInfiniteSocialPosts(params: InfiniteSocialPostsParams = {}): 
       } else {
         // For non-auth errors, try to use sample data as fallback
         console.log('🔄 Using sample data as fallback due to API error')
-        const sampleData = generateSamplePosts(limit)
+        const offset = isLoadMore ? (page - 1) * limit : 0
+        const sampleData = generateSamplePosts(limit, offset)
         
         if (isLoadMore) {
           setData(prevData => [...prevData, ...sampleData])
@@ -172,6 +196,8 @@ export function useInfiniteSocialPosts(params: InfiniteSocialPostsParams = {}): 
           setTotal(sampleData.length)
         }
         
+        // Set hasNextPage to true for sample data to allow loading more
+        setHasNextPage(true)
         setError(null) // Clear error since we have fallback data
       }
     } finally {
@@ -182,9 +208,13 @@ export function useInfiniteSocialPosts(params: InfiniteSocialPostsParams = {}): 
   }, [enabled, limit, platform, sentiment, mediaType, timeRange, classification, search])
 
   const loadMore = useCallback(() => {
+    console.log('🔄 Load more called:', { loadingMore, hasNextPage, isLoadingRef: isLoadingRef.current, currentPage })
     if (!loadingMore && hasNextPage && !isLoadingRef.current) {
       const nextPage = currentPage + 1
+      console.log('📄 Loading page:', nextPage)
       fetchData(nextPage, true)
+    } else {
+      console.log('❌ Load more blocked:', { loadingMore, hasNextPage, isLoadingRef: isLoadingRef.current })
     }
   }, [loadingMore, hasNextPage, currentPage, fetchData])
 

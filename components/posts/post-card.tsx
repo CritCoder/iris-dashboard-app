@@ -1,7 +1,7 @@
 'use client'
 
 import { Heart, MessageCircle, Share2, Eye, ExternalLink } from 'lucide-react'
-import { FacebookIcon, InstagramIcon, TwitterIcon, NewsIcon } from '@/components/ui/platform-icons'
+import { FacebookIcon, InstagramIcon, TwitterIcon, NewsIcon, YouTubeIcon } from '@/components/ui/platform-icons'
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card'
 import { TableRow, TableCell } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -11,7 +11,7 @@ import Link from 'next/link'
 export interface Post {
   id: string
   author: string
-  platform: 'facebook' | 'twitter' | 'instagram' | 'youtube' | 'reddit' | 'news' | 'india-news'
+  platform: 'facebook' | 'twitter' | 'instagram' | 'youtube' | 'news' | 'india-news'
   content: string
   timestamp: string
   likes: number
@@ -38,6 +38,7 @@ export function PostCard({ post, view = 'grid', href, campaignId }: PostCardProp
     facebook: FacebookIcon,
     twitter: TwitterIcon,
     instagram: InstagramIcon,
+    youtube: YouTubeIcon,
     'india-news': NewsIcon,
     news: NewsIcon
   }

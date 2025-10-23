@@ -103,7 +103,7 @@ export default function ForgotPasswordVerifyOTPPage() {
                   value={digit}
                   onChange={(e) => handleChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
-                  className="w-12 h-14 text-center text-2xl font-bold bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg text-white focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all"
+                  className="w-12 h-14 text-center text-2xl font-bold bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg text-black focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all"
                 />
               ))}
             </div>
@@ -131,7 +131,7 @@ export default function ForgotPasswordVerifyOTPPage() {
           </form>
 
           <div className="mt-6 text-center">
-            <button className="text-sm text-zinc-500 hover:text-zinc-300 inline-flex items-center gap-2 group transition-colors">
+            <button className="text-sm text-zinc-300 hover:text-white inline-flex items-center gap-2 group transition-colors">
               Having trouble? Contact support
               <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
             </button>

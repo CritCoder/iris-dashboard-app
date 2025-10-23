@@ -57,7 +57,7 @@ const navSections: NavSection[] = [
       { id: 'profiles', icon: Users, href: '/profiles', label: 'Profiles' },
       { id: 'entities', icon: Package, href: '/entities', label: 'Entities' },
       { id: 'locations', icon: MapPin, href: '/locations', label: 'Locations' },
-      { id: 'groups', icon: UsersRound, href: '/communities-groups', label: 'Groups' },
+      { id: 'groups', icon: UsersRound, href: '/groups', label: 'Groups' },
     ],
   },
   {
@@ -144,7 +144,7 @@ export function IconSidebar() {
                       </Link>
                     </SimpleTooltip>
                     <span className={`text-[8px] text-center leading-tight max-w-12 ${
-                      active ? 'text-primary-foreground' : 'text-muted-foreground/70'
+                      active ? 'text-primary' : 'text-muted-foreground/70'
                     }`}>
                       {item.label}
                     </span>

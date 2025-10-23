@@ -48,6 +48,7 @@ import Masonry from 'react-masonry-css'
 import { useInfiniteSocialPosts } from '@/hooks/use-infinite-social-posts'
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll'
 import { useScrollRestoration } from '@/hooks/use-scroll-restoration'
+import { useFilterCounts } from '@/hooks/use-filter-counts'
 import { convertToPostCardFormat } from '@/lib/utils'
 
 function SocialFeedContent() {
@@ -84,12 +85,56 @@ function SocialFeedContent() {
     total
   } = useInfiniteSocialPosts(apiParams)
 
-  // Debug total count
-  console.log('📱 Social Feed - Total posts:', total, 'Posts data length:', postsData?.length, 'Loading:', loading, 'Error:', error)
+  // Get filter counts for sidebar
+  const { counts: filterCounts } = useFilterCounts()
 
   const posts = useMemo(() => {
     return postsData ? postsData.map(convertToPostCardFormat) : []
   }, [postsData])
+
+  // Debug total count
+  console.log('📱 Social Feed - Total posts:', total, 'Posts data length:', postsData?.length, 'Loading:', loading, 'Error:', error)
+  console.log('📱 Social Feed - Infinite scroll state:', { hasNextPage, loadingMore, postsLength: posts.length })
+
+  // Generate dynamic page title based on active filters
+  const getPageTitle = () => {
+    const platform = searchParams.get('platform')
+    const sentiment = searchParams.get('sentiment')
+    const timeRange = searchParams.get('timeRange')
+    const minLikes = searchParams.get('min_likesCount')
+    const minShares = searchParams.get('min_sharesCount')
+    const hasVideos = searchParams.get('hasVideos')
+    
+    let title = 'Social Feed'
+    
+    // Platform filters
+    if (platform === 'facebook') title = 'Facebook Social Feed'
+    else if (platform === 'twitter') title = 'Twitter Social Feed'
+    else if (platform === 'instagram') title = 'Instagram Social Feed'
+    else if (platform === 'youtube') title = 'YouTube Social Feed'
+    else if (platform === 'india-news') title = 'News Social Feed'
+    
+    // Sentiment filters
+    if (sentiment === 'POSITIVE') title = 'Positive Posts'
+    else if (sentiment === 'NEGATIVE') title = 'Negative Posts'
+    else if (sentiment === 'NEUTRAL') title = 'Neutral Posts'
+    
+    // Content type filters
+    if (hasVideos === 'true') title = 'Video Posts'
+    
+    // Engagement filters
+    if (minLikes === '1000' && minShares === '500') title = 'High Impact Posts'
+    else if (sentiment === 'NEGATIVE' && minShares === '1000') title = 'Viral Negative Posts'
+    else if (minLikes === '100' && searchParams.get('min_commentsCount') === '50') title = 'High Engagement Posts'
+    else if (searchParams.get('min_viewsCount') === '10000' && searchParams.get('max_likesCount') === '50') title = 'High Reach, Low Engagement Posts'
+    
+    // Time-based filters
+    if (timeRange === '24h' && searchParams.get('sortBy') === 'postedAt') title = 'Latest Posts'
+    else if (timeRange === '24h' && searchParams.get('sortBy') === 'commentsCount') title = 'Trending Discussions'
+    else if (timeRange === '6h' && searchParams.get('sortBy') === 'sharesCount') title = 'Viral Potential Posts'
+    
+    return title
+  }
 
   // Infinite scroll setup
   const { loadMoreRef } = useInfiniteScroll({
@@ -123,11 +168,12 @@ function SocialFeedContent() {
         <ExploreSidebar
           onFilterChange={handleFilterChange}
           activeParams={searchParams}
+          filterCounts={filterCounts}
         />
 
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="h-16 flex-shrink-0 flex items-center px-4 border-b border-border bg-background">
-            <h1 className="text-xl font-bold text-foreground">Social Feed</h1>
+            <h1 className="text-xl font-bold text-foreground">{getPageTitle()}</h1>
             <span className="text-sm text-muted-foreground ml-auto">
               {posts.length} of {total || '?'} posts
               {error && <span className="text-red-500 ml-2">(API Error)</span>}

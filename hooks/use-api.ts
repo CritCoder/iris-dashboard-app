@@ -1,7 +1,7 @@
 // React hooks for API integration
 import { useState, useEffect, useCallback } from 'react'
 import { api, ApiResponse, PaginatedResponse } from '@/lib/api'
-import { apiService } from '@/lib/apiService'
+import apiService from '@/lib/apiService'
 
 // Generic hook for API calls
 export function useApi<T>(
@@ -628,5 +628,57 @@ export function useCommunities(params?: any) {
 }
 
 export function useGroups(params?: any) {
-  return useApi(() => apiService.getAllGroups(params?.page || 1, params?.limit || 50) as any, [params])
+  const [data, setData] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [pagination, setPagination] = useState({
+    page: params?.page || 1,
+    limit: params?.limit || 50,
+    total: 0,
+    totalPages: 0,
+    hasNext: false,
+    hasPrev: false,
+  })
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const queryParams = new URLSearchParams()
+      if (params?.page) queryParams.set('page', params.page.toString())
+      if (params?.limit) queryParams.set('limit', params.limit.toString())
+      if (params?.search) queryParams.set('search', params.search)
+      if (params?.type) queryParams.set('type', params.type)
+      if (params?.riskLevel) queryParams.set('riskLevel', params.riskLevel)
+      if (params?.monitoringEnabled !== undefined) queryParams.set('monitoringEnabled', params.monitoringEnabled.toString())
+      if (params?.platform) queryParams.set('platform', params.platform)
+      if (params?.sheet) queryParams.set('sheet', params.sheet)
+
+      const response = await fetch(`/api/groups?${queryParams.toString()}`)
+      const result = await response.json()
+
+      if (result.success && result.data) {
+        setData(result.data)
+        if (result.pagination) {
+          setPagination(result.pagination)
+        }
+      } else {
+        setError(result.message || 'Failed to fetch groups')
+        setData([])
+      }
+    } catch (err) {
+      console.error('Failed to fetch groups:', err)
+      setError(err instanceof Error ? err.message : 'An error occurred')
+      setData([])
+    } finally {
+      setLoading(false)
+    }
+  }, [JSON.stringify(params)])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  return { data, pagination, loading, error, refetch: fetchData }
 }

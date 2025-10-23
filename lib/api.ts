@@ -44,7 +44,8 @@ export class AuthManager {
       // Always check localStorage as source of truth
       return localStorage.getItem('token') || this.token
     }
-    return this.token || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbWZncnUyN3YwMDZuejJ4dXM2c3FoNmE5Iiwib3JnYW5pemF0aW9uSWQiOiJjbWRpcmpxcjIwMDAwejI4cG8yZW9uMHlmIiwiaWF0IjoxNzYwNjk1NjE1LCJleHAiOjE3NjA3ODIwMTV9.DZLu5MV2y-yGcyS-pDoNT1IIsZZPnRH1mdVdlQAoy5s'
+    // Return null instead of expired token to trigger sample data fallback
+    return this.token
   }
 
   static setToken(token: string): void {

@@ -84,7 +84,6 @@ function SocialEntityCard({
   const getPlatformColor = (platform: string) => {
     switch (platform.toLowerCase()) {
       case 'facebook': return 'bg-blue-600'
-      case 'reddit': return 'bg-orange-600'
       case 'discord': return 'bg-indigo-600'
       case 'telegram': return 'bg-blue-500'
       case 'whatsapp': return 'bg-green-600'
@@ -282,7 +281,6 @@ export default function CommunitiesGroupsPage() {
         case 'high': params.activityLevel = 'high'; break
         case 'active': params.status = 'active'; break
         case 'facebook': params.platform = 'facebook'; break
-        case 'reddit': params.platform = 'reddit'; break
       }
     }
     return params

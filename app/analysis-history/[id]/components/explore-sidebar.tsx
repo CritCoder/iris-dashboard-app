@@ -52,7 +52,6 @@ const menuItems = [
       { name: 'Facebook', icon: Facebook, params: { platform: 'facebook' } },
       { name: 'Instagram', icon: Instagram, params: { platform: 'instagram' } },
       { name: 'YouTube', icon: Youtube, params: { platform: 'youtube' } },
-      { name: 'Reddit', icon: Globe, params: { platform: 'reddit' } },
     ],
   },
   {

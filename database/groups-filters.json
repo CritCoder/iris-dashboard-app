@@ -1,0 +1,64 @@
+{
+  "byType": {
+    "religious": 30,
+    "political": 19,
+    "other": 46,
+    "social": 5
+  },
+  "byRiskLevel": {
+    "high": 7,
+    "low": 80,
+    "medium": 13
+  },
+  "byCategory": {
+    "Hindu Organizations": 31,
+    "Other Groups": 60,
+    "Political Groups": 3,
+    "Youth Organizations": 5,
+    "Militant Groups": 1
+  },
+  "byPlatform": {
+    "facebook": 100,
+    "instagram": 47,
+    "twitter": 33,
+    "youtube": 21
+  },
+  "byLocation": {
+    "Yalahanka": 1,
+    "Yadagiri": 1,
+    "Bengaluru": 5,
+    "Vijaypura": 1,
+    "Jamakandi": 1,
+    "Mangalore": 3,
+    "NIL": 10,
+    "Sira": 1,
+    "Hunsuru": 1,
+    "Kumuta": 2,
+    "Madugiri": 1,
+    "Dakshin Kannada": 1,
+    "Putturu": 1,
+    "Manglore": 1,
+    "Vishwa Samvada Kendra (VSK)": 1,
+    "074832 04810": 3,
+    "074117 07900": 1,
+    "098765 43210": 1,
+    "097427 60477": 1,
+    "Hebbala": 1,
+    "Beltangadi": 2,
+    "Peradi": 1,
+    "Shilanere": 1,
+    "Bangalore": 2,
+    "Hassan": 1,
+    "North India": 1,
+    "Vidyarannypura Bangalore": 1,
+    "Vijay Nagar": 3,
+    "AP": 1,
+    "Hebbal Bangalore": 1,
+    "Karnataka": 1,
+    "Kamman halli": 1,
+    "elgavi": 1,
+    "Marikatti": 1,
+    "Dasarahalli": 1,
+    "#55": 1
+  }
+}

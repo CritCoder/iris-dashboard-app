@@ -11,7 +11,7 @@ import {
   BuildingOfficeIcon, ExclamationTriangleIcon, MagnifyingGlassIcon,
   FlagIcon, BuildingLibraryIcon, HomeIcon
 } from '@heroicons/react/24/outline'
-import { FaTwitter, FaFacebook, FaInstagram, FaYoutube, FaReddit } from 'react-icons/fa'
+import { FaTwitter, FaFacebook, FaInstagram, FaYoutube } from 'react-icons/fa'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { FacebookIcon, InstagramIcon, TwitterIcon } from '@/components/ui/platform-icons'
@@ -39,6 +39,7 @@ import { convertToPostCardFormat } from '@/lib/utils'
 import ErrorBoundary from '@/components/ui/error-boundary'
 import { TabBar, Tab } from '@/components/ui/tab-bar'
 import { ProfileDetailView } from '@/components/profiles/profile-detail-view'
+import { AISummaryCard } from '@/components/analysis/ai-summary-card'
 
 const samplePosts: Post[] = [
   {
@@ -580,7 +581,6 @@ function CampaignDetailPage() {
             { name: 'Facebook', icon: FaFacebook, params: { platform: 'facebook' } },
             { name: 'Instagram', icon: FaInstagram, params: { platform: 'instagram' } },
             { name: 'YouTube', icon: FaYoutube, params: { platform: 'youtube' } },
-            { name: 'Reddit', icon: FaReddit, params: { platform: 'reddit' } },
           ],
         },
         {
@@ -820,77 +820,29 @@ function CampaignDetailPage() {
 
   return (
     <div className="h-full flex flex-col overflow-hidden bg-background">
-        {/* Combined Header and Stats */}
+        {/* Simplified Header */}
         <div className="border-b border-border bg-background px-4 sm:px-6 py-3 flex-shrink-0">
           <div className="flex items-center justify-between gap-4">
-            {/* Left: Title, Live Status, and Stats */}
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-3">
-                <h1 className="text-lg font-bold text-foreground">
-                  {campaignsLoading ? (
-                    <div className="h-5 w-32 bg-muted animate-pulse rounded"></div>
-                  ) : campaignsError ? (
-                    'Campaign Error'
-                  ) : (
-                    currentCampaign?.name || 'Campaign Not Found'
-                  )}
-                </h1>
-                {actualMonitoringStatus && (
-                  <div className="flex items-center gap-1.5 px-2 py-1 bg-green-500/10 border border-green-500/20 rounded-md">
-                    <div className="relative flex items-center justify-center">
-                      <div className="absolute w-1.5 h-1.5 bg-green-500 rounded-full animate-ping opacity-75"></div>
-                      <div className="relative w-1 h-1 bg-green-500 rounded-full"></div>
-                    </div>
-                    <span className="text-xs text-green-400 font-medium">Live</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-center gap-4">
+            {/* Left: Title and Live Status Only */}
+            <div className="flex items-center gap-3">
+              <h1 className="text-lg font-bold text-foreground">
                 {campaignsLoading ? (
-                  Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="text-center">
-                      <div className="h-5 w-8 bg-muted animate-pulse rounded mb-1"></div>
-                      <div className="h-3 w-12 bg-muted animate-pulse rounded"></div>
-                    </div>
-                  ))
-                ) : currentCampaign ? (
-                  <>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-purple-500 dark:text-purple-400">
-                        {currentCampaign.metrics.totalPosts.toLocaleString()}
-                      </div>
-                      <div className="text-xs text-muted-foreground">POSTS</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-green-600 dark:text-green-400">
-                        {currentCampaign.metrics.totalEngagement > 1000
-                          ? `${(currentCampaign.metrics.totalEngagement / 1000).toFixed(1)}K`
-                          : currentCampaign.metrics.totalEngagement.toLocaleString()}
-                      </div>
-                      <div className="text-xs text-muted-foreground">ENGAGE</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-pink-600 dark:text-pink-400">
-                        {currentCampaign.metrics.totalLikes > 1000
-                          ? `${(currentCampaign.metrics.totalLikes / 1000).toFixed(1)}K`
-                          : currentCampaign.metrics.totalLikes.toLocaleString()}
-                      </div>
-                      <div className="text-xs text-muted-foreground">LIKES</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-slate-900 dark:text-white">
-                        {currentCampaign.metrics.totalShares.toLocaleString()}
-                      </div>
-                      <div className="text-xs text-muted-foreground">SHARES</div>
-                    </div>
-                  </>
+                  <div className="h-5 w-32 bg-muted animate-pulse rounded"></div>
+                ) : campaignsError ? (
+                  'Campaign Error'
                 ) : (
-                  <div className="text-center text-muted-foreground text-sm">
-                    Campaign data not available
-                  </div>
+                  currentCampaign?.name || 'Campaign Not Found'
                 )}
-              </div>
+              </h1>
+              {actualMonitoringStatus && (
+                <div className="flex items-center gap-1.5 px-2 py-1 bg-green-500/10 border border-green-500/20 rounded-md">
+                  <div className="relative flex items-center justify-center">
+                    <div className="absolute w-1.5 h-1.5 bg-green-500 rounded-full animate-ping opacity-75"></div>
+                    <div className="relative w-1 h-1 bg-green-500 rounded-full"></div>
+                  </div>
+                  <span className="text-xs text-green-400 font-medium">Live</span>
+                </div>
+              )}
             </div>
 
             {/* Right: Action Buttons */}
@@ -1084,7 +1036,7 @@ function CampaignDetailPage() {
 
           {/* Main Feed Area */}
           <div className="flex-1 flex flex-col overflow-hidden min-h-0">
-            <div className="flex-1 overflow-y-auto p-6 min-h-0">
+            <div className="flex-1 flex flex-col overflow-hidden p-6 min-h-0">
               {activeAnalysisTab === 'social-feed' && (
                 authError ? (
                   <div className="flex items-center justify-center h-64">
@@ -1127,6 +1079,11 @@ function CampaignDetailPage() {
                         </button>
                       </div>
                     </div>
+                    <AISummaryCard
+                      campaign={currentCampaign}
+                      posts={allPosts}
+                      loading={postsLoading}
+                    />
                     <PostList
                       posts={allPosts}
                       campaignId={campaignId}
@@ -1169,10 +1126,19 @@ function CampaignDetailPage() {
                     </div>
                   </div>
                 ) : (
-                  <PostRows
-                    posts={allPosts}
-                    campaignId={campaignId}
-                  />
+                  <div className="flex-1 min-h-0 flex flex-col">
+                    <AISummaryCard
+                      campaign={currentCampaign}
+                      posts={allPosts}
+                      loading={postsLoading}
+                    />
+                    <div className="flex-1 min-h-0">
+                      <PostRows
+                        posts={allPosts}
+                        campaignId={campaignId}
+                      />
+                    </div>
+                  </div>
                 )
               )}
 

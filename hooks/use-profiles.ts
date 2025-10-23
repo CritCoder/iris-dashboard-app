@@ -6,7 +6,7 @@ import { profileApi } from '@/lib/api'
 interface SocialProfile {
   id: string
   personId: string
-  platform: 'twitter' | 'facebook' | 'instagram' | 'youtube' | 'reddit' | 'tiktok'
+  platform: 'twitter' | 'facebook' | 'instagram' | 'youtube' | 'tiktok'
   platformUserId: string
   username: string
   profileUrl?: string
