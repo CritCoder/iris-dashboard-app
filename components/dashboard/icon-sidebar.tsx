@@ -95,47 +95,46 @@ export function IconSidebar() {
       </Link>
 
       {/* Nav Items */}
-      <nav className="flex-1 flex flex-col gap-4 w-full px-2">
+      <nav className="flex-1 flex flex-col gap-2 w-full px-2">
         {navSections.map((section, sectionIndex) => (
           <div key={section.title || `section-${sectionIndex}`}>
-            {section.title && (
-              <h2 className="text-[9px] font-semibold uppercase text-muted-foreground/60 text-center tracking-wider mb-2">
-                {section.title}
-              </h2>
-            )}
             <div className="flex flex-col gap-2">
               {section.items.map((item) => {
                 const Icon = item.icon
                 const active = isActive(item.href)
 
                 return (
-                  <SimpleTooltip
-                    key={item.id}
-                    content={item.label}
-                    side="right"
-                    shortcut={item.shortcut}
-                  >
-                    <Link href={item.href} className="flex justify-center">
-                      <motion.div
-                        className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
-                          active
-                            ? 'bg-primary text-primary-foreground shadow-md'
-                            : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-                        }`}
-                        whileHover={{ scale: 1.05, x: 2 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <Icon className="w-5 h-5" strokeWidth={1.5} />
-                        {active && (
-                          <motion.div
-                            className="absolute left-0 w-1 h-6 bg-primary rounded-r"
-                            layoutId="active-indicator"
-                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                          />
-                        )}
-                      </motion.div>
-                    </Link>
-                  </SimpleTooltip>
+                  <div key={item.id} className="flex flex-col items-center gap-0.5">
+                    <SimpleTooltip
+                      content={item.label}
+                      side="right"
+                      shortcut={item.shortcut}
+                    >
+                      <Link href={item.href} className="flex justify-center">
+                        <motion.div
+                          className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
+                            active
+                              ? 'bg-primary text-primary-foreground shadow-md'
+                              : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                          }`}
+                          whileHover={{ scale: 1.05, x: 2 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <Icon className="w-5 h-5" strokeWidth={1.5} />
+                          {active && (
+                            <motion.div
+                              className="absolute left-0 w-1 h-6 bg-primary rounded-r"
+                              layoutId="active-indicator"
+                              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                            />
+                          )}
+                        </motion.div>
+                      </Link>
+                    </SimpleTooltip>
+                    <span className="text-[8px] text-muted-foreground/70 text-center leading-tight max-w-12">
+                      {item.label}
+                    </span>
+                  </div>
                 )
               })}
             </div>

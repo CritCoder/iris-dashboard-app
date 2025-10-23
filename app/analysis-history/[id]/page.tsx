@@ -760,7 +760,7 @@ function CampaignDetailPage() {
   }
 
   return (
-    <div className="h-screen w-screen flex flex-col overflow-hidden bg-background">
+    <div className="h-full flex flex-col overflow-hidden bg-background">
         {/* Combined Header and Stats */}
         <div className="border-b border-border bg-background px-4 sm:px-6 py-3 flex-shrink-0">
           <div className="flex items-center justify-between gap-4">
@@ -834,59 +834,6 @@ function CampaignDetailPage() {
               </div>
             </div>
 
-            {/* Center: Platform Filters - Commented out for now */}
-            {/* <div className="flex items-center gap-2">
-              <Select value={selectedSentiment} onValueChange={(value) => updateUrlParams({ sentiment: value })}>
-                <SelectTrigger className="w-[140px] h-8">
-                  <SelectValue placeholder="All Sentiments" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Sentiments</SelectItem>
-                  <SelectItem value="positive">Positive</SelectItem>
-                  <SelectItem value="negative">Negative</SelectItem>
-                  <SelectItem value="neutral">Neutral</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <div className="flex gap-1">
-                <Button
-                  variant={selectedPlatform === 'all' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => updateUrlParams({ platform: 'all' })}
-                  className="text-xs h-8 px-2"
-                >
-                  All ({currentCampaign?.metrics.totalPosts || 0})
-                </Button>
-                <Button
-                  variant={selectedPlatform === 'twitter' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => updateUrlParams({ platform: 'twitter' })}
-                  className="text-xs h-8 px-2 gap-1"
-                >
-                  <TwitterIcon className="w-3 h-3" />
-                  {currentCampaign?.metrics.platformDistribution?.twitter || 0}
-                </Button>
-                <Button
-                  variant={selectedPlatform === 'facebook' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => updateUrlParams({ platform: 'facebook' })}
-                  className="text-xs h-8 px-2 gap-1"
-                >
-                  <FacebookIcon className="w-3 h-3" />
-                  {currentCampaign?.metrics.platformDistribution?.facebook || 0}
-                </Button>
-                <Button
-                  variant={selectedPlatform === 'instagram' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => updateUrlParams({ platform: 'instagram' })}
-                  className="text-xs h-8 px-2 gap-1"
-                >
-                  <InstagramIcon className="w-3 h-3" />
-                  {currentCampaign?.metrics.platformDistribution?.instagram || 0}
-                </Button>
-              </div>
-            </div> */}
-
             {/* Right: Action Buttons */}
             <div className="flex items-center gap-2">
               <Button
@@ -953,7 +900,7 @@ function CampaignDetailPage() {
         {/* Main Content - Full Screen Desktop Layout */}
         <div ref={contentRef} className="flex-1 flex overflow-hidden min-h-0">
           {/* Left Sidebar - Compact Vertical Tabs (Toolbar Style) */}
-          <div className="w-16 border-r border-border bg-card/50 backdrop-blur-sm flex flex-col h-[calc(100vh-16rem)] shadow-sm">
+          <div className="w-16 border-r border-border bg-card/50 backdrop-blur-sm flex flex-col h-full shadow-sm">
             {/* Main Analysis Tabs */}
             <div className="p-2 space-y-2">
               {menuItems.map((item) => {
@@ -974,7 +921,7 @@ function CampaignDetailPage() {
                     }}
                     className={`w-12 h-12 flex flex-col items-center justify-center gap-1 rounded-xl transition-all duration-200 group relative border ${
                       isActive
-                        ? 'bg-primary text-primary-foreground shadow-lg border-primary/20 scale-105'
+                        ? 'bg-muted/60 text-foreground shadow-sm border-border/40'
                         : 'text-muted-foreground hover:text-foreground hover:bg-accent/60 border-transparent hover:border-border/50 hover:shadow-sm'
                     }`}
                     title={`${item.title} - ${item.description}`}
@@ -1002,7 +949,7 @@ function CampaignDetailPage() {
                 onClick={() => setActiveAnalysisTab('notifications')}
                 className={`w-12 h-12 flex flex-col items-center justify-center gap-1 rounded-xl transition-all duration-200 group relative border ${
                   activeAnalysisTab === 'notifications'
-                    ? 'bg-primary text-primary-foreground shadow-lg border-primary/20 scale-105'
+                    ? 'bg-muted/60 text-foreground shadow-sm border-border/40'
                     : 'text-muted-foreground hover:text-foreground hover:bg-accent/60 border-transparent hover:border-border/50 hover:shadow-sm'
                 }`}
                 title="Notifications - Manage alerts & settings"
@@ -1284,7 +1231,7 @@ function CampaignDetailPage() {
           </div>
 
           {/* Right Sidebar - Live Analytics */}
-          <div className="w-80 border-l border-border bg-background flex flex-col h-[calc(100vh-16rem)] min-h-0">
+          <div className="w-80 border-l border-border bg-background flex flex-col h-full min-h-0">
             <div className="p-4 border-b border-border flex-shrink-0">
               <h3 className="text-sm font-semibold text-foreground mb-3">Live Analytics</h3>
             </div>
