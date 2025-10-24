@@ -1,144 +1,106 @@
 import { NextRequest, NextResponse } from 'next/server'
-import groupsData from '@/public/groups-data.json'
+import { cookies } from 'next/headers'
 
-interface GroupData {
-  id: string
-  name: string
-  type: 'religious' | 'political' | 'social' | 'professional' | 'cultural' | 'other'
-  members: number
-  platforms: string[]
-  primaryPlatform: string
-  description?: string
-  riskLevel: 'high' | 'medium' | 'low'
-  category: string
-  location?: string
-  contactInfo?: {
-    phone?: string
-    email?: string
-  }
-  socialMedia?: {
-    facebook?: string
-    twitter?: string
-    instagram?: string
-    youtube?: string
-  }
-  influencers?: string
-  createdAt: string
-  updatedAt: string
-  status: 'active' | 'inactive' | 'monitored'
-  monitoringEnabled: boolean
-  sheet: string
-  isFacebookOnly?: boolean
-}
-
-// Load all groups from the pre-processed JSON file
-function loadAllGroups(): GroupData[] {
-  try {
-    // The groups are already processed and ready in the JSON file
-    return groupsData.groups as GroupData[]
-  } catch (error) {
-    console.error('Error loading groups data:', error)
-    return []
-  }
-}
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://irisnet.wiredleap.com'
+const API_BASE_URL = `${BASE_URL}/api`
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '50')
-    const search = searchParams.get('search')
-    const type = searchParams.get('type')
-    const riskLevel = searchParams.get('riskLevel')
-    const monitoringEnabled = searchParams.get('monitoringEnabled')
-    const platform = searchParams.get('platform')
-    const sheet = searchParams.get('sheet')
 
-    // Load all groups from the pre-processed data
-    let allGroups = loadAllGroups()
+    // Get auth token from cookies
+    const cookieStore = await cookies()
+    const authToken = cookieStore.get('auth_token')?.value
 
-    // Apply filters
-    if (search) {
-      const searchLower = search.toLowerCase()
-      allGroups = allGroups.filter(group =>
-        group.name.toLowerCase().includes(searchLower) ||
-        group.description?.toLowerCase().includes(searchLower) ||
-        group.category.toLowerCase().includes(searchLower) ||
-        group.location?.toLowerCase().includes(searchLower)
+    // Forward all query parameters to the backend
+    const backendUrl = `${API_BASE_URL}/groups?${searchParams.toString()}`
+
+    // Make request to backend API
+    const response = await fetch(backendUrl, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authToken && { 'Cookie': `auth_token=${authToken}` }),
+      },
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({
+        message: 'Failed to fetch groups from backend'
+      }))
+      return NextResponse.json(
+        { error: errorData.message || 'Failed to fetch groups' },
+        { status: response.status }
       )
     }
 
-    if (type) {
-      allGroups = allGroups.filter(group => group.type === type)
-    }
+    const data = await response.json()
 
-    if (riskLevel) {
-      allGroups = allGroups.filter(group => group.riskLevel === riskLevel)
-    }
-
-    if (monitoringEnabled !== null && monitoringEnabled !== undefined) {
-      const enabled = monitoringEnabled === 'true'
-      allGroups = allGroups.filter(group => group.monitoringEnabled === enabled)
-    }
-
-    if (platform) {
-      allGroups = allGroups.filter(group => group.platforms.includes(platform))
-    }
-
-    if (sheet) {
-      allGroups = allGroups.filter(group => group.sheet === sheet)
-    }
-
-    // Calculate pagination
-    const totalGroups = allGroups.length
-    const totalPages = Math.ceil(totalGroups / limit)
-    const startIndex = (page - 1) * limit
-    const endIndex = startIndex + limit
-
-    // Get paginated groups
-    const paginatedGroups = allGroups.slice(startIndex, endIndex)
-
-    // Calculate statistics
-    const stats = {
-      total: totalGroups,
-      byType: {} as Record<string, number>,
-      byRiskLevel: {} as Record<string, number>,
-      byPlatform: {} as Record<string, number>,
-      bySheet: {} as Record<string, number>,
-      monitored: 0
-    }
-
-    allGroups.forEach(group => {
-      // Count by type
-      stats.byType[group.type] = (stats.byType[group.type] || 0) + 1
-
-      // Count by risk level
-      stats.byRiskLevel[group.riskLevel] = (stats.byRiskLevel[group.riskLevel] || 0) + 1
-
-      // Count by platform
-      group.platforms.forEach(platform => {
-        stats.byPlatform[platform] = (stats.byPlatform[platform] || 0) + 1
-      })
-
-      // Count by sheet
-      stats.bySheet[group.sheet] = (stats.bySheet[group.sheet] || 0) + 1
-
-      // Count monitored
-      if (group.monitoringEnabled) {
-        stats.monitored++
+    // Transform backend response to match frontend expectations
+    if (data.success && data.data) {
+      const groups = data.data.data || data.data || []
+      const pagination = data.data.pagination || {
+        page: parseInt(searchParams.get('page') || '1'),
+        limit: parseInt(searchParams.get('limit') || '50'),
+        total: groups.length,
+        totalPages: 1
       }
-    })
 
-    return NextResponse.json({
-      groups: paginatedGroups,
-      pagination: {
-        page,
-        limit,
-        totalPages,
-        totalGroups
-      },
-      stats
-    })
+      // Map backend group data to frontend format
+      const mappedGroups = groups.map((group: any) => ({
+        id: group.id,
+        name: group.name,
+        type: 'other',
+        members: 0,
+        platforms: [
+          group.facebookUri && 'facebook',
+          group.twitterUri && 'twitter',
+          group.instagramUri && 'instagram',
+          group.youtubeUri && 'youtube'
+        ].filter(Boolean),
+        primaryPlatform: group.facebookUri ? 'facebook' : 'Multiple',
+        description: '',
+        riskLevel: 'low' as const,
+        category: group.supergroup || group.superGroup?.name || '',
+        location: '',
+        contactInfo: {
+          phone: group.linkedPhoneNumber,
+          email: group.linkedEmailId
+        },
+        socialMedia: {
+          facebook: group.facebookUri,
+          twitter: group.twitterUri,
+          instagram: group.instagramUri,
+          youtube: group.youtubeUri
+        },
+        influencers: '',
+        createdAt: group.createdAt,
+        updatedAt: group.updatedAt,
+        status: 'active' as const,
+        monitoringEnabled: false,
+        sheet: group.supergroup || group.superGroup?.name || '',
+        isFacebookOnly: !!(group.facebookUri && !group.twitterUri && !group.instagramUri && !group.youtubeUri)
+      }))
+
+      return NextResponse.json({
+        groups: mappedGroups,
+        pagination: {
+          page: pagination.page,
+          limit: pagination.limit,
+          totalPages: pagination.totalPages || Math.ceil(pagination.total / pagination.limit),
+          totalGroups: pagination.total || mappedGroups.length
+        },
+        stats: {
+          total: mappedGroups.length,
+          byType: {},
+          byRiskLevel: {},
+          byPlatform: {},
+          bySheet: {},
+          monitored: 0
+        }
+      })
+    }
+
+    return NextResponse.json(data)
   } catch (error) {
     console.error('Error fetching groups:', error)
     return NextResponse.json(
