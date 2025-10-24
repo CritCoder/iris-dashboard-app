@@ -35,15 +35,21 @@ export async function GET(request: NextRequest) {
 
     const data = await response.json()
 
+    console.log('Backend response:', JSON.stringify(data, null, 2))
+
     // Transform backend response to match frontend expectations
     if (data.success && data.data) {
-      const groups = data.data.data || data.data || []
+      // Backend returns: { success: true, data: { data: [...], pagination: {...} } }
+      const groups = data.data.data || []
       const pagination = data.data.pagination || {
         page: parseInt(searchParams.get('page') || '1'),
         limit: parseInt(searchParams.get('limit') || '50'),
         total: groups.length,
         totalPages: 1
       }
+
+      console.log('Extracted groups:', groups.length)
+      console.log('Extracted pagination:', pagination)
 
       // Map backend group data to frontend format
       const mappedGroups = groups.map((group: any) => ({
@@ -81,7 +87,7 @@ export async function GET(request: NextRequest) {
         isFacebookOnly: !!(group.facebookUri && !group.twitterUri && !group.instagramUri && !group.youtubeUri)
       }))
 
-      return NextResponse.json({
+      const responseData = {
         groups: mappedGroups,
         pagination: {
           page: pagination.page,
@@ -97,9 +103,17 @@ export async function GET(request: NextRequest) {
           bySheet: {},
           monitored: 0
         }
+      }
+
+      console.log('Returning to frontend:', {
+        groupsCount: responseData.groups.length,
+        pagination: responseData.pagination
       })
+
+      return NextResponse.json(responseData)
     }
 
+    console.log('No data.success or data.data, returning raw data')
     return NextResponse.json(data)
   } catch (error) {
     console.error('Error fetching groups:', error)
