@@ -35,21 +35,18 @@ export async function GET(request: NextRequest) {
 
     const data = await response.json()
 
-    console.log('Backend response:', JSON.stringify(data, null, 2))
-
     // Transform backend response to match frontend expectations
     if (data.success && data.data) {
       // Backend returns: { success: true, data: { data: [...], pagination: {...} } }
-      const groups = data.data.data || []
-      const pagination = data.data.pagination || {
-        page: parseInt(searchParams.get('page') || '1'),
-        limit: parseInt(searchParams.get('limit') || '50'),
-        total: groups.length,
-        totalPages: 1
-      }
+      const groups = Array.isArray(data.data.data) ? data.data.data :
+                     Array.isArray(data.data) ? data.data : []
 
-      console.log('Extracted groups:', groups.length)
-      console.log('Extracted pagination:', pagination)
+      const pagination = data.data.pagination || {
+        total: data.data.pagination?.total || groups.length,
+        page: data.data.pagination?.page || parseInt(searchParams.get('page') || '1'),
+        limit: data.data.pagination?.limit || parseInt(searchParams.get('limit') || '50'),
+        totalPages: data.data.pagination?.totalPages || 1
+      }
 
       // Map backend group data to frontend format
       const mappedGroups = groups.map((group: any) => ({
@@ -87,7 +84,7 @@ export async function GET(request: NextRequest) {
         isFacebookOnly: !!(group.facebookUri && !group.twitterUri && !group.instagramUri && !group.youtubeUri)
       }))
 
-      const responseData = {
+      return NextResponse.json({
         groups: mappedGroups,
         pagination: {
           page: pagination.page,
@@ -103,18 +100,27 @@ export async function GET(request: NextRequest) {
           bySheet: {},
           monitored: 0
         }
-      }
-
-      console.log('Returning to frontend:', {
-        groupsCount: responseData.groups.length,
-        pagination: responseData.pagination
       })
-
-      return NextResponse.json(responseData)
     }
 
-    console.log('No data.success or data.data, returning raw data')
-    return NextResponse.json(data)
+    // Fallback: return empty groups if structure doesn't match
+    return NextResponse.json({
+      groups: [],
+      pagination: {
+        page: 1,
+        limit: 50,
+        totalPages: 0,
+        totalGroups: 0
+      },
+      stats: {
+        total: 0,
+        byType: {},
+        byRiskLevel: {},
+        byPlatform: {},
+        bySheet: {},
+        monitored: 0
+      }
+    })
   } catch (error) {
     console.error('Error fetching groups:', error)
     return NextResponse.json(
