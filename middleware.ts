@@ -37,23 +37,51 @@ export function middleware(request: NextRequest) {
 
   // Skip middleware for excluded paths
   if (excludedPaths.some(path => pathname.startsWith(path))) {
-    return NextResponse.next()
+    const response = NextResponse.next()
+    // Add cache-busting headers for development
+    if (process.env.NODE_ENV === 'development') {
+      response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+      response.headers.set('Pragma', 'no-cache')
+      response.headers.set('Expires', '0')
+    }
+    return response
   }
 
   // Allow access to public routes
   if (publicRoutes.includes(pathname)) {
-    return NextResponse.next()
+    const response = NextResponse.next()
+    // Add cache-busting headers for development
+    if (process.env.NODE_ENV === 'development') {
+      response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+      response.headers.set('Pragma', 'no-cache')
+      response.headers.set('Expires', '0')
+    }
+    return response
   }
 
   // Allow access to public route patterns
   if (publicRoutePatterns.some(pattern => pattern.test(pathname))) {
-    return NextResponse.next()
+    const response = NextResponse.next()
+    // Add cache-busting headers for development
+    if (process.env.NODE_ENV === 'development') {
+      response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+      response.headers.set('Pragma', 'no-cache')
+      response.headers.set('Expires', '0')
+    }
+    return response
   }
 
   // Since we use localStorage for tokens (client-side), we can't check them in middleware
   // The ProtectedRoute component will handle authentication on the client side
   // For now, allow all requests to pass through and let client-side auth handle it
-  return NextResponse.next()
+  const response = NextResponse.next()
+  // Add cache-busting headers for development
+  if (process.env.NODE_ENV === 'development') {
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+  }
+  return response
 }
 
 // Configure which routes the middleware should run on

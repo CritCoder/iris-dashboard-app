@@ -2,8 +2,7 @@
 
 import { useState, useMemo, Suspense, useCallback } from 'react'
 import { PageLayout } from '@/components/layout/page-layout'
-import { Search } from 'lucide-react'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/ui/search-input'
 import { useEntities } from '@/hooks/use-api'
 import { EntityDetailView } from '@/components/entities/entity-detail-view'
 import { TabBar, Tab } from '@/components/ui/tab-bar'
@@ -78,13 +77,10 @@ function EntitiesPageContent() {
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="h-16 flex-shrink-0 flex items-center px-4 border-b border-border bg-background">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                type="text"
+              <SearchInput
                 placeholder="Search entities by name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 w-full"
               />
             </div>
             <div className="flex items-center gap-2 ml-4">

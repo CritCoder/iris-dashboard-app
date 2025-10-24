@@ -18,7 +18,7 @@ import { DashboardSkeleton } from '@/components/skeletons/dashboard-skeleton'
 import { useState, useMemo, useEffect } from 'react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Settings, Grid3X3, Eye, EyeOff, AlertCircle, Loader2, Globe, Mail, UserSearch, ArrowRight } from 'lucide-react'
+import { Settings, Grid3X3, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react'
 import { TrendingUp, TrendingDown, Hash } from 'lucide-react'
 import {
   ChatBubbleIcon,
@@ -34,13 +34,14 @@ import {
   LightningBoltIcon,
   ExclamationTriangleIcon
 } from '@radix-ui/react-icons'
-import { 
-  usePoliticalStats, 
-  useCampaignThemes, 
+import {
+  usePoliticalStats,
+  useCampaignThemes,
   useInfluencerTracker,
   useOpponentNarratives,
-  useSupportBaseEnergy 
+  useSupportBaseEnergy
 } from '@/hooks/use-api'
+import { useCampaigns } from '@/hooks/use-campaigns'
 import { motion } from 'framer-motion'
 import { staggerContainerVariants, listItemVariants, fadeInUpVariants } from '@/lib/motion'
 
@@ -58,7 +59,7 @@ const formatNumber = (num: number): string => {
 // Helper function to map timeRange
 const mapTimeRange = (range: string): string => {
   const mapping: Record<string, string> = {
-    '24h': '7d',
+    '24h': '24h',
     '7d': '7d',
     '30d': '30d',
   }
@@ -94,44 +95,75 @@ export default function Page() {
   const { data: opponentData, loading: opponentLoading, error: opponentError } = useOpponentNarratives(apiParams)
   const { data: supportBaseData, loading: supportLoading, error: supportError } = useSupportBaseEnergy(apiParams)
 
-  // Sample data for the new dashboard sections (fallback)
-  const recentActivity = [
-    { id: 1, type: 'mention', content: 'Bengaluru Police mentioned in viral post', time: '2m ago', sentiment: 'positive' },
-    { id: 2, type: 'trend', content: 'Traffic management trending up', time: '5m ago', sentiment: 'neutral' },
-    { id: 3, type: 'alert', content: 'Negative sentiment spike detected', time: '8m ago', sentiment: 'negative' },
-    { id: 4, type: 'mention', content: 'New influencer post about police reforms', time: '12m ago', sentiment: 'positive' },
-    { id: 5, type: 'trend', content: 'Crime prevention discussions rising', time: '15m ago', sentiment: 'positive' }
-  ]
+  // Fetch actual campaigns data for accurate counts
+  // Use a high limit to ensure we get all campaigns for accurate counting
+  const { data: campaigns, loading: campaignsLoading } = useCampaigns({ enabled: true, limit: 1000 })
 
-  // Sample fallback data for trending topics
-  const sampleTrendingTopics = [
-    { topic: 'Bengaluru Traffic', mentions: 2450, change: '+12%', sentiment: 'negative' },
-    { topic: 'Police Reforms', mentions: 1890, change: '+8%', sentiment: 'positive' },
-    { topic: 'Crime Prevention', mentions: 1654, change: '+5%', sentiment: 'positive' },
-    { topic: 'Women Safety', mentions: 1230, change: '-3%', sentiment: 'neutral' }
-  ]
+  // Debug logging for dashboard data
+  useEffect(() => {
+    console.log('📊 Dashboard Data Debug:', {
+      quickStats,
+      campaignThemes,
+      totalCampaigns: campaigns?.length,
+      activeCampaigns: campaigns?.filter(c => c.monitoringStatus === 'ACTIVE').length,
+      campaignStatuses: campaigns?.map(c => ({ name: c.name, status: c.monitoringStatus }))
+    })
+  }, [quickStats, campaignThemes, campaigns])
+
+  // Calculate active campaigns count from real data
+  const activeCampaignsCount = useMemo(() => {
+    if (!campaigns || !Array.isArray(campaigns)) return 0
+    return campaigns.filter(c => c.monitoringStatus === 'ACTIVE').length
+  }, [campaigns])
+
+  // Calculate total campaigns count
+  const totalCampaignsCount = useMemo(() => {
+    if (!campaigns || !Array.isArray(campaigns)) return 0
+    return campaigns.length
+  }, [campaigns])
+
+  // Removed sample/fallback data - using only real API data
 
   // Process trending topics from API
   const trendingTopics = useMemo(() => {
-    if (!campaignThemes || typeof campaignThemes !== 'object' || !('themes' in campaignThemes)) {
-      return sampleTrendingTopics
+    if (!campaignThemes || typeof campaignThemes !== 'object') {
+      console.log('No campaign themes data:', campaignThemes)
+      return []
     }
 
-    const themes = (campaignThemes as any).themes
-    if (!themes) return sampleTrendingTopics
+    // Try different possible data structures
+    let allThemes: any[] = []
 
-    const allThemes: any[] = [
-      ...(themes.positive || []),
-      ...(themes.negative || []),
-      ...(themes.neutral || [])
-    ]
+    // Check if it has a themes property
+    if ('themes' in campaignThemes) {
+      const themes = (campaignThemes as any).themes
+      if (themes) {
+        allThemes = [
+          ...(themes.positive || []),
+          ...(themes.negative || []),
+          ...(themes.neutral || [])
+        ]
+      }
+    }
+    // Check if campaignThemes itself is an array
+    else if (Array.isArray(campaignThemes)) {
+      allThemes = campaignThemes
+    }
+    // Check if it has a data property
+    else if ('data' in campaignThemes && Array.isArray((campaignThemes as any).data)) {
+      allThemes = (campaignThemes as any).data
+    }
 
-    if (allThemes.length === 0) return sampleTrendingTopics
+    if (allThemes.length === 0) {
+      console.log('No themes found in data structure:', campaignThemes)
+      return []
+    }
 
+    console.log('Processing trending topics:', allThemes.length, 'themes found')
     return allThemes.slice(0, 4).map(campaign => ({
-      topic: campaign.campaignName || 'Unknown Campaign',
-      mentions: campaign.metrics?.totalPosts || 0,
-      change: campaign.metrics?.change || '+0%',
+      topic: campaign.campaignName || campaign.name || campaign.topic || 'Unknown Campaign',
+      mentions: campaign.metrics?.totalPosts || campaign.totalPosts || campaign.mentions || 0,
+      change: campaign.metrics?.change || campaign.change || '+0%',
       sentiment: campaign.sentiment || 'neutral'
     }))
   }, [campaignThemes])
@@ -233,99 +265,90 @@ export default function Page() {
     setEnabledCards(newEnabledCards as typeof enabledCards)
   }
 
-  // Primary Intelligence Tools data with Japanese-inspired colors
-  const primaryOptions = [
-    {
-      id: 'social-monitoring',
-      title: 'Social Media Monitoring',
-      description: 'Advanced social media intelligence gathering and analysis across all platforms',
-      icon: Globe,
-      href: '/start-analysis',
-      features: ['Real-time monitoring', 'Multi-platform analysis', 'Sentiment tracking', 'Trend identification'],
-      color: 'bg-[#4A90E2]', // Sora Iro (Sky Blue)
-      darkColor: 'bg-[#3A7BC8]'
-    },
-    {
-      id: 'smart-inbox',
-      title: 'Smart AI Inbox',
-      description: 'Aggregated smart AI-driven inbox that helps you manage all inboxes in one place',
-      icon: Mail,
-      href: '/social-inbox',
-      features: ['AI-powered filtering', 'Unified inbox view', 'Smart categorization', 'Priority management'],
-      color: 'bg-[#7C9D96]', // Rokusho (Verdigris Green)
-      darkColor: 'bg-[#6B8B7E]'
-    },
-    {
-      id: 'entity-search',
-      title: 'Entity Search',
-      description: 'Find super important details of a person across vehicle, mobile number, and more',
-      icon: UserSearch,
-      href: '/entity-search',
-      features: ['Vehicle details', 'Mobile number lookup', 'Address verification', 'Comprehensive profiles'],
-      color: 'bg-[#9B72AA]', // Fuji Murasaki (Wisteria Purple)
-      darkColor: 'bg-[#89629A]'
-    }
-  ]
 
   return (
     <ProtectedRoute>
       <PageLayout>
         <div className="h-screen flex flex-col bg-background overflow-hidden">
-          <PageHeader
-            title="Intelligence Dashboard"
-            description="Real-time insights on narratives, opponents, and public sentiment"
-            actions={
-              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                <GlobalSearch />
-                <Button
-                  variant={isCustomizing ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setIsCustomizing(!isCustomizing)}
-                  className="flex items-center justify-center gap-2 flex-shrink-0"
-                >
-                  <Settings className="w-4 h-4" />
-                  <span className="hidden sm:inline">{isCustomizing ? 'Exit Customize' : 'Customize'}</span>
-                  <span className="sm:hidden">Edit</span>
-                </Button>
+          {/* Improved Dashboard Header */}
+          <header className="border-b border-border bg-background sticky top-0 z-40">
+            <div className="max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6">
+              {/* Row 1: Title + Customize Button */}
+              <div className="flex items-center justify-between py-4">
+                <div className="flex items-center gap-4">
+                  <div>
+                    <h1 className="text-xl font-semibold text-foreground">Intelligence Dashboard</h1>
+                    <p className="text-sm text-muted-foreground">Real-time insights on narratives, opponents, and public sentiment</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant={isCustomizing ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setIsCustomizing(!isCustomizing)}
+                    className="flex items-center gap-2"
+                  >
+                    <Settings className="w-4 h-4" />
+                    <span className="hidden sm:inline">{isCustomizing ? 'Exit Customize' : 'Customize'}</span>
+                    <span className="sm:hidden">Edit</span>
+                  </Button>
+                </div>
               </div>
-            }
-          />
+
+            </div>
+          </header>
 
           <main className="flex-1 overflow-y-auto">
           <div className="max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-8">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-6">
-              <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="w-full sm:w-auto overflow-x-auto">
-                  <TabsTrigger value="overview" className="text-xs sm:text-sm whitespace-nowrap">
-                    <span className="hidden sm:inline">📊 Overview</span>
-                    <span className="sm:hidden">📊</span>
+
+            {/* Navigation Tabs, Search Bar, and Time Range - All in one row */}
+            <div className="flex items-center gap-4 mb-6 pb-4 border-b border-border">
+              {/* Navigation Tabs - Left Aligned */}
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
+                <TabsList className="inline-flex">
+                  <TabsTrigger value="overview" className="flex items-center gap-2">
+                    <BarChartIcon className="w-4 h-4" />
+                    <span className="hidden sm:inline">Overview</span>
                   </TabsTrigger>
-                  <TabsTrigger value="analytics" className="text-xs sm:text-sm whitespace-nowrap">
-                    <span className="hidden sm:inline">📈 Analytics</span>
-                    <span className="sm:hidden">📈</span>
+                  <TabsTrigger value="analytics" className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4" />
+                    <span className="hidden sm:inline">Analytics</span>
                   </TabsTrigger>
-                  <TabsTrigger value="monitoring" className="text-xs sm:text-sm whitespace-nowrap">
-                    <span className="hidden sm:inline">🔍 Monitoring</span>
-                    <span className="sm:hidden">🔍</span>
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-              <Tabs value={range} onValueChange={setRange}>
-                <TabsList className="w-full sm:w-auto">
-                  <TabsTrigger value="24h" className="text-xs sm:text-sm flex-1 sm:flex-none">
-                    <span className="hidden sm:inline">24 Hours</span>
-                    <span className="sm:hidden">24h</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="7d" className="text-xs sm:text-sm flex-1 sm:flex-none">
-                    <span className="hidden sm:inline">7 Days</span>
-                    <span className="sm:hidden">7d</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="30d" className="text-xs sm:text-sm flex-1 sm:flex-none">
-                    <span className="hidden sm:inline">30 Days</span>
-                    <span className="sm:hidden">30d</span>
+                  <TabsTrigger value="monitoring" className="flex items-center gap-2">
+                    <EyeOpenIcon className="w-4 h-4" />
+                    <span className="hidden sm:inline">Monitoring</span>
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
+
+              {/* Search Bar - Centered */}
+              <div className="flex-1 flex justify-center">
+                <div className="w-full max-w-sm">
+                  <GlobalSearch />
+                </div>
+              </div>
+
+              {/* Time Range Filter - Right Aligned */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground hidden sm:inline">Time Range:</span>
+                <Tabs value={range} onValueChange={setRange}>
+                  <TabsList className="grid grid-cols-3">
+                    <TabsTrigger value="24h" className="text-xs sm:text-sm">
+                      <span className="hidden sm:inline">24 Hours</span>
+                      <span className="sm:hidden">24h</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="7d" className="text-xs sm:text-sm">
+                      <span className="hidden sm:inline">7 Days</span>
+                      <span className="sm:hidden">7d</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="30d" className="text-xs sm:text-sm">
+                      <span className="hidden sm:inline">30 Days</span>
+                      <span className="sm:hidden">30d</span>
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
             </div>
             
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -406,111 +429,7 @@ export default function Page() {
             <TabsContent value="overview">
               <div className="animate-in fade-in duration-200">
 
-                {/* CRITICAL ALERT BAR - Highest Priority */}
-                <motion.div
-                  className="mb-6 p-4 bg-red-600 border border-red-700 rounded-lg shadow-lg"
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                >
-                  <div className="flex items-center gap-3">
-                    <motion.div
-                      className="w-2 h-2 bg-white rounded-full"
-                      animate={{ scale: [1, 1.2, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    />
-                    <div className="flex-1">
-                      <p className="text-white font-semibold text-sm">⚠️ CRITICAL ALERT</p>
-                      <p className="text-red-50 text-xs">Traffic Management sentiment dropped 15% this week - Immediate attention required</p>
-                    </div>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      className="bg-red-800 hover:bg-red-900 text-white border-none"
-                      onClick={() => window.location.href = '/social-feed?filter=negative&search=Traffic%20Management'}
-                    >
-                      View Details
-                    </Button>
-                  </div>
-                </motion.div>
 
-                {/* PRIMARY INTELLIGENCE TOOLS SECTION */}
-                <motion.div 
-                  className="mb-8"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6 }}
-                >
-                  <div className="mb-6">
-                    <h2 className="text-2xl font-bold text-foreground mb-2">Primary Intelligence Tools</h2>
-                    <p className="text-muted-foreground">Select your primary intelligence gathering method</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {primaryOptions.map((option, index) => {
-                      const IconComponent = option.icon
-                      return (
-                        <motion.div
-                          key={option.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.6, delay: index * 0.1 }}
-                          whileHover={{ scale: 1.02, y: -4 }}
-                          whileTap={{ scale: 0.98 }}
-                          className="h-full"
-                        >
-                          <Card
-                            className={`cursor-pointer transition-all duration-300 hover:shadow-2xl border-0 bg-card h-full flex flex-col overflow-hidden group`}
-                            onClick={() => window.location.href = option.href}
-                          >
-                            <CardHeader className={`${option.color} relative overflow-hidden pb-6`}>
-                              {/* Decorative pattern overlay */}
-                              <div className="absolute inset-0 opacity-10">
-                                <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/20 -translate-y-1/2 translate-x-1/2"></div>
-                                <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-white/10 translate-y-1/2 -translate-x-1/2"></div>
-                              </div>
-
-                              <div className="relative flex items-start justify-between">
-                                <div className="flex items-start gap-4 flex-1">
-                                  <div className={`p-3.5 rounded-xl bg-white/15 backdrop-blur-md text-white border border-white/20 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                                    <IconComponent className="w-7 h-7" strokeWidth={1.5} />
-                                  </div>
-                                  <div className="flex-1">
-                                    <CardTitle className="text-white text-lg font-bold mb-2">
-                                      {option.title}
-                                    </CardTitle>
-                                    <CardDescription className="text-white/90 text-sm leading-relaxed line-clamp-2">
-                                      {option.description}
-                                    </CardDescription>
-                                  </div>
-                                </div>
-                                <ArrowRight className="w-5 h-5 text-white/80 group-hover:translate-x-1 transition-transform duration-300 flex-shrink-0 ml-2" />
-                              </div>
-                            </CardHeader>
-                            <CardContent className="p-5 bg-card flex-1 flex flex-col">
-                              <div className="flex-1">
-                                <h4 className="font-semibold text-sm text-foreground mb-3 flex items-center gap-2">
-                                  <span className="w-1 h-4 rounded-full ${option.color}"></span>
-                                  Key Features
-                                </h4>
-                                <div className="grid grid-cols-2 gap-2">
-                                  {option.features.map((feature, featureIndex) => (
-                                    <span
-                                      key={featureIndex}
-                                      className="px-2.5 py-1.5 text-[11px] font-medium bg-muted/50 text-foreground border border-border/50 rounded-lg hover:bg-muted transition-colors text-center"
-                                    >
-                                      {feature}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </motion.div>
-                      )
-                    })}
-                  </div>
-                </motion.div>
 
                 {/* CUSTOMIZABLE 3x3 DASHBOARD GRID */}
                 <motion.div 
@@ -522,30 +441,33 @@ export default function Page() {
                   {/* Row 1 - Small Cards */}
                   {enabledCards['total-mentions'] && (
                     <motion.div variants={listItemVariants}>
-                      <Card className="border-2 border-blue-500/30 bg-gradient-to-br from-blue-950/40 to-blue-900/20 shadow-lg">
+                      <Card className="border border-border/50 bg-card/50">
                         <CardContent className="p-4 sm:p-6">
                           {statsLoading ? (
-                            <div className="space-y-3">
-                              <Skeleton className="h-4 w-24" />
-                              <Skeleton className="h-8 w-32" />
-                              <Skeleton className="h-3 w-28" />
+                            <div className="flex items-center justify-between">
+                              <div className="space-y-2">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-8 w-20" />
+                                <Skeleton className="h-3 w-28" />
+                              </div>
+                              <Skeleton className="w-12 h-12 rounded-full" />
                             </div>
                           ) : (
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="text-xs font-medium text-blue-300 uppercase tracking-wide">Total Mentions</p>
-                                <p className="text-3xl font-black text-white mb-1">
+                              <p className="text-sm font-medium text-muted-foreground">Total Mentions</p>
+                                <p className="text-2xl font-bold text-foreground">
                                   {quickStats && typeof quickStats === 'object' && quickStats !== null && 'overview' in quickStats && (quickStats as any).overview?.totalPosts 
                                     ? formatNumber((quickStats as any).overview.totalPosts) 
                                     : '0'}
                                 </p>
-                              <p className="text-xs text-green-400 flex items-center gap-1 font-bold">
-                                <TrendingUp className="w-3 h-3" />
+                              <p className="text-xs text-blue-500 flex items-center gap-1 font-medium">
+                                <ChatBubbleIcon className="w-3 h-3" />
                                   Tracked across platforms
                               </p>
                             </div>
-                            <div className="w-14 h-14 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center">
-                              <ChatBubbleIcon className="w-7 h-7 text-blue-400" />
+                            <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
+                              <ChatBubbleIcon className="w-6 h-6 text-blue-400" />
                             </div>
                           </div>
                           )}
@@ -556,30 +478,33 @@ export default function Page() {
 
                   {enabledCards['sentiment-score'] && (
                     <motion.div variants={listItemVariants}>
-                      <Card className="border-2 border-green-500/30 bg-gradient-to-br from-green-950/40 to-green-900/20 shadow-lg">
+                      <Card className="border border-border/50 bg-card/50">
                         <CardContent className="p-4 sm:p-6">
                           {statsLoading ? (
-                            <div className="space-y-3">
-                              <Skeleton className="h-4 w-24" />
-                              <Skeleton className="h-8 w-32" />
-                              <Skeleton className="h-3 w-28" />
+                            <div className="flex items-center justify-between">
+                              <div className="space-y-2">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-8 w-20" />
+                                <Skeleton className="h-3 w-28" />
+                              </div>
+                              <Skeleton className="w-12 h-12 rounded-full" />
                             </div>
                           ) : (
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="text-xs font-medium text-green-300 uppercase tracking-wide">Sentiment Score</p>
-                                <p className="text-3xl font-black text-white mb-1">
+                              <p className="text-sm font-medium text-muted-foreground">Sentiment Score</p>
+                                <p className="text-2xl font-bold text-foreground">
                                   {quickStats && typeof quickStats === 'object' && quickStats !== null && 'sentiment' in quickStats && (quickStats as any).sentiment?.positive?.percentage 
                                     ? `${(quickStats as any).sentiment.positive.percentage}%` 
                                     : '0%'}
                                 </p>
-                              <p className="text-xs text-green-400 flex items-center gap-1 font-bold">
-                                <TrendingUp className="w-3 h-3" />
+                              <p className="text-xs text-green-500 flex items-center gap-1 font-medium">
+                                <HeartIcon className="w-3 h-3" />
                                   Positive sentiment
                               </p>
                             </div>
-                            <div className="w-14 h-14 rounded-xl bg-green-500/20 border border-green-400/30 flex items-center justify-center">
-                              <HeartIcon className="w-7 h-7 text-green-400" />
+                            <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
+                              <HeartIcon className="w-6 h-6 text-green-400" />
                             </div>
                           </div>
                           )}
@@ -590,33 +515,38 @@ export default function Page() {
 
                   {enabledCards['active-campaigns'] && (
                     <motion.div variants={listItemVariants}>
-                      <Card className="border border-border/50 bg-card/50">
-                        <CardContent className="p-4 sm:p-6">
-                          {themesLoading ? (
-                            <div className="space-y-3">
-                              <Skeleton className="h-4 w-24" />
-                              <Skeleton className="h-8 w-20" />
-                              <Skeleton className="h-3 w-28" />
-                            </div>
-                          ) : (
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-medium text-muted-foreground">Active Campaigns</p>
-                                <p className="text-2xl font-bold text-foreground">
-                                  {campaignThemes && typeof campaignThemes === 'object' && campaignThemes !== null && 'summary' in campaignThemes && (campaignThemes as any).summary?.totalCampaigns || 0}
+                      <a href="/analysis-history?filter=active" className="block">
+                        <Card className="border border-border/50 bg-card/50 hover:bg-card/70 hover:border-border/70 transition-all duration-200 cursor-pointer">
+                          <CardContent className="p-4 sm:p-6">
+                            {campaignsLoading ? (
+                              <div className="flex items-center justify-between">
+                                <div className="space-y-2">
+                                  <Skeleton className="h-4 w-24" />
+                                  <Skeleton className="h-8 w-20" />
+                                  <Skeleton className="h-3 w-28" />
+                                </div>
+                                <Skeleton className="w-12 h-12 rounded-full" />
+                              </div>
+                            ) : (
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-sm font-medium text-muted-foreground">Active Campaigns</p>
+                                  <p className="text-2xl font-bold text-foreground">
+                                    {activeCampaignsCount}
+                                  </p>
+                                <p className="text-xs text-blue-500 flex items-center gap-1 font-medium">
+                                  <ActivityLogIcon className="w-3 h-3" />
+                                  {totalCampaignsCount} total campaigns
                                 </p>
-                              <p className="text-xs text-blue-500 flex items-center gap-1 font-medium">
-                                <ActivityLogIcon className="w-3 h-3" />
-                                  {campaignThemes && typeof campaignThemes === 'object' && campaignThemes !== null && 'summary' in campaignThemes && (campaignThemes as any).summary?.positiveCount || 0} positive campaigns
-                              </p>
+                              </div>
+                              <div className="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center">
+                                <BarChartIcon className="w-6 h-6 text-purple-400" />
+                              </div>
                             </div>
-                            <div className="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center">
-                              <BarChartIcon className="w-6 h-6 text-purple-400" />
-                            </div>
-                          </div>
-                          )}
-                        </CardContent>
-                      </Card>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </a>
                     </motion.div>
                   )}
 
@@ -644,9 +574,17 @@ export default function Page() {
                                 </div>
                               ))}
                             </div>
+                          ) : themesError ? (
+                            <div className="text-center py-8">
+                              <AlertCircle className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                              <p className="text-muted-foreground text-sm">Unable to load trending topics</p>
+                              <p className="text-muted-foreground text-xs mt-1">{themesError}</p>
+                            </div>
                           ) : trendingTopics.length === 0 ? (
                             <div className="text-center py-8">
-                              <p className="text-muted-foreground">No trending topics available</p>
+                              <Hash className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                              <p className="text-muted-foreground text-sm">No trending topics found</p>
+                              <p className="text-muted-foreground text-xs mt-1">Start analyzing campaigns to see trending topics here</p>
                             </div>
                           ) : (
                           <motion.div 
@@ -664,18 +602,14 @@ export default function Page() {
                                   variants={listItemVariants}
                                   whileHover={{ scale: 1.02, x: 4 }}
                                   whileTap={{ scale: 0.98 }}
-                                  className={`flex items-center justify-between cursor-pointer p-3 rounded-lg transition-all duration-200 ${
-                                    isHighVolume 
-                                      ? 'bg-orange-500/10 border border-orange-400/30 hover:bg-orange-500/20' 
-                                      : 'bg-muted/30 hover:bg-muted/50'
-                                  } ${isNegative ? 'ring-1 ring-red-500/30' : ''}`}
+                                  className={`flex items-center justify-between cursor-pointer p-3 rounded-lg transition-all duration-200 bg-muted/30 hover:bg-muted/50 border border-border/50 ${isNegative ? 'ring-1 ring-red-500/30' : ''}`}
                                   onClick={() => {
                                     window.location.href = `/social-feed?filter=all-posts&search=${encodeURIComponent(topic.topic)}`
                                   }}
                                 >
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
-                                      <p className={`font-semibold ${isHighVolume ? 'text-white' : 'text-foreground'} ${isNegative ? 'text-red-400' : ''}`}>
+                                      <p className={`font-semibold text-foreground ${isNegative ? 'text-red-400' : ''}`}>
                                         {topic.topic}
                                       </p>
                                       {isHighVolume && <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full font-bold">HOT</span>}
@@ -746,7 +680,7 @@ export default function Page() {
 
             <TabsContent value="analytics">
               <div className="space-y-6 animate-in fade-in duration-200">
-                <StatsGrid />
+                <StatsGrid timeRange={timeRange} />
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                   <div>
                     <TopicSentimentHeatmap />
@@ -823,44 +757,7 @@ export default function Page() {
                     </Card>
                   </div>
 
-                  {/* Recent Activity - Moved to Monitoring Tab */}
-                  <div>
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <ActivityLogIcon className="w-5 h-5" />
-                          Recent Activity
-                        </CardTitle>
-                        <CardDescription>Live updates from your monitoring</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          {recentActivity.map((activity) => {
-                            const Icon = getActivityIcon(activity.type)
-                            return (
-                              <div key={activity.id} className="flex items-start gap-3">
-                                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                                  <Icon className="w-4 h-4 text-muted-foreground" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm text-foreground">{activity.content}</p>
-                                  <div className="flex items-center gap-2 mt-1">
-                                    <Badge className={`text-xs ${getSentimentColor(activity.sentiment)}`}>
-                                      {activity.sentiment}
-                                    </Badge>
-                                    <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                      <ClockIcon className="w-3 h-3" />
-                                      {activity.time}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            )
-                          })}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
+                  {/* Recent Activity removed - will be populated from real API data in future */}
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">

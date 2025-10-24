@@ -33,7 +33,7 @@ export function ProfileHeader({ profile, onClose }: ProfileHeaderProps) {
     : 'N/A'
 
   return (
-    <div className="border-b border-border bg-card">
+    <div className="bg-background">
       {/* Banner */}
       <div className="h-32 bg-gradient-to-r from-primary/20 to-primary/5 relative">
         {profile.profileBannerUrl && (

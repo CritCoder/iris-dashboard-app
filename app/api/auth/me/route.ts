@@ -2,23 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest) {
   try {
-    const { id } = await params;
     const token = request.headers.get('authorization');
 
-    // Use a fallback URL if API_BASE_URL is not set
-    const baseUrl = API_BASE_URL || 'https://irisnet.wiredleap.com';
-    const url = `${baseUrl}/api/social/posts/${id}`;
+    console.log('Auth Me - Proxying request to:', `${API_BASE_URL}/auth/me`);
+    console.log('Token present:', !!token);
 
-    console.log('📊 POST DETAILS - Proxying request to:', url);
-    console.log('🔑 Token present:', !!token);
-    console.log('🆔 Post ID:', id);
-
-    const response = await fetch(url, {
+    const response = await fetch(`${API_BASE_URL}/auth/me`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -26,7 +17,7 @@ export async function GET(
       },
     });
 
-    console.log('📥 POST DETAILS - Response status:', response.status);
+    console.log('Auth Me - Response status:', response.status);
 
     if (!response.ok) {
       let error;
@@ -39,23 +30,19 @@ export async function GET(
         }
       } else {
         const text = await response.text();
-        error = { message: text || 'Failed to fetch post details', status: response.status };
+        error = { message: text || 'Auth me failed', status: response.status };
       }
-      console.error('❌ POST DETAILS - Error response:', error);
+      console.error('Auth Me - Error response:', error);
       return NextResponse.json(error, { status: response.status });
     }
 
     const data = await response.json();
-    console.log('✅ POST DETAILS - Success:', {
-      hasData: !!data.data,
-      dataType: typeof data.data,
-      success: data.success
-    });
+    console.log('Auth Me - Success:', data);
     return NextResponse.json(data);
   } catch (error) {
-    console.error('💥 POST DETAILS - API Proxy Error:', error);
+    console.error('Auth Me - API Proxy Error:', error);
     return NextResponse.json(
-      { success: false, error: { message: 'Failed to fetch post details', code: 'FETCH_ERROR' } },
+      { success: false, error: { message: 'Failed to get auth info', code: 'FETCH_ERROR' } },
       { status: 500 }
     );
   }
@@ -63,7 +50,7 @@ export async function GET(
 
 // Handle OPTIONS request for CORS preflight
 export async function OPTIONS(request: NextRequest) {
-  return NextResponse.json(null, {
+  return new NextResponse(null, {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',

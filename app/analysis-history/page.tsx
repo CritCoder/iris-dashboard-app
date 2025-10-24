@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
-import { Search, Eye, Pause, Trash2, ChevronLeft, ChevronRight, Loader2, AlertCircle, ArrowUpDown, TrendingUp } from 'lucide-react'
-import { Input } from '@/components/ui/input'
+import { Eye, Pause, Trash2, Loader2, AlertCircle, ArrowUpDown, TrendingUp, Grid3X3, List } from 'lucide-react'
+import { SearchInput } from '@/components/ui/search-input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { AnimatedPage, AnimatedGrid, AnimatedCard } from '@/components/ui/animated'
+import { DeleteConfirmationModal } from '@/components/ui/delete-confirmation-modal'
 import {
   getCampaigns,
   searchCampaigns,
@@ -70,6 +70,7 @@ function CampaignCard({
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
   const [isToggling, setIsToggling] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   const getSentimentColor = (sentiment: number) => {
     if (sentiment >= 70) return 'bg-green-600'
@@ -89,15 +90,18 @@ function CampaignCard({
     router.push(`/analysis-history/${campaign.id}`)
   }
 
-  const handleDelete = async (e: React.MouseEvent) => {
+  const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (window.confirm(`Are you sure you want to delete "${campaign.name}"? This action cannot be undone.`)) {
-      setIsDeleting(true)
-      try {
-        await onDelete(campaign.id)
-      } finally {
-        setIsDeleting(false)
-      }
+    setShowDeleteModal(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true)
+    try {
+      await onDelete(campaign.id)
+      setShowDeleteModal(false)
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -127,12 +131,19 @@ function CampaignCard({
             </h3>
             <p className="text-xs text-muted-foreground">{displayDate}</p>
           </div>
-          <Badge
-            variant={isMonitoring ? "default" : "outline"}
-            className={`ml-2 text-xs ${isMonitoring ? '' : 'text-muted-foreground'}`}
-          >
-            {isMonitoring ? 'Active' : 'Paused'}
-          </Badge>
+          {isMonitoring ? (
+            <div className="ml-2 flex items-center gap-1.5 px-2 py-1 bg-green-500/10 border border-green-500/20 rounded-md">
+              <div className="relative flex items-center justify-center">
+                <div className="absolute w-1.5 h-1.5 bg-green-500 rounded-full animate-ping opacity-75"></div>
+                <div className="relative w-1 h-1 bg-green-500 rounded-full"></div>
+              </div>
+              <span className="text-xs text-green-400 font-medium">Live</span>
+            </div>
+          ) : (
+            <Badge variant="outline" className="ml-2 text-xs text-muted-foreground">
+              Paused
+            </Badge>
+          )}
         </div>
 
         {/* Stats Grid - Clean & Minimal */}
@@ -192,11 +203,190 @@ function CampaignCard({
           </button>
         </div>
       </CardContent>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Campaign"
+        description="This will permanently remove the campaign and all its associated data."
+        itemName={campaign.name}
+        isLoading={isDeleting}
+      />
     </Card>
   )
 }
 
+function CampaignListItem({
+  campaign,
+  onDelete,
+  onToggleMonitoring
+}: {
+  campaign: Campaign;
+  onDelete: (id: string) => void;
+  onToggleMonitoring: (id: string, isActive: boolean) => void;
+}) {
+  const router = useRouter()
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [isToggling, setIsToggling] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+
+  const getSentimentColor = (sentiment: number) => {
+    if (sentiment >= 70) return 'bg-green-600'
+    if (sentiment >= 40) return 'bg-yellow-600'
+    return 'bg-red-600'
+  }
+
+  // Calculate display values
+  const sentimentScore = calculateSentimentScore(campaign.metrics?.sentimentDistribution)
+  const displayDate = new Date(campaign.updatedAt).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  })
+
+  const handleRowClick = () => {
+    router.push(`/analysis-history/${campaign.id}`)
+  }
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setShowDeleteModal(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true)
+    try {
+      await onDelete(campaign.id)
+      setShowDeleteModal(false)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleToggleMonitoring = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setIsToggling(true)
+    try {
+      await onToggleMonitoring(campaign.id, campaign.monitoringStatus === 'ACTIVE')
+    } finally {
+      setIsToggling(false)
+    }
+  }
+
+  const isMonitoring = campaign.monitoringStatus === 'ACTIVE'
+
+  return (
+    <>
+      <div
+        onClick={handleRowClick}
+        className="group cursor-pointer hover:bg-accent/20 transition-all duration-200 border-b border-border/40 last:border-b-0 hover:border-border/60 hover:shadow-sm"
+      >
+        <div className="px-6 py-4 flex items-center gap-4">
+          {/* Campaign Info */}
+          <div className="flex-1 min-w-[300px]">
+            <div className="flex items-center gap-3 mb-1">
+              <h3 className="text-sm font-semibold text-foreground truncate">
+                {campaign.name}
+              </h3>
+              {isMonitoring ? (
+                <div className="flex items-center gap-1.5 px-2 py-1 bg-green-500/10 border border-green-500/20 rounded-md">
+                  <div className="relative flex items-center justify-center">
+                    <div className="absolute w-1.5 h-1.5 bg-green-500 rounded-full animate-ping opacity-75"></div>
+                    <div className="relative w-1 h-1 bg-green-500 rounded-full"></div>
+                  </div>
+                  <span className="text-xs text-green-400 font-medium">Live</span>
+                </div>
+              ) : (
+                <Badge variant="outline" className="text-xs text-muted-foreground">
+                  Paused
+                </Badge>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">{displayDate}</p>
+          </div>
+
+          {/* Stats */}
+          <div className="flex items-center gap-8 text-sm">
+            <div className="text-center min-w-[80px]">
+              <div className="font-semibold text-foreground">{formatNumber(campaign.metrics?.totalPosts)}</div>
+              <div className="text-xs text-muted-foreground">Posts</div>
+            </div>
+            <div className="text-center min-w-[100px]">
+              <div className="font-semibold text-foreground">{formatNumber(campaign.metrics?.totalEngagement)}</div>
+              <div className="text-xs text-muted-foreground">Engagement</div>
+            </div>
+            <div className="text-center min-w-[80px]">
+              <div className="font-semibold text-foreground">{formatNumber(campaign.metrics?.reach)}</div>
+              <div className="text-xs text-muted-foreground">Reach</div>
+            </div>
+            <div className="text-center min-w-[100px]">
+              <div className="font-semibold text-foreground">{(campaign.metrics?.engagementRate || 0).toFixed(1)}%</div>
+              <div className="text-xs text-muted-foreground">Eng. Rate</div>
+            </div>
+            <div className="text-center min-w-[80px]">
+              <div className="font-semibold text-foreground">{sentimentScore}%</div>
+              <div className="text-xs text-muted-foreground">Sentiment</div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-2 min-w-[140px]" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={handleRowClick}
+              className="px-3 py-1.5 bg-foreground/5 hover:bg-foreground/10 text-foreground rounded transition-colors flex items-center gap-1.5 text-xs font-medium"
+            >
+              <Eye className="w-3 h-3" />
+              View
+            </button>
+            <button
+              onClick={handleToggleMonitoring}
+              disabled={isToggling}
+              className="px-3 py-1.5 bg-foreground/5 hover:bg-foreground/10 text-foreground rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isToggling ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : isMonitoring ? (
+                <Pause className="w-3 h-3" />
+              ) : (
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              )}
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="px-3 py-1.5 bg-foreground/5 hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isDeleting ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <Trash2 className="w-3 h-3" />
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Campaign"
+        description="This will permanently remove the campaign and all its associated data."
+        itemName={campaign.name}
+        isLoading={isDeleting}
+      />
+    </>
+  )
+}
+
 export default function AnalysisHistoryPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [pagination, setPagination] = useState<PaginationInfo>({
     total: 0,
@@ -206,20 +396,53 @@ export default function AnalysisHistoryPage() {
     hasNext: false,
     hasPrev: false
   })
-  const [activeTab, setActiveTab] = useState<'all' | 'active' | 'inactive'>('all')
+  
+  // Initialize activeTab from URL parameters
+  const getInitialActiveTab = (): 'all' | 'active' | 'inactive' => {
+    const filter = searchParams.get('filter')
+    if (filter === 'active') return 'active'
+    if (filter === 'inactive') return 'inactive'
+    return 'all'
+  }
+  
+  const [activeTab, setActiveTab] = useState<'all' | 'active' | 'inactive'>(getInitialActiveTab)
   const [currentPage, setCurrentPage] = useState(1)
   const [searchQuery, setSearchQuery] = useState('')
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<'date' | 'posts' | 'engagement' | 'sentiment'>('date')
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('list')
+  const loadMoreRef = useCallback((node: HTMLDivElement | null) => {
+    if (isLoadingMore) return
+    if (observerRef.current) observerRef.current.disconnect()
+    observerRef.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && pagination.hasNext && !isLoadingMore) {
+        setCurrentPage(prev => prev + 1)
+      }
+    })
+    if (node) observerRef.current.observe(node)
+  }, [isLoadingMore, pagination.hasNext])
+  const observerRef = useRef<IntersectionObserver | null>(null)
 
   // Debounce search query
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
+
+  // Update activeTab when URL parameters change
+  useEffect(() => {
+    const newActiveTab = getInitialActiveTab()
+    if (newActiveTab !== activeTab) {
+      setActiveTab(newActiveTab)
+      setCurrentPage(1) // Reset to first page when filter changes
+      setCampaigns([]) // Clear campaigns when filter changes
+    }
+  }, [searchParams])
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery)
       setCurrentPage(1) // Reset to first page on search
+      setCampaigns([]) // Clear campaigns when search changes
     }, 500)
 
     return () => clearTimeout(timer)
@@ -227,7 +450,13 @@ export default function AnalysisHistoryPage() {
 
   // Fetch campaigns
   const fetchCampaigns = useCallback(async () => {
-    setIsLoading(true)
+    // Set appropriate loading state
+    if (currentPage === 1) {
+      setIsLoading(true)
+      setCampaigns([]) // Clear campaigns when loading first page
+    } else {
+      setIsLoadingMore(true)
+    }
     setError(null)
 
     try {
@@ -240,13 +469,24 @@ export default function AnalysisHistoryPage() {
         response = await getCampaigns(currentPage, 12, monitored)
       }
 
-      setCampaigns(response.data)
+      // Append or replace campaigns based on page
+      if (currentPage === 1) {
+        setCampaigns(response.data)
+      } else {
+        // Deduplicate campaigns by ID before appending
+        setCampaigns(prev => {
+          const existingIds = new Set(prev.map(c => c.id))
+          const newCampaigns = response.data.filter(c => !existingIds.has(c.id))
+          return [...prev, ...newCampaigns]
+        })
+      }
       setPagination(response.pagination)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch campaigns')
       console.error('Error fetching campaigns:', err)
     } finally {
       setIsLoading(false)
+      setIsLoadingMore(false)
     }
   }, [currentPage, debouncedSearchQuery, activeTab])
 
@@ -274,6 +514,16 @@ export default function AnalysisHistoryPage() {
   const handleTabChange = (tab: 'all' | 'active' | 'inactive') => {
     setActiveTab(tab)
     setCurrentPage(1)
+    setCampaigns([]) // Clear campaigns when changing tabs
+
+    // Update URL to reflect the filter
+    const params = new URLSearchParams(searchParams.toString())
+    if (tab === 'all') {
+      params.delete('filter')
+    } else {
+      params.set('filter', tab)
+    }
+    router.push(`/analysis-history${params.toString() ? '?' + params.toString() : ''}`)
   }
 
   // Handle delete campaign
@@ -302,70 +552,45 @@ export default function AnalysisHistoryPage() {
     }
   }
 
-  // Generate page numbers for pagination
-  const getPageNumbers = () => {
-    const pages = []
-    const totalPages = pagination.totalPages
-    const current = pagination.page
-
-    if (totalPages <= 7) {
-      // Show all pages if 7 or less
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i)
-      }
-    } else {
-      // Show first page
-      pages.push(1)
-
-      if (current > 3) {
-        pages.push('...')
-      }
-
-      // Show pages around current
-      const start = Math.max(2, current - 1)
-      const end = Math.min(totalPages - 1, current + 1)
-
-      for (let i = start; i <= end; i++) {
-        pages.push(i)
-      }
-
-      if (current < totalPages - 2) {
-        pages.push('...')
-      }
-
-      // Show last page
-      if (totalPages > 1) {
-        pages.push(totalPages)
-      }
-    }
-
-    return pages
-  }
-
   return (
     <PageLayout>
       <div className="h-screen flex flex-col overflow-hidden">
         <PageHeader
           title="Analysis History"
           description="Track and manage your campaign analyses"
+          actions={
+            /* View Toggle in Header */
+            <div className="flex items-center gap-1 bg-secondary rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('card')}
+                className={`p-2 rounded-md transition-colors ${
+                  viewMode === 'card'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Card View"
+              >
+                <Grid3X3 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-2 rounded-md transition-colors ${
+                  viewMode === 'list'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="List View"
+              >
+                <List className="w-4 h-4" />
+              </button>
+            </div>
+          }
         />
 
         {/* Search, filters, and sort in one row */}
-        <div className="border-b border-border bg-background p-3 sm:p-4">
-          <div className="flex items-center gap-3 flex-wrap">
-            {/* Search bar */}
-            <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search campaigns..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 text-sm w-full"
-              />
-            </div>
-
-            {/* Filter buttons */}
+        <div className="border-b border-border/50 bg-card/30 backdrop-blur-sm px-6 py-4 shadow-sm">
+          <div className="flex items-center justify-between gap-4">
+            {/* Left: Filter buttons */}
             <div className="flex gap-2">
               <button
                 onClick={() => handleTabChange('all')}
@@ -375,7 +600,7 @@ export default function AnalysisHistoryPage() {
                     : 'bg-secondary text-muted-foreground hover:bg-accent/30'
                 }`}
               >
-                All Campaigns
+                All Searches
               </button>
               <button
                 onClick={() => handleTabChange('active')}
@@ -385,7 +610,7 @@ export default function AnalysisHistoryPage() {
                     : 'bg-secondary text-muted-foreground hover:bg-accent/30'
                 }`}
               >
-                Active
+                Active Campaigns
               </button>
               <button
                 onClick={() => handleTabChange('inactive')}
@@ -395,11 +620,21 @@ export default function AnalysisHistoryPage() {
                     : 'bg-secondary text-muted-foreground hover:bg-accent/30'
                 }`}
               >
-                Paused
+                Paused Campaigns
               </button>
             </div>
 
-            {/* Sort Dropdown */}
+            {/* Center: Search bar */}
+            <div className="flex-1 max-w-md">
+              <SearchInput
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search campaigns..."
+                showKbd={false}
+              />
+            </div>
+
+            {/* Right: Sort Dropdown */}
             <div className="flex items-center gap-2">
               <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
               <select
@@ -439,68 +674,92 @@ export default function AnalysisHistoryPage() {
               </div>
             </div>
           ) : sortedCampaigns.length > 0 ? (
-            <div className="p-3 sm:p-4 lg:p-6">
-              <AnimatedGrid stagger={0.05} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                {sortedCampaigns.map((campaign) => (
-                  <AnimatedCard key={campaign.id}>
+            viewMode === 'card' ? (
+              <div className="w-full px-6 py-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6">
+                  {sortedCampaigns.map((campaign) => (
                     <CampaignCard
+                      key={campaign.id}
                       campaign={campaign}
                       onDelete={handleDeleteCampaign}
                       onToggleMonitoring={handleToggleMonitoring}
                     />
-                  </AnimatedCard>
-                ))}
-              </AnimatedGrid>
-            </div>
+                  ))}
+                </div>
+                {/* Infinite Scroll Trigger */}
+                {pagination.hasNext && !isLoadingMore && (
+                  <div ref={loadMoreRef} className="h-20 flex items-center justify-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                  </div>
+                )}
+                {/* Loading More Indicator */}
+                {isLoadingMore && (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary mr-2" />
+                    <p className="text-muted-foreground">Loading more campaigns...</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="w-full">
+                <div className="bg-background/50 border-b border-border/30">
+                  {/* List Header */}
+                  <div className="px-6 py-3 border-b border-border/50 bg-muted/50 backdrop-blur-sm">
+                    <div className="flex items-center gap-8 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      <div className="flex-1 min-w-[400px]">Campaign</div>
+                      <div className="flex items-center gap-8">
+                        <div className="text-center min-w-[80px]">Posts</div>
+                        <div className="text-center min-w-[100px]">Engagement</div>
+                        <div className="text-center min-w-[80px]">Reach</div>
+                        <div className="text-center min-w-[100px]">Eng. Rate</div>
+                        <div className="text-center min-w-[80px]">Sentiment</div>
+                        <div className="text-center min-w-[140px]">Actions</div>
+                      </div>
+                    </div>
+                  </div>
+                  {/* List Items */}
+                  <div className="divide-y divide-border">
+                    {sortedCampaigns.map((campaign) => (
+                      <CampaignListItem
+                        key={campaign.id}
+                        campaign={campaign}
+                        onDelete={handleDeleteCampaign}
+                        onToggleMonitoring={handleToggleMonitoring}
+                      />
+                    ))}
+                  </div>
+                </div>
+                {/* Infinite Scroll Trigger */}
+                {pagination.hasNext && !isLoadingMore && (
+                  <div ref={loadMoreRef} className="h-20 flex items-center justify-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                  </div>
+                )}
+                {/* Loading More Indicator */}
+                {isLoadingMore && (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary mr-2" />
+                    <p className="text-muted-foreground">Loading more campaigns...</p>
+                  </div>
+                )}
+              </div>
+            )
           ) : (
-            <div className="p-8 text-center text-muted-foreground">
-              <p>No campaigns found matching your criteria.</p>
+            <div className="flex min-h-[60vh] items-center justify-center p-8 text-center text-muted-foreground">
+              <div className="flex flex-col items-center gap-3">
+                <p>No campaigns found matching your criteria.</p>
+              </div>
             </div>
           )}
         </div>
 
+        {/* Status Bar - Shows total count */}
         {!isLoading && !error && sortedCampaigns.length > 0 && (
-          <div className="border-t border-border bg-background px-3 sm:px-4 h-16 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <p className="text-sm text-muted-foreground">
-              Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} campaigns
+          <div className="border-t border-border/50 bg-card/40 backdrop-blur-sm px-6 h-12 flex items-center justify-center shadow-[0_-2px_10px_rgba(0,0,0,0.1)]">
+            <p className="text-sm font-medium text-foreground/80">
+              <span className="text-primary font-semibold">{sortedCampaigns.length}</span> of <span className="text-foreground font-semibold">{pagination.total}</span> campaigns loaded
+              {pagination.hasNext && <span className="ml-2 text-primary animate-pulse">• Scroll for more</span>}
             </p>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={!pagination.hasPrev}
-                className="p-2 hover:bg-accent/30 rounded-lg transition-colors text-foreground/70 hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="w-5 h-5" />
-                <span className="sr-only">Previous</span>
-              </button>
-              {getPageNumbers().map((page, index) => (
-                page === '...' ? (
-                  <span key={`ellipsis-${index}`} className="px-2 text-muted-foreground">
-                    ...
-                  </span>
-                ) : (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page as number)}
-                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg text-sm font-medium transition-colors ${
-                      currentPage === page
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-secondary text-foreground/70 hover:bg-accent/30 hover:text-foreground'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                )
-              ))}
-              <button
-                onClick={() => setCurrentPage(Math.min(pagination.totalPages, currentPage + 1))}
-                disabled={!pagination.hasNext}
-                className="px-3 sm:px-4 py-2 bg-secondary hover:bg-accent/30 rounded-lg transition-colors text-foreground/70 hover:text-foreground text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                <span className="hidden sm:inline">Next</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
           </div>
         )}
       </div>

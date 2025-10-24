@@ -6,14 +6,14 @@ import { PageHeader } from '@/components/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 import { Search, Loader2, Mail, User, Globe, Hash, Shield, MapPin, Phone, Link, Bitcoin, Database, Download, Filter, Eye, Copy, ChevronDown, ChevronUp, AlertTriangle, CheckCircle, Info, Zap, BarChart3, Grid3x3, List, TrendingUp, X } from 'lucide-react'
 import { api } from '@/lib/api'
 import { BreachedDataResultCard } from '@/components/breached-data/result-card'
 import { BreachedDataSidebar } from '@/components/breached-data/sidebar'
-import { SanitizedSearchInput } from '@/components/ui/sanitized-input'
-import { AnimatedPage } from '@/components/ui/animated'
 
 export default function BreachedDataPage() {
+  const [isMounted, setIsMounted] = useState(false)
   const [activeSearchType, setActiveSearchType] = useState('email')
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<any>(null)
@@ -23,7 +23,14 @@ export default function BreachedDataPage() {
   const [autoLoadAll, setAutoLoadAll] = useState(false)
   const [allResults, setAllResults] = useState<any[]>([])
   const [searchHistory, setSearchHistory] = useState<string[]>([])
+  const [selectedResults, setSelectedResults] = useState<Set<string>>(new Set())
+  const [showFilters, setShowFilters] = useState(false)
   const PAGE_SIZE = 100
+
+  // Ensure component is mounted before rendering content
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const searchTypes = [
     { id: 'email', name: 'Email', icon: Mail, color: 'bg-blue-500', description: 'Search email addresses' },
@@ -297,94 +304,41 @@ export default function BreachedDataPage() {
     setSelectedResults(newSelected)
   }
 
+  // Don't render until mounted to prevent hydration issues
+  if (!isMounted) {
+    return (
+      <PageLayout>
+        <div className="min-h-screen flex flex-col items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </PageLayout>
+    )
+  }
+
   return (
     <PageLayout>
-      <AnimatedPage className="min-h-screen flex flex-col">
-        <PageHeader
-          title="Breach Intelligence"
-          description="Advanced breach data search and analysis platform"
+      <div className="h-screen flex bg-background">
+        {/* Sidebar */}
+        <BreachedDataSidebar
+          activeType={activeSearchType}
+          onTypeChange={handleSearchTypeChange}
+          searchTypes={searchTypes}
         />
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col p-6 space-y-6">
-          {/* Search Interface */}
-          <Card className="border-none shadow-lg bg-gradient-to-br from-card to-card/80">
-            <CardContent className="p-4">
-              {/* Search Type Selection - Redesigned */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-foreground">Search Parameters</h3>
-                  {searchHistory.length > 0 && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span>Recent:</span>
-                      {searchHistory.slice(0, 3).map((query, index) => (
-                        <Badge
-                          key={index}
-                          variant="outline"
-                          className="cursor-pointer hover:bg-accent"
-                          onClick={() => setSearchQuery(query)}
-                        >
-                          {query.length > 15 ? `${query.slice(0, 15)}...` : query}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <PageHeader
+            title="Breach Intelligence"
+            description="Advanced breach data search and analysis platform"
+          />
 
-                {/* Enhanced Search Type Grid */}
-                <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12 gap-2">
-                  {searchTypes.map((type) => {
-                    const IconComponent = type.icon
-                    const isSelected = activeSearchType === type.id
-                    return (
-                      <div
-                        key={type.id}
-                        onClick={() => {
-                          setActiveSearchType(type.id)
-                          setSearchQuery('')
-                          setError(null)
-                          setSearchResults(null)
-                        }}
-                        className={`group relative cursor-pointer transition-all duration-200 ${
-                          isSelected ? 'scale-105' : 'hover:scale-102'
-                        }`}
-                      >
-                        <div className={`rounded-lg p-3 border-2 transition-all ${
-                          isSelected
-                            ? 'border-primary bg-primary/5 shadow-lg'
-                            : 'border-border hover:border-primary/50 hover:bg-accent/30'
-                        }`}>
-                          {/* Icon with colored background */}
-                          <div className={`w-8 h-8 rounded-lg ${isSelected ? type.color : 'bg-muted'} flex items-center justify-center mb-2 transition-all`}>
-                            <IconComponent className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-muted-foreground'}`} />
-                          </div>
-
-                          {/* Type name */}
-                          <h4 className={`font-semibold text-xs mb-1 ${isSelected ? 'text-foreground' : 'text-muted-foreground'}`}>
-                            {type.name}
-                          </h4>
-
-                          {/* Description - show on hover or selection */}
-                          <p className={`text-xs transition-all ${
-                            isSelected ? 'text-muted-foreground opacity-100' : 'text-muted-foreground/60 opacity-0 group-hover:opacity-100'
-                          }`}>
-                            {type.description}
-                          </p>
-
-                          {/* Selection indicator */}
-                          {isSelected && (
-                            <div className="absolute -top-2 -right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-lg">
-                              <CheckCircle className="w-4 h-4 text-primary-foreground" />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-
-                {/* Enhanced Search Input */}
-                <div className="space-y-4 mt-6">
+          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            {/* Search Input Card */}
+            <Card className="border-none shadow-lg bg-gradient-to-br from-card to-card/80">
+              <CardContent className="p-4">
+                <div className="space-y-4">
+                  {/* Search Input */}
+                  <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-medium text-foreground flex items-center gap-2">
                       <Zap className="w-4 h-4" />
@@ -394,29 +348,40 @@ export default function BreachedDataPage() {
 
                   {/* Enhanced Input Row */}
                   <div className="flex gap-3">
-                    <div className="flex-1 relative">
-                      <SanitizedSearchInput
-                        sanitizationType="search"
-                        type="text"
-                        placeholder={`Enter ${activeSearchType.replace('_', ' ')}... (e.g., john@example.com)`}
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && isFormValid() && handleSearch(1)}
-                        className="text-sm h-12 pl-4 pr-12 border-2 focus:border-primary/50 bg-background/50"
-                        onSanitizedChange={(sanitized, isValid, error) => {
-                          if (isValid) {
-                            setSearchQuery(sanitized)
-                          }
-                        }}
-                      />
-                      {searchQuery && (
-                        <button
-                          onClick={() => setSearchQuery('')}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      )}
+                    <div className="flex-1 space-y-2">
+                      <div className="relative">
+                        <Input
+                          type="text"
+                          placeholder={`Enter ${activeSearchType.replace('_', ' ')}...`}
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && isFormValid() && handleSearch(1)}
+                          className="text-sm h-12 pl-4 pr-12 border-2 focus:border-primary/50 bg-background/50"
+                        />
+                        {searchQuery && (
+                          <button
+                            onClick={() => setSearchQuery('')}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Examples */}
+                      <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                        <span className="font-medium whitespace-nowrap">Example:</span>
+                        <span>
+                          {activeSearchType === 'email' && 'john@example.com, user@domain.com'}
+                          {activeSearchType === 'username' && 'johndoe, user123, admin'}
+                          {activeSearchType === 'phone' && '+1234567890, 9876543210'}
+                          {activeSearchType === 'domain' && 'example.com, company.org'}
+                          {activeSearchType === 'name' && 'John Doe, Jane Smith'}
+                          {activeSearchType === 'password' && 'password123, secret'}
+                          {activeSearchType === 'ip_address' && '192.168.1.1, 8.8.8.8'}
+                          {activeSearchType === 'hash' && '5f4dcc3b5aa765d61d8327deb882cf99'}
+                        </span>
+                      </div>
                     </div>
 
                     <Button
@@ -446,18 +411,18 @@ export default function BreachedDataPage() {
                     </Button>
                   </div>
 
-                  {/* Quick Search Suggestions */}
-                  {!searchQuery && (
+                  {/* Recent Search History */}
+                  {!searchQuery && searchHistory.length > 0 && (
                     <div className="flex flex-wrap gap-2 pt-2">
-                      <span className="text-xs text-muted-foreground">Quick searches:</span>
-                      {['@gmail.com', '@yahoo.com', 'admin', '123456'].map((suggestion, index) => (
+                      <span className="text-xs text-muted-foreground">Recent searches:</span>
+                      {searchHistory.slice(0, 4).map((query, index) => (
                         <Badge
                           key={index}
                           variant="secondary"
                           className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
-                          onClick={() => setSearchQuery(suggestion)}
+                          onClick={() => setSearchQuery(query)}
                         >
-                          {suggestion}
+                          {query.length > 20 ? `${query.slice(0, 20)}...` : query}
                         </Badge>
                       ))}
                     </div>
@@ -701,8 +666,9 @@ export default function BreachedDataPage() {
               </CardContent>
             </Card>
           )}
+          </div>
         </div>
-      </AnimatedPage>
+      </div>
     </PageLayout>
   )
 }

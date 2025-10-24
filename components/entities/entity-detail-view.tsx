@@ -262,9 +262,9 @@ export function EntityDetailView({ entity, onBack }: EntityDetailViewProps) {
             </div>
           </div>
         ) : posts.length === 0 ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <Hash className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
+          <div className="flex min-h-[40vh] items-center justify-center py-12">
+            <div className="flex flex-col items-center gap-3 text-center">
+              <Hash className="w-16 h-16 text-muted-foreground/50" />
               <p className="text-muted-foreground">No posts found for this entity</p>
             </div>
           </div>

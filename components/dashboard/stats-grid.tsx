@@ -110,8 +110,12 @@ function SentimentBar({ positive }: { positive: number }) {
   )
 }
 
-export function StatsGrid() {
-  const { data: stats, loading, error } = usePoliticalStats({ timeRange: '7d', cached: true })
+interface StatsGridProps {
+  timeRange?: string
+}
+
+export function StatsGrid({ timeRange = '7d' }: StatsGridProps) {
+  const { data: stats, loading, error } = usePoliticalStats({ timeRange, cached: true })
   
   // Mock data for when API is not available
   const mockStats: StatsData = {

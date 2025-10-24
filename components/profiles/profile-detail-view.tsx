@@ -132,37 +132,41 @@ export function ProfileDetailView({ profile, onClose }: ProfileDetailViewProps) 
   return (
     <div className="h-full w-full flex bg-background">
       <div className="w-3/4 flex flex-col border-r border-border">
-        <ProfileHeader profile={fullProfile} onClose={onClose} />
-        <div className="border-b border-border px-4 py-2 flex justify-between items-center">
-          <ProfilePostTabs onTabSelect={setActiveTab} activeTab={activeTab} />
-          <div className="flex items-center gap-2">
-            <Button
-              variant={view === 'grid' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setView('grid')}
-              className="h-8 px-3"
-            >
-              <Grid className="w-4 h-4" />
-            </Button>
-            <Button
-              variant={view === 'list' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setView('list')}
-              className="h-8 px-3"
-            >
-              <List className="w-4 h-4" />
-            </Button>
-            <Button
-              variant={view === 'table' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setView('table')}
-              className="h-8 px-3"
-            >
-              <TableIcon className="w-4 h-4" />
-            </Button>
+        {/* Fixed Header Section */}
+        <div className="sticky top-0 z-10 bg-background border-b border-border">
+          <ProfileHeader profile={fullProfile} onClose={onClose} />
+          <div className="px-4 py-2 flex justify-between items-center bg-background">
+            <ProfilePostTabs onTabSelect={setActiveTab} activeTab={activeTab} />
+            <div className="flex items-center gap-2">
+              <Button
+                variant={view === 'grid' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setView('grid')}
+                className="h-8 px-3"
+              >
+                <Grid className="w-4 h-4" />
+              </Button>
+              <Button
+                variant={view === 'list' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setView('list')}
+                className="h-8 px-3"
+              >
+                <List className="w-4 h-4" />
+              </Button>
+              <Button
+                variant={view === 'table' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setView('table')}
+                className="h-8 px-3"
+              >
+                <TableIcon className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
         
+        {/* Scrollable Content Section */}
         <div className="flex-1 overflow-y-auto">
           {renderPosts()}
         </div>

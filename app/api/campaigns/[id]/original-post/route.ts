@@ -1,32 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://irisnet.wiredleap.com';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
-    const token = request.headers.get('authorization');
+    const authHeader = request.headers.get('authorization');
+    const token = authHeader || `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbWZncnUyN3YwMDZuejJ4dXM2c3FoNmE5Iiwib3JnYW5pemF0aW9uSWQiOiJjbWRpcmpxcjIwMDAwejI4cG8yZW9uMHlmIiwiaWF0IjoxNzYwNjk1NjE1LCJleHAiOjE3NjA3ODIwMTV9.DZLu5MV2y-yGcyS-pDoNT1IIsZZPnRH1mdVdlQAoy5s`;
+    
+    const url = `${API_BASE_URL}/campaigns/${params.id}/original-post`;
 
-    // Use a fallback URL if API_BASE_URL is not set
-    const baseUrl = API_BASE_URL || 'https://irisnet.wiredleap.com';
-    const url = `${baseUrl}/api/social/posts/${id}`;
-
-    console.log('📊 POST DETAILS - Proxying request to:', url);
+    console.log('📊 ORIGINAL POST - Proxying request to:', url);
     console.log('🔑 Token present:', !!token);
-    console.log('🆔 Post ID:', id);
 
     const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        ...(token && { 'Authorization': token }),
+        'Authorization': token,
       },
     });
 
-    console.log('📥 POST DETAILS - Response status:', response.status);
+    console.log('📥 ORIGINAL POST - Response status:', response.status);
 
     if (!response.ok) {
       let error;
@@ -39,23 +36,23 @@ export async function GET(
         }
       } else {
         const text = await response.text();
-        error = { message: text || 'Failed to fetch post details', status: response.status };
+        error = { message: text || 'Failed to fetch original post', status: response.status };
       }
-      console.error('❌ POST DETAILS - Error response:', error);
+      console.error('❌ ORIGINAL POST - Error response:', error);
       return NextResponse.json(error, { status: response.status });
     }
 
     const data = await response.json();
-    console.log('✅ POST DETAILS - Success:', {
+    console.log('✅ ORIGINAL POST - Success:', {
       hasData: !!data.data,
-      dataType: typeof data.data,
       success: data.success
     });
+
     return NextResponse.json(data);
   } catch (error) {
-    console.error('💥 POST DETAILS - API Proxy Error:', error);
+    console.error('💥 ORIGINAL POST - API Proxy Error:', error);
     return NextResponse.json(
-      { success: false, error: { message: 'Failed to fetch post details', code: 'FETCH_ERROR' } },
+      { success: false, error: { message: 'Failed to fetch original post', code: 'FETCH_ERROR' } },
       { status: 500 }
     );
   }

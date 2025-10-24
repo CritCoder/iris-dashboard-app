@@ -41,7 +41,16 @@ export default function StartAnalysisPage() {
   }
 
   const handleAnalyze = async () => {
-    if (!searchQuery.trim() || searchQuery.trim().length < 3) {
+    // DEBUG: Version identifier to verify fresh code loading
+    console.log('🎯 FRESH CODE LOADED - Version: 2025-10-24-v2')
+    
+    // Enhanced validation based on the guide
+    if (!searchQuery.trim()) {
+      error('Please enter a search query')
+      return
+    }
+
+    if (searchQuery.trim().length < 3) {
       error('Please enter at least 3 characters')
       return
     }
@@ -56,39 +65,88 @@ export default function StartAnalysisPage() {
       return
     }
 
+    // Validate date range if custom
+    if (timeRange === 'custom' && dateRange?.from && dateRange?.to) {
+      if (dateRange.from >= dateRange.to) {
+        error('End date must be after start date')
+        return
+      }
+    }
+
     setIsAnalyzing(true)
 
     try {
-      // Prepare time range data
-      let timeRangeData: any = timeRange
+      // Prepare time range data - API requires startDate and endDate format
+      let timeRangeData: any
       if (timeRange === 'custom' && dateRange?.from && dateRange?.to) {
         timeRangeData = {
-          type: 'custom',
           startDate: dateRange.from.toISOString(),
           endDate: dateRange.to.toISOString()
         }
+      } else {
+        // For 'any' time range, use the last 30 days
+        const endDate = new Date()
+        const startDate = new Date()
+        startDate.setDate(startDate.getDate() - 30)
+        
+        timeRangeData = {
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString()
+        }
       }
 
-      // Create a new campaign for analysis
-      const result = await api.campaign.create({
-        name: `${activeTab === 'topic' ? 'Topic' : 'POI'} Analysis: ${searchQuery.substring(0, 50)}`,
-        type: activeTab === 'topic' ? 'TOPIC' : 'PERSON',
-        description: `Analysis of ${searchQuery} across ${selectedPlatforms.join(', ')} platforms`,
-        keywords: searchQuery.split(',').map(k => k.trim()).filter(k => k.length > 0),
+      // Create a new campaign for analysis using the proper API structure
+      const searchData = {
+        topic: searchQuery,
+        timeRange: timeRangeData,
         platforms: selectedPlatforms,
-        timeRange: timeRangeData
-      })
+        campaignType: activeTab === 'topic' ? 'NORMAL' : 'PERSON'
+      }
+
+      // Add person details if it's a POI search
+      if (activeTab === 'poi') {
+        searchData.personDetails = {
+          username: searchQuery,
+          name: searchQuery,
+          profileId: searchQuery
+        }
+      }
+
+      // DEBUG: Log the search data to verify the new structure
+      console.log('🚀 NEW API CALL - Search Data:', searchData)
+      console.log('🚀 NEW API CALL - Using campaignSearch method')
+      
+      const result = await api.campaign.campaignSearch(searchData)
 
       if (result.success) {
         success('Analysis started successfully!')
-        // Redirect to the campaign page or analysis results
-        router.push(`/post-campaign/${result.data.id}`)
+
+        // Store campaign data in sessionStorage so detail page can use it immediately
+        if (result.data) {
+          sessionStorage.setItem(`campaign_${result.data.campaignId}`, JSON.stringify(result.data))
+        }
+
+        // Redirect to the campaign dashboard page to see all posts and analytics
+        // The API returns campaignId in the response according to the guide
+        router.push(`/analysis-history/${result.data.campaignId}`)
       } else {
         error(result.error || 'Failed to start analysis')
       }
     } catch (err: any) {
-      error(err.message || 'Failed to start analysis. Please try again.')
       console.error('Analysis error:', err)
+      
+      // Handle specific error types based on the guide
+      if (err.message?.includes('401')) {
+        error('Your session has expired. Please log in again.')
+      } else if (err.message?.includes('403')) {
+        error('You do not have permission to perform this action.')
+      } else if (err.message?.includes('404')) {
+        error('The requested resource was not found.')
+      } else if (err.message?.includes('500')) {
+        error('Server error. Please try again later.')
+      } else {
+        error(err.message || 'Failed to start analysis. Please try again.')
+      }
     } finally {
       setIsAnalyzing(false)
     }

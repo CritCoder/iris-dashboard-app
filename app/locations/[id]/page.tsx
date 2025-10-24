@@ -175,6 +175,45 @@ export default function LocationDetailPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [limit] = useState(50)
 
+  const handleExport = () => {
+    try {
+      // Create CSV content for posts
+      const csvContent = [
+        // Header row
+        ['Post ID', 'Source', 'Timestamp', 'Content', 'Sentiment', 'Relevance', 'Likes', 'Comments', 'Shares', 'URL'].join(','),
+        // Data rows
+        ...filteredPosts.map(post => [
+          `"${post.id}"`,
+          `"${post.source}"`,
+          `"${new Date(post.timestamp).toLocaleString()}"`,
+          `"${post.content.replace(/"/g, '""')}"`, // Escape quotes in content
+          `"${post.sentiment}"`,
+          post.relevance,
+          post.likes,
+          post.comments,
+          post.shares,
+          `"${post.url || 'N/A'}"`
+        ].join(','))
+      ].join('\n')
+
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const link = document.createElement('a')
+      const url = URL.createObjectURL(blob)
+      link.setAttribute('href', url)
+      link.setAttribute('download', `location-${parsedLocationName}-posts-export-${new Date().toISOString().split('T')[0]}.csv`)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      console.log('Location posts exported successfully:', filteredPosts.length, 'posts')
+    } catch (error) {
+      console.error('Export failed:', error)
+      alert('Export failed. Please try again.')
+    }
+  }
+
   // Determine filter based on active tab
   const getFilter = () => {
     switch (activeTab) {
@@ -284,7 +323,7 @@ export default function LocationDetailPage() {
               <span className="text-sm text-muted-foreground">
                 {filteredPosts.length} posts found
               </span>
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button variant="outline" size="sm" className="gap-2" onClick={handleExport}>
                 <Download className="w-4 h-4" />
                 Export
               </Button>

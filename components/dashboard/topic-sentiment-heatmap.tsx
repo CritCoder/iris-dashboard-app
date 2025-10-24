@@ -89,11 +89,6 @@ export function TopicSentimentHeatmap() {
         <h3 className="text-xs font-semibold text-muted-foreground mb-2">Key Insights</h3>
         <div className="space-y-2">
           <InsightCard
-            icon={AlertTriangle}
-            type="warning"
-            message="Traffic Management sentiment dropped 15% this week"
-          />
-          <InsightCard
             icon={Lightbulb}
             type="info"
             message="Crime Prevention showing strongest positive sentiment"

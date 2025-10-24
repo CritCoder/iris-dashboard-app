@@ -75,6 +75,66 @@ export async function GET(request: NextRequest) {
   }
 }
 
+export async function POST(request: NextRequest) {
+  try {
+    const authHeader = request.headers.get('authorization');
+    const body = await request.json();
+
+    // Use authorization header if present, otherwise use fallback token
+    const token = authHeader || `Bearer ${FALLBACK_TOKEN}`;
+
+    // Use a fallback URL if API_BASE_URL is not set
+    const baseUrl = API_BASE_URL || 'https://irisnet.wiredleap.com';
+    const url = `${baseUrl}/api/campaigns`;
+
+    console.log('📝 CAMPAIGN CREATE - Proxying request to:', url);
+    console.log('🔑 Token present:', !!token);
+    console.log('📋 Request body:', JSON.stringify(body, null, 2));
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token,
+      },
+      body: JSON.stringify(body),
+    });
+
+    console.log('📥 CAMPAIGN CREATE - Response status:', response.status);
+
+    if (!response.ok) {
+      let error;
+      const contentType = response.headers.get('content-type');
+      if (contentType?.includes('application/json')) {
+        try {
+          error = await response.json();
+        } catch {
+          error = { message: 'Unknown error occurred' };
+        }
+      } else {
+        const text = await response.text();
+        error = { message: text || 'Failed to create campaign', status: response.status };
+      }
+      console.error('❌ CAMPAIGN CREATE - Error response:', error);
+      return NextResponse.json(error, { status: response.status });
+    }
+
+    const data = await response.json();
+    console.log('✅ CAMPAIGN CREATE - Success:', {
+      hasData: !!data.data,
+      success: data.success
+    });
+
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error('💥 CAMPAIGN CREATE - API Proxy Error:', error);
+    return NextResponse.json(
+      { success: false, error: { message: 'Failed to create campaign', code: 'FETCH_ERROR' } },
+      { status: 500 }
+    );
+  }
+}
+
 // Handle OPTIONS request for CORS preflight
 export async function OPTIONS(request: NextRequest) {
   return NextResponse.json(null, {

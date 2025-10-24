@@ -1,15 +1,43 @@
 import { Skeleton } from "@/components/ui/skeleton"
+import Masonry from 'react-masonry-css'
 
 export function SocialFeedSkeleton() {
   return (
-    <div className="space-y-4">
-      {/* Grid of post card skeletons */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <PostCardSkeleton key={i} />
+    <>
+      <Masonry
+        breakpointCols={{
+          default: 4,
+          1600: 3,
+          1200: 2,
+          700: 1,
+        }}
+        className="my-masonry-grid"
+        columnClassName="my-masonry-grid_column"
+      >
+        {Array.from({ length: 12 }).map((_, i) => (
+          <div key={i}>
+            <PostCardSkeleton />
+          </div>
         ))}
-      </div>
-    </div>
+      </Masonry>
+
+      <style jsx global>{`
+        .my-masonry-grid {
+          display: -webkit-box;
+          display: -ms-flexbox;
+          display: flex;
+          margin-left: -12px;
+          width: auto;
+        }
+        .my-masonry-grid_column {
+          padding-left: 12px;
+          background-clip: padding-box;
+        }
+        .my-masonry-grid_column > div {
+          margin-bottom: 12px;
+        }
+      `}</style>
+    </>
   )
 }
 

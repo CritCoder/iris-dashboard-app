@@ -102,6 +102,8 @@ class ApiClient {
 
   constructor(baseURL: string = BASE_URL) {
     this.baseURL = baseURL
+    // DEBUG: Version identifier for cache verification
+    console.log('🚀 FRESH API CLIENT LOADED - Version: 2025-10-24-v3')
   }
 
   private async request<T>(
@@ -114,6 +116,7 @@ class ApiClient {
     let token: string | null = null
     if (typeof window !== 'undefined') {
       token = localStorage.getItem('token')
+      console.log('🔑 API REQUEST - Token present:', !!token)
     }
 
     const config: RequestInit = {
@@ -131,26 +134,26 @@ class ApiClient {
       delete headers['Content-Type']
     }
 
-    // DEBUG: Log outgoing request
-    console.log('🚀 API REQUEST:', {
-      url,
-      method: config.method || 'GET',
-      headers: config.headers,
-      body: config.body ? (config.body instanceof FormData ? '[FormData]' : config.body) : undefined,
-      timestamp: new Date().toISOString()
-    })
+    // DEBUG: Log outgoing request (reduced logging for performance)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🚀 API REQUEST:', {
+        url,
+        method: config.method || 'GET',
+        timestamp: new Date().toISOString()
+      })
+    }
 
     try {
       const response = await fetch(url, config)
       
-      // DEBUG: Log response status and headers
-      console.log('📥 API RESPONSE:', {
-        url,
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries()),
-        timestamp: new Date().toISOString()
-      })
+      // DEBUG: Log response status and headers (reduced logging for performance)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('📥 API RESPONSE:', {
+          url,
+          status: response.status,
+          timestamp: new Date().toISOString()
+        })
+      }
       
       if (!response.ok) {
         const data = await response.json().catch(() => ({ 
@@ -163,6 +166,7 @@ class ApiClient {
           status: response.status,
           statusText: response.statusText,
           error: data,
+          responseHeaders: Object.fromEntries(response.headers.entries()),
           timestamp: new Date().toISOString()
         })
         
@@ -178,15 +182,15 @@ class ApiClient {
 
       const responseData = await response.json()
       
-      // DEBUG: Log successful response
-      console.log('✅ API SUCCESS:', {
-        url,
-        status: response.status,
-        dataLength: Array.isArray(responseData.data) ? responseData.data.length : 'not array',
-        success: responseData.success,
-        hasPagination: !!(responseData as any).pagination,
-        timestamp: new Date().toISOString()
-      })
+      // DEBUG: Log successful response (reduced logging for performance)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ API SUCCESS:', {
+          url,
+          status: response.status,
+          dataLength: Array.isArray(responseData.data) ? responseData.data.length : 'not array',
+          timestamp: new Date().toISOString()
+        })
+      }
       
       return responseData
     } catch (error) {
@@ -323,11 +327,12 @@ export const campaignApi = {
 
   create: (data: {
     name: string
-    type: string
+    campaignType: string
     description?: string
     keywords?: string[]
     platforms?: string[]
     timeRange?: any
+    status?: string
   }) => apiClient.post('/api/campaigns', data),
 
   update: (id: string, data: { name?: string; description?: string }) =>
@@ -336,10 +341,21 @@ export const campaignApi = {
   delete: (id: string) => apiClient.delete(`/api/campaigns/${id}`),
 
   campaignSearch: (data: {
-    query: string
+    topic: string
+    timeRange?: any
     platforms?: string[]
-    timeRange?: string
-  }) => apiClient.post('/api/campaigns/campaign-search', data),
+    campaignType?: string
+    personDetails?: {
+      username: string
+      name: string
+      profileId: string
+    }
+  }) => {
+    console.log('🔥 FRESH API CLIENT - campaignSearch method called at:', new Date().toISOString())
+    console.log('🔥 FRESH API CLIENT - Data:', data)
+    // Call through Next.js API route to avoid CORS issues
+    return apiClient.post('/api/campaigns/campaign-search', data)
+  },
 
   diagnose: (id: string, data: { analysisType: string; parameters?: any }) =>
     apiClient.post(`/api/campaigns/${id}/diagnose`, data),

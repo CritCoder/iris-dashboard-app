@@ -208,7 +208,7 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
 
   return (
     <div 
-      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200" 
+      className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-sm animate-in fade-in duration-200" 
       onClick={onClose}
     >
       <div className="flex items-start justify-center pt-[10vh] px-4">
@@ -235,14 +235,18 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
           {/* Results */}
           <div className="max-h-96 overflow-y-auto" ref={resultsRef}>
             {filteredResults.length === 0 && query.trim() ? (
-              <div className="p-8 text-center text-zinc-400">
-                <Search className="w-8 h-8 mx-auto mb-3 text-zinc-500" />
-                <p className="text-sm">No results found for "{query}"</p>
+              <div className="flex min-h-[200px] items-center justify-center p-8 text-center text-zinc-400">
+                <div className="flex flex-col items-center gap-3">
+                  <Search className="w-8 h-8 text-zinc-500" />
+                  <p className="text-sm">No results found for "{query}"</p>
+                </div>
               </div>
             ) : filteredResults.length === 0 ? (
-              <div className="p-8 text-center text-zinc-400">
-                <Clock className="w-8 h-8 mx-auto mb-3 text-zinc-500" />
-                <p className="text-sm">Start typing to search...</p>
+              <div className="flex min-h-[200px] items-center justify-center p-8 text-center text-zinc-400">
+                <div className="flex flex-col items-center gap-3">
+                  <Clock className="w-8 h-8 text-zinc-500" />
+                  <p className="text-sm">Start typing to search...</p>
+                </div>
               </div>
             ) : (
               <div className="p-4">

@@ -26,15 +26,18 @@ export function GlobalSearch() {
       </button>
 
       {/* Desktop: Full search bar */}
-      <div className="relative hidden sm:block">
+      <div className="relative hidden sm:block w-full">
         <button 
           type="button"
           onClick={() => setIsSpotlightOpen(true)}
-          className="bg-background border border-input rounded-xl pl-10 pr-20 py-3 text-sm text-muted-foreground hover:text-foreground hover:border-ring focus:outline-none focus:border-ring w-64 md:w-80 cursor-pointer text-left transition-all duration-200 h-[46px]"
+          className="bg-background border border-input rounded-xl pl-10 pr-20 py-3 text-sm text-muted-foreground hover:text-foreground hover:border-ring focus:outline-none focus:border-ring w-full cursor-pointer text-left transition-all duration-200 h-[46px]"
         >
-          Search...
+          Search pages, posts, profiles, entities...
         </button>
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none z-10" />
+        <kbd className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 text-xs text-muted-foreground bg-muted border border-border rounded pointer-events-none">
+          ⌘K
+        </kbd>
       </div>
       
       <SpotlightSearch 

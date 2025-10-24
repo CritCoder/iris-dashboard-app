@@ -1,6 +1,10 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { api } from '@/lib/api'
 
+// Simple request cache to avoid redundant API calls
+const requestCache = new Map<string, { data: any; timestamp: number }>()
+const CACHE_DURATION = 30000 // 30 seconds
+
 // Sample data generator for fallback
 const generateSamplePosts = (count: number = 20, offset: number = 0) => {
   const platforms = ['twitter', 'facebook', 'instagram', 'news']
@@ -52,7 +56,7 @@ interface InfiniteSocialPostsReturn {
 
 export function useInfiniteSocialPosts(params: InfiniteSocialPostsParams = {}): InfiniteSocialPostsReturn {
   const {
-    limit = 20,
+    limit = 15, // Reduced from 20 to 15 for faster loading
     platform,
     sentiment,
     mediaType,
@@ -131,9 +135,45 @@ export function useInfiniteSocialPosts(params: InfiniteSocialPostsParams = {}): 
         search,
       }
 
+      // Create cache key
+      const cacheKey = JSON.stringify(apiParams)
+      const cachedData = requestCache.get(cacheKey)
+      
+      // Check if we have cached data that's still valid
+      if (cachedData && Date.now() - cachedData.timestamp < CACHE_DURATION && !isLoadMore) {
+        console.log('🚀 Using cached social posts data:', { page, ...apiParams })
+        const response = cachedData.data
+        // Process cached response the same way as API response
+        if (response.success && response.data) {
+          const responseData = response.data as any
+          
+          if (Array.isArray(responseData.data) && responseData.pagination) {
+            const newPosts = responseData.data
+            const pagination = responseData.pagination
+            setData(newPosts)
+            setTotal(pagination.total || 0)
+            setHasNextPage(pagination.hasNext || (pagination.page < pagination.totalPages))
+            setCurrentPage(pagination.page)
+          } else if (Array.isArray(responseData)) {
+            setData(responseData)
+            setTotal(responseData.length)
+            setHasNextPage(responseData.length === limit)
+          }
+        }
+        setLoading(false)
+        setLoadingMore(false)
+        isLoadingRef.current = false
+        return
+      }
+
       console.log('🚀 Fetching social posts (infinite scroll):', { page, ...apiParams })
 
       const response = await api.social.getPosts(apiParams)
+      
+      // Cache the response if it's successful and not a load more request
+      if (response.success && !isLoadMore) {
+        requestCache.set(cacheKey, { data: response, timestamp: Date.now() })
+      }
       
       console.log('✅ Social posts API response:', response)
 
@@ -262,6 +302,8 @@ export function useInfiniteSocialPosts(params: InfiniteSocialPostsParams = {}): 
   }, [loadingMore, hasNextPage, currentPage, fetchData])
 
   const refetch = useCallback(() => {
+    // Clear cache when refetching
+    requestCache.clear()
     setData([])
     setCurrentPage(1)
     setHasNextPage(true)
@@ -271,6 +313,8 @@ export function useInfiniteSocialPosts(params: InfiniteSocialPostsParams = {}): 
   // Initial load
   useEffect(() => {
     if (enabled) {
+      // Clear cache when parameters change
+      requestCache.clear()
       setData([])
       setCurrentPage(1)
       setHasNextPage(true)

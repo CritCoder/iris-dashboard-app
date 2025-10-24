@@ -4,9 +4,9 @@ import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
-import { Search, Users, TrendingUp, ChevronRight, X, Download, Eye, Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin, ExternalLink } from 'lucide-react'
+import { Users, TrendingUp, ChevronRight, X, Download, Eye, Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/ui/search-input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AnimatedPage, AnimatedGrid, AnimatedCard } from '@/components/ui/animated'
@@ -511,14 +511,11 @@ export default function OrganizationsPage() {
                     <X className="w-3 h-3 cursor-pointer" onClick={() => setActiveFilter('all')} />
                   </Badge>
                 </div>
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    type="text"
+                <div className="flex-1">
+                  <SearchInput
                     placeholder="Search organizations, influencers, locations..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 w-full"
                   />
                 </div>
               </div>

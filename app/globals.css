@@ -39,6 +39,16 @@ select {
   }
 }
 
+/* Skeleton Shimmer Animation */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 /* Leaflet Popup Custom Styles */
 .leaflet-popup-content-wrapper {
   background-color: hsl(var(--card)) !important;

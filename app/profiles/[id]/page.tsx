@@ -62,39 +62,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
     )
   }
 
-  // Sample posts data - in real app, fetch from API
-  const samplePosts = [
-    {
-      id: '1',
-      content: 'Sample post content from this profile. This is a great update about recent activities and insights.',
-      timestamp: '2 weeks ago',
-      likes: 3900,
-      comments: 124,
-      shares: 86,
-      views: 25000,
-      platform: profile.platform
-    },
-    {
-      id: '2',
-      content: 'Another interesting post with valuable information for followers.',
-      timestamp: '3 weeks ago',
-      likes: 729,
-      comments: 10,
-      shares: 250,
-      views: 10000,
-      platform: profile.platform
-    },
-    {
-      id: '3',
-      content: 'Keep an eye on the night sky in October—you might catch a falling star!',
-      timestamp: '1 month ago',
-      likes: 4300,
-      comments: 729,
-      shares: 298,
-      views: 15000,
-      platform: profile.platform
-    }
-  ]
+  // Sample data removed - will use real API data only
 
   const getPlatformIcon = (platform: string) => {
     switch (platform.toLowerCase()) {
@@ -113,17 +81,18 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
     }
   }
 
-  // Calculate totals
-  const totalLikes = samplePosts.reduce((sum, p) => sum + p.likes, 0)
-  const totalComments = samplePosts.reduce((sum, p) => sum + p.comments, 0)
-  const totalShares = samplePosts.reduce((sum, p) => sum + p.shares, 0)
-  const avgViews = Math.round(samplePosts.reduce((sum, p) => sum + p.views, 0) / samplePosts.length)
+  // Use real profile data from API
+  const totalLikes = profile.metrics?.totalLikes || 0
+  const totalComments = profile.metrics?.totalComments || 0
+  const totalShares = profile.metrics?.totalShares || 0
+  const avgViews = profile.metrics?.averageViews || 0
 
-  const positiveCount = 24
-  const neutralCount = 10
-  const totalSentiment = positiveCount + neutralCount
-  const positivePercent = (positiveCount / totalSentiment) * 100
-  const neutralPercent = (neutralCount / totalSentiment) * 100
+  const positiveCount = profile.metrics?.sentimentDistribution?.positive || 0
+  const neutralCount = profile.metrics?.sentimentDistribution?.neutral || 0
+  const negativeCount = profile.metrics?.sentimentDistribution?.negative || 0
+  const totalSentiment = positiveCount + neutralCount + negativeCount
+  const positivePercent = totalSentiment > 0 ? (positiveCount / totalSentiment) * 100 : 0
+  const neutralPercent = totalSentiment > 0 ? (neutralCount / totalSentiment) * 100 : 0
 
   return (
     <PageLayout>
@@ -289,7 +258,8 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
             {/* Posts Feed */}
             <div className="flex-1 overflow-y-auto">
               <div className="px-6 py-4 space-y-4">
-                {samplePosts.map((post) => (
+                {/* Posts will be loaded from API - samplePosts removed */}
+                {[].map((post: any) => (
                   <Card key={post.id} className="hover:border-primary/50 transition-colors">
                     <CardContent className="p-4">
                       {/* Post Header */}
@@ -385,7 +355,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                       <div className="text-xs text-muted-foreground">Total Posts</div>
                     </div>
                     <div>
-                      <div className="text-3xl font-bold text-primary">{samplePosts.length.toLocaleString()}</div>
+                      <div className="text-3xl font-bold text-primary">{(profile.metrics?.totalPosts || 0).toLocaleString()}</div>
                       <div className="text-xs text-muted-foreground">Profile Posts</div>
                     </div>
                   </div>

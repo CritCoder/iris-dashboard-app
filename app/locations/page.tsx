@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
-import { Search, MapPin, TrendingUp, ChevronRight, X, Download, Eye, Users, MessageSquare, AlertTriangle, Calendar, TrendingDown, BarChart3, Map, Grid3X3 } from 'lucide-react'
+import { MapPin, TrendingUp, ChevronRight, X, Download, Eye, Users, MessageSquare, AlertTriangle, Calendar, TrendingDown, BarChart3, Map, Grid3X3 } from 'lucide-react'
+import { SearchInput } from '@/components/ui/search-input'
 import { OSMLocationMap } from '@/components/ui/osm-location-map'
 import { responsive } from '@/lib/performance'
 import { Button } from '@/components/ui/button'
@@ -347,6 +348,45 @@ export default function LocationsPage() {
     router.push(`/locations/${location.id}`)
   }
 
+  const handleExport = () => {
+    try {
+      // Create CSV content
+      const csvContent = [
+        // Header row
+        ['Location Name', 'Type', 'Category', 'Total Mentions', 'Last Seen', 'Sentiment', 'Trend', 'Incidents', 'Engagement', 'Risk Level'].join(','),
+        // Data rows
+        ...filteredLocations.map(location => [
+          `"${location.name}"`,
+          `"${location.type}"`,
+          `"${location.category || 'N/A'}"`,
+          location.totalMentions,
+          `"${new Date(location.lastSeen).toLocaleDateString()}"`,
+          `"${location.sentiment ? `${location.sentiment.positive}% positive, ${location.sentiment.negative}% negative, ${location.sentiment.neutral}% neutral` : 'N/A'}"`,
+          `"${location.trend || 'N/A'}"`,
+          location.incidents || 0,
+          location.engagement || 0,
+          `"${location.riskLevel || 'N/A'}"`
+        ].join(','))
+      ].join('\n')
+
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const link = document.createElement('a')
+      const url = URL.createObjectURL(blob)
+      link.setAttribute('href', url)
+      link.setAttribute('download', `locations-export-${new Date().toISOString().split('T')[0]}.csv`)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      console.log('Locations exported successfully:', filteredLocations.length, 'locations')
+    } catch (error) {
+      console.error('Export failed:', error)
+      alert('Export failed. Please try again.')
+    }
+  }
+
   // Build API params based on search and filter
   const apiParams = useMemo(() => {
     const params: any = {}
@@ -459,7 +499,7 @@ export default function LocationsPage() {
             <span className="text-sm text-muted-foreground">
               {filteredLocations.length} locations found
             </span>
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button variant="outline" size="sm" className="gap-2" onClick={handleExport}>
               <Download className="w-4 h-4" />
               Export
             </Button>
@@ -513,19 +553,11 @@ export default function LocationsPage() {
                     />
                   </div>
                 </div>
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <SanitizedSearchInput
-                    type="text"
+                <div className="flex-1">
+                  <SearchInput
                     placeholder="Search locations..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 w-full"
-                    onSanitizedChange={(sanitized, isValid, error) => {
-                      if (isValid) {
-                        setSearchQuery(sanitized)
-                      }
-                    }}
                   />
                 </div>
                 {/* Mobile Filters */}

@@ -14,8 +14,8 @@ interface ProfilePostTabsProps {
 
 export function ProfilePostTabs({ onTabSelect, activeTab = 'latest' }: ProfilePostTabsProps) {
   return (
-    <div className="border-b border-border bg-card">
-      <nav className="flex space-x-1 px-4" aria-label="Tabs">
+    <div className="bg-background">
+      <nav className="flex space-x-1" aria-label="Tabs">
         {tabs.map((tab) => (
           <button
             key={tab.name}

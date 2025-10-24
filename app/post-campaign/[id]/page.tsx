@@ -86,7 +86,19 @@ export default function PostCampaignPage() {
       setLoading(true)
       setError(null)
 
-      // Try to load from sessionStorage first
+      // Try to load campaign from sessionStorage first (for newly created campaigns)
+      const cachedCampaign = sessionStorage.getItem(`campaign_${campaignId}`)
+      if (cachedCampaign) {
+        try {
+          const campaignData = JSON.parse(cachedCampaign)
+          setCampaign(campaignData)
+          console.log('Loaded campaign from cache:', campaignData)
+        } catch (e) {
+          console.error('Error parsing cached campaign:', e)
+        }
+      }
+
+      // Try to load original post from sessionStorage
       const cachedPost = sessionStorage.getItem(`originalPost_${campaignId}`)
       if (cachedPost) {
         try {
@@ -96,15 +108,32 @@ export default function PostCampaignPage() {
         }
       }
 
-      // Load campaign details
-      const campaignResponse = await campaignApi.getById(campaignId)
-      if (campaignResponse.success) {
-        const campaignData = campaignResponse.data as any
-        setCampaign(campaignData)
-        
-        // If campaign has originalPost, use it
-        if (campaignData?.originalPost) {
-          setOriginalPost(campaignData.originalPost)
+      // Load campaign details from API
+      try {
+        const campaignResponse = await campaignApi.getById(campaignId)
+        if (campaignResponse.success) {
+          const campaignData = campaignResponse.data as any
+          setCampaign(campaignData)
+
+          // If campaign has originalPost, use it
+          if (campaignData?.originalPost) {
+            setOriginalPost(campaignData.originalPost)
+          }
+        }
+      } catch (error: any) {
+        // If campaign not found (404), it might still be processing
+        if (error.message?.includes('404')) {
+          console.log('Campaign not found yet, might be processing')
+          // Don't set error if we have cached data
+          if (!cachedCampaign) {
+            setError('Campaign is still being processed. Please wait...')
+            // Retry after 3 seconds
+            setTimeout(() => {
+              loadCampaignData()
+            }, 3000)
+          }
+        } else {
+          throw error
         }
       }
 
@@ -116,6 +145,7 @@ export default function PostCampaignPage() {
         }
       } catch (error) {
         console.error('Error fetching original post:', error)
+        // Don't treat this as a fatal error
       }
 
     } catch (error) {
@@ -184,6 +214,18 @@ export default function PostCampaignPage() {
     loadCampaignData()
   }, [loadCampaignData])
 
+  // Auto-refresh for processing campaigns
+  useEffect(() => {
+    if (campaign?.status === 'PROCESSING' && !originalPost) {
+      const interval = setInterval(() => {
+        console.log('Auto-refreshing campaign data...')
+        loadCampaignData()
+      }, 10000) // Refresh every 10 seconds
+
+      return () => clearInterval(interval)
+    }
+  }, [campaign?.status, originalPost, loadCampaignData])
+
   // Load comments when original post is available
   useEffect(() => {
     if (originalPost?.id) {
@@ -236,17 +278,43 @@ export default function PostCampaignPage() {
     )
   }
 
-  if (error && !originalPost) {
+  if (error && !originalPost && !campaign) {
+    // Check if this is a processing error
+    const isProcessing = error.includes('processing') || error.includes('404')
+
     return (
       <PageLayout>
         <div className="h-screen flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-foreground mb-2">Error Loading Campaign</h2>
-            <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={() => router.back()}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Go Back
-            </Button>
+          <div className="text-center max-w-md">
+            {isProcessing ? (
+              <>
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
+                <h2 className="text-2xl font-bold text-foreground mb-2">Campaign Processing</h2>
+                <p className="text-muted-foreground mb-2">{campaign?.campaignName || 'Your campaign'} is being processed...</p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  We're collecting data from {campaign?.platforms?.join(', ') || 'social media platforms'}. This usually takes 4-10 minutes.
+                </p>
+                <div className="flex gap-2 justify-center">
+                  <Button onClick={() => loadCampaignData()} variant="outline">
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Refresh
+                  </Button>
+                  <Button onClick={() => router.back()} variant="ghost">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Go Back
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h2 className="text-2xl font-bold text-foreground mb-2">Error Loading Campaign</h2>
+                <p className="text-muted-foreground mb-4">{error}</p>
+                <Button onClick={() => router.back()}>
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Go Back
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </PageLayout>
@@ -267,10 +335,26 @@ export default function PostCampaignPage() {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
-            <div>
-              <h1 className="text-xl font-bold text-foreground">Post Campaign Analysis</h1>
-              <p className="text-sm text-muted-foreground">Detailed analysis and comments tracking</p>
+            <div className="flex-1">
+              <div className="flex items-center gap-3">
+                <h1 className="text-xl font-bold text-foreground">Post Campaign Analysis</h1>
+                {campaign?.status === 'PROCESSING' && (
+                  <Badge variant="secondary" className="animate-pulse">
+                    <div className="w-2 h-2 bg-primary rounded-full mr-2"></div>
+                    Processing
+                  </Badge>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {campaign?.campaignName || 'Detailed analysis and comments tracking'}
+              </p>
             </div>
+            {campaign && (
+              <div className="text-right text-sm text-muted-foreground">
+                <p>Platforms: {campaign.platforms?.join(', ') || 'N/A'}</p>
+                <p className="text-xs">Est. time: {campaign.estimatedProcessingTime || '4-10 minutes'}</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -278,6 +362,31 @@ export default function PostCampaignPage() {
           {/* Left Panel - Post & Comments */}
           <div className="flex-1 overflow-y-auto border-r border-border">
             <div className="p-6 space-y-6">
+              {/* Processing Banner */}
+              {campaign?.status === 'PROCESSING' && !originalPost && (
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mt-0.5"></div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-foreground mb-1">Campaign is Processing</h3>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        We're actively collecting posts from {campaign.platforms?.join(', ')} about "{campaign.campaignName}".
+                        This process typically takes {campaign.estimatedProcessingTime || '4-10 minutes'}.
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 bg-muted rounded-full h-2">
+                          <div className="bg-blue-500 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+                        </div>
+                        <Button size="sm" variant="outline" onClick={() => loadCampaignData()}>
+                          <RefreshCw className="w-3 h-3 mr-1" />
+                          Check Status
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Original Post */}
               {originalPost ? (
                 <div className="bg-card border border-border rounded-lg p-6">

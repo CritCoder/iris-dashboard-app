@@ -66,7 +66,7 @@ function SocialFeedContent() {
 
   const apiParams = useMemo(() => {
     const params: any = {
-      limit: 50,
+      limit: 20, // Reduced from 50 to 20 for faster initial load
     }
     searchParams.forEach((value, key) => {
       params[key] = value
@@ -184,7 +184,7 @@ function SocialFeedContent() {
             <div className="p-2 sm:p-3">
               {loading && posts.length === 0 ? (
                 <SocialFeedSkeleton />
-              ) : error ? (
+              ) : error && !posts.length ? (
                 <Empty>
                   <EmptyHeader>
                     <EmptyMedia variant="icon">
@@ -192,8 +192,8 @@ function SocialFeedContent() {
                     </EmptyMedia>
                     <EmptyTitle>Error Loading Posts</EmptyTitle>
                     <EmptyDescription>
-                      {error.includes('Authentication') ? 
-                        'Authentication failed. Please login again.' : 
+                      {error.includes('Authentication') ?
+                        'Authentication failed. Please login again.' :
                         error
                       }
                     </EmptyDescription>

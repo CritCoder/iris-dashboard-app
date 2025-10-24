@@ -3,9 +3,9 @@
 import { useState, useMemo, useEffect } from 'react'
 import { PageLayout } from '@/components/layout/page-layout'
 import { PageHeader } from '@/components/layout/page-header'
-import { Search, Building2, TrendingUp, TrendingDown, BarChart3, Download, Filter, Users, MessageSquare, Calendar, Users2, Shield, Globe, Eye, EyeOff, Check, AlertTriangle } from 'lucide-react'
+import { Building2, TrendingUp, TrendingDown, BarChart3, Download, Filter, Users, MessageSquare, Calendar, Users2, Shield, Globe, Eye, EyeOff, Check, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/ui/search-input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useGroups } from '@/hooks/use-api'
@@ -351,28 +351,26 @@ export default function GroupsPage() {
 
   return (
     <PageLayout>
-      <div className="flex h-full">
+      <div className="flex h-screen overflow-hidden">
         <GroupsSidebar
           onFilterChange={handleFilterChange}
           activeFilter={activeFilter}
           onViewTypeChange={setViewType}
           viewType={viewType}
         />
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col overflow-hidden">
           <PageHeader
             title="Groups"
             description="Monitor and analyze social groups and communities"
           />
-          <div className="flex-1 p-6 overflow-auto">
+          <div className="flex-1 p-6 overflow-y-auto">
             {/* Filters */}
             <div className="flex flex-col sm:flex-row gap-4 mb-6 w-full">
               <div className="relative flex-1 max-w-none">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
+                <SearchInput
                   placeholder="Search groups by name..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-full"
                 />
               </div>
 

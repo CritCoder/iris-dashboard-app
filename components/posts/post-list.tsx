@@ -117,11 +117,11 @@ export function PostList({ posts, campaignId = '1', defaultView = 'grid' }: Post
       </div>
 
       {posts.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="text-muted-foreground">
-            <Grid3X3 className="w-12 h-12 mx-auto mb-4 opacity-50" />
+        <div className="flex min-h-[40vh] items-center justify-center text-center py-12">
+          <div className="flex flex-col items-center gap-3 text-muted-foreground">
+            <Grid3X3 className="w-12 h-12 opacity-50" />
             <p>No posts found</p>
-            <p className="text-sm mt-1">Try adjusting your filters</p>
+            <p className="text-sm">Try adjusting your filters</p>
           </div>
         </div>
       ) : (

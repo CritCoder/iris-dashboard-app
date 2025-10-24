@@ -3,8 +3,8 @@
 import { useState, useMemo, Suspense, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { PageLayout } from '@/components/layout/page-layout'
-import { Search, Users } from 'lucide-react'
-import { Input } from '@/components/ui/input'
+import { Users } from 'lucide-react'
+import { SearchInput } from '@/components/ui/search-input'
 import { useProfiles } from '@/hooks/use-profiles'
 import { ProfileList } from '@/components/profiles/profile-list'
 import { ProfilesSidebar } from '@/components/profiles/profiles-sidebar'
@@ -96,22 +96,20 @@ function ProfilesPageContent() {
 
   return (
       <PageLayout>
-      <div className="min-h-screen flex bg-background">
+      <div className="h-screen flex bg-background overflow-hidden">
         <ProfilesSidebar
           onFilterChange={handleFilterChange}
           activeParams={searchParams}
         />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col overflow-hidden">
           <div className="border-b border-border bg-background px-4 py-3 flex items-center justify-between">
             <h1 className="text-lg font-semibold">Profiles</h1>
-            <div className="relative w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
+            <div className="w-64">
+              <SearchInput
                 placeholder="Search profiles..."
                 value={searchQuery}
                 onChange={handleSearchChange}
-                className="pl-10"
               />
             </div>
           </div>

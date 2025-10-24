@@ -215,25 +215,31 @@ export function ProfileCard({ profile, view = 'grid', campaignId = '1', onClick 
 
         <CardContent className="flex-1 flex flex-col">
           {/* Bio */}
-          <div className="flex-1 mb-4">
-            <p className="text-foreground/90 text-sm leading-relaxed line-clamp-3">
-              {profile.bio || 'No bio available'}
-            </p>
+          <div className="flex-1 mb-3">
+            {profile.bio ? (
+              <p className="text-foreground/90 text-sm leading-relaxed line-clamp-3">
+                {profile.bio}
+              </p>
+            ) : (
+              <p className="text-muted-foreground/60 text-sm italic">
+                No bio available
+              </p>
+            )}
           </div>
 
-          {/* Location & Website */}
+          {/* Location & Website - Only show if available */}
           {(profile.location || profile.website) && (
-            <div className="space-y-1 mb-4">
+            <div className="space-y-1.5 mb-4">
               {profile.location && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <MapPin className="w-3 h-3" />
-                  <span className="truncate">{profile.location}</span>
+                <div className="flex items-center gap-2 text-xs">
+                  <MapPin className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                  <span className="text-foreground/80 truncate">{profile.location}</span>
                 </div>
               )}
               {profile.website && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Globe className="w-3 h-3" />
-                  <span className="truncate">{profile.website}</span>
+                <div className="flex items-center gap-2 text-xs">
+                  <Globe className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                  <span className="text-foreground/80 truncate">{profile.website}</span>
                 </div>
               )}
             </div>

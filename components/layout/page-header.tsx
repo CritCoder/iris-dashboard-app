@@ -15,7 +15,7 @@ interface PageHeaderProps {
 export function PageHeader({ title, description, actions, centerContent, showBreadcrumbs = true }: PageHeaderProps) {
   return (
     <header className="border-b border-border bg-background sticky top-0 z-40">
-      <div className="max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 h-16 flex items-center">
+      <div className="mx-auto pl-6 pr-6 h-16 flex items-center">
         {/* Compact Header - Single Row with fixed height to match pagination footer */}
         <div className="flex items-center justify-between gap-4 w-full">
           {/* Mobile Nav Trigger + Breadcrumbs */}

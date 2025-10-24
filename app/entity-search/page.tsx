@@ -1156,7 +1156,8 @@ export default function EntitySearchPage() {
                   <Label htmlFor="search-query">
                     {searchType === 'general' ? 'Search Query *' : searchType === 'mobile' ? 'Mobile Number *' : 'Vehicle Number *'}
                   </Label>
-                  <div className="space-y-1">
+                  <div className="space-y-1 relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
                     <SanitizedSearchInput
                       id="search-query"
                       placeholder={searchType === 'general' 
@@ -1167,6 +1168,7 @@ export default function EntitySearchPage() {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       disabled={isSearching}
+                      className="pl-10"
                       onSanitizedChange={(sanitized, isValid, error) => {
                         if (isValid) {
                           setSearchQuery(sanitized)

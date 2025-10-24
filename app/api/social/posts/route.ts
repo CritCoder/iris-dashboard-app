@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     // Use a fallback URL if API_BASE_URL is not set
     const baseUrl = API_BASE_URL || 'https://irisnet.wiredleap.com';
-    const url = `${baseUrl}/social/posts`;
+    const url = `${baseUrl}/api/social/posts`;
 
     // Build query string
     const queryParams = new URLSearchParams({

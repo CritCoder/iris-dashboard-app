@@ -36,85 +36,12 @@ import { LocationList } from '@/components/locations/location-list'
 import { LocationDetailView } from '@/components/locations/location-detail-view'
 import { startMonitoring, stopMonitoring } from '@/lib/api/campaigns'
 import { convertToPostCardFormat } from '@/lib/utils'
-import ErrorBoundary from '@/components/ui/error-boundary'
+import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { TabBar, Tab } from '@/components/ui/tab-bar'
 import { ProfileDetailView } from '@/components/profiles/profile-detail-view'
 import { AISummaryCard } from '@/components/analysis/ai-summary-card'
 
-const samplePosts: Post[] = [
-  {
-    id: '1',
-    author: 'dubeyjikahin',
-    platform: 'twitter',
-    content: 'Bengaluru police taking strict action against social media content that violates community guidelines. #BengaluruPolice #SocialMedia',
-    timestamp: '2 days ago',
-    likes: 45,
-    comments: 12,
-    shares: 8,
-    views: 1200,
-    sentiment: 'neutral'
-  },
-  {
-    id: '2',
-    author: 'grok',
-    platform: 'twitter',
-    content: 'New AI model Grok Imagine launched with enhanced capabilities for content analysis and monitoring.',
-    timestamp: '2 days ago',
-    likes: 5,
-    comments: 0,
-    shares: 1,
-    views: 800,
-    sentiment: 'positive'
-  },
-  {
-    id: '3',
-    author: 'EnglishSalar',
-    platform: 'twitter',
-    content: 'Arrest made in Bengaluru for spreading misinformation on social media platforms. Police action shows commitment to digital safety.',
-    timestamp: '2 days ago',
-    likes: 23,
-    comments: 5,
-    shares: 3,
-    views: 950,
-    sentiment: 'positive'
-  },
-  {
-    id: '4',
-    author: 'DeccanChronicle',
-    platform: 'twitter',
-    content: 'Bengaluru police crackdown on fake news and hate speech online continues with multiple arrests this week.',
-    timestamp: '2 days ago',
-    likes: 67,
-    comments: 15,
-    shares: 12,
-    views: 2100,
-    sentiment: 'neutral'
-  },
-  {
-    id: '5',
-    author: 'JIMMY211711',
-    platform: 'twitter',
-    content: 'Personal experience with Bengaluru police response to online harassment complaint. Quick and professional action taken.',
-    timestamp: '2 days ago',
-    likes: 12,
-    comments: 3,
-    shares: 2,
-    views: 600,
-    sentiment: 'positive'
-  },
-  {
-    id: '6',
-    author: 'Misabh2020',
-    platform: 'twitter',
-    content: 'Concerns about freedom of expression vs. content moderation policies in Bengaluru. Need for balanced approach.',
-    timestamp: '2 days ago',
-    likes: 8,
-    comments: 7,
-    shares: 1,
-    views: 450,
-    sentiment: 'negative'
-  }
-]
+// Sample posts removed - using only real API data
 
 function CampaignDetailPage() {
   const params = useParams()
@@ -823,8 +750,13 @@ function CampaignDetailPage() {
         {/* Simplified Header */}
         <div className="border-b border-border bg-background px-4 sm:px-6 py-3 flex-shrink-0">
           <div className="flex items-center justify-between gap-4">
-            {/* Left: Title and Live Status Only */}
+            {/* Left: Back Button, Title and Live Status */}
             <div className="flex items-center gap-3">
+              <Link href="/analysis-history">
+                <Button variant="ghost" size="sm" className="h-8 px-2">
+                  <ChevronRightIcon className="w-4 h-4 rotate-180" />
+                </Button>
+              </Link>
               <h1 className="text-lg font-bold text-foreground">
                 {campaignsLoading ? (
                   <div className="h-5 w-32 bg-muted animate-pulse rounded"></div>
@@ -861,8 +793,8 @@ function CampaignDetailPage() {
                 variant="outline"
                 size="sm"
                 className={`gap-1.5 h-8 px-3 transition-colors ${
-                  isMonitoring 
-                    ? 'bg-cyan-900/20 border-cyan-800 text-cyan-400 hover:bg-cyan-900/30' 
+                  isMonitoring
+                    ? 'bg-cyan-900/20 border-cyan-800 text-cyan-400 hover:bg-cyan-900/30'
                     : 'bg-gray-900/20 border-gray-800 text-gray-400 hover:bg-gray-900/30'
                 }`}
                 onClick={handleToggleMonitoring}
@@ -899,14 +831,24 @@ function CampaignDetailPage() {
                 )}
                 Stop
               </Button>
-              <Link href="/analysis-history">
-                <Button variant="outline" size="sm" className="h-8 px-3">
-                  Back
-                </Button>
-              </Link>
             </div>
           </div>
         </div>
+
+        {/* Processing Banner */}
+        {currentCampaign && currentCampaign.status === 'PROCESSING' && (
+          <div className="bg-blue-500/10 border-b border-blue-500/20 px-6 py-3">
+            <div className="flex items-center gap-3">
+              <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-foreground">Campaign is Processing</p>
+                <p className="text-xs text-muted-foreground">
+                  Data collection in progress. Results will appear once processing is complete.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Main Content - Full Screen Desktop Layout */}
         <div ref={contentRef} className="flex-1 flex overflow-hidden min-h-0">
@@ -982,7 +924,7 @@ function CampaignDetailPage() {
             if (!activeMenuItem || activeMenuItem.subItems.length === 0) return null
             
             return (
-              <div className="w-56 border-r border-border bg-background flex flex-col h-[calc(100vh-16rem)]">
+              <div className="w-56 border-r border-border bg-background flex flex-col h-full">
                 <div className="p-3 border-b border-border">
                   <div className="flex items-center justify-between">
                     <h3 className="text-xs font-semibold text-foreground">
